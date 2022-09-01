@@ -4,11 +4,13 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.10.21
-	github.com/kurtosis-tech/kurtosis-core-api-lib/api/golang v0.0.0-20220816164100-89b25ce28972
-	github.com/kurtosis-tech/kurtosis-engine-api-lib/api/golang v0.0.0-20220816165446-bec9617fee2c
-	github.com/sirupsen/logrus v1.9.0
+	github.com/kurtosis-tech/kurtosis-core-api-lib/api/golang v0.0.0-20220831120648-10f44d8a5625
+	github.com/kurtosis-tech/kurtosis-engine-api-lib/api/golang v0.0.0-20220831170500-c734b19e1f3f
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/stretchr/testify v1.8.0
 )
+
+require github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
@@ -23,7 +25,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
@@ -40,6 +41,7 @@ require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.41.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
