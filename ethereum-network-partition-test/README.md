@@ -1,8 +1,10 @@
 Ethereum Network Partitioning Example
 =====================================
-This demo shows off how Kurtosis network partitioning
+This demo shows off how Kurtosis network partitioning using proof-of-work mining Ethereum nodes.
 
-NOTE: As of 2022-08-03, network partitioning isn't yet built for the Kubernetes backend, so this should be done with Docker.
+NOTE 1: As of 2022-08-03, network partitioning isn't yet built for the Kubernetes backend, so this should be done with Docker.
+
+NOTE 2: This uses the heavyweight proof-of-work mining nodes, so it's slow (but true-to-mainnet)
 
 ### Demo Flow
 1. Make sure you have a Kurtosis engine running
