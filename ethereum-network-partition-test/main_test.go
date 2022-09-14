@@ -14,20 +14,33 @@ import (
 	"time"
 )
 
+/*
+This test will start a three-node Ethereum network, partition it, and then heal the partition to demonstrate
+Ethereum-forking behaviour in Kurtosis.
+*/
+
 const (
 	testName              = "go-network-partitioning"
 	isPartitioningEnabled = true
 
 	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/ethereum-kurtosis-module"
-	moduleParams   = "{}"
+	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.6.4"
+	moduleParams   = `{
+	"executionLayerOnly": true,
+	"participants": [
+		{"elType":"geth","clType":"lodestar"},
+		{"elType":"geth","clType":"lodestar"},
+		{"elType":"geth","clType":"lodestar"}
+	]
+}`
 
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
 
-	node0Id = "bootnode"
-	node1Id = "ethereum-node-1"
-	node2Id = "ethereum-node-2"
+	transactionSpammerId = "transaction-spammer"
+	node0Id              = "el-client-0"
+	node1Id              = "el-client-1"
+	node2Id              = "el-client-2"
 
 	rpcPortId = "rpc"
 )
@@ -86,8 +99,9 @@ func TestNetworkPartitioning(t *testing.T) {
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		firstPartition: {
-			node0Id: true,
-			node1Id: true,
+			transactionSpammerId: true,
+			node0Id:              true,
+			node1Id:              true,
 		},
 		secondPartition: {
 			node2Id: true,
@@ -110,9 +124,10 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		"pangea": {
-			node0Id: true,
-			node1Id: true,
-			node2Id: true,
+			transactionSpammerId: true,
+			node0Id:              true,
+			node1Id:              true,
+			node2Id:              true,
 		},
 	}
 	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
