@@ -88,27 +88,42 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred launching the node info printer thread")
 	defer stopPrintingFunc()
 
-	time.Sleep(10 * time.Second)
-
+	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
 	err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
+	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
-
 
 	fmt.Println("------------ INDUCING PARTITION ---------------")
 	partitionNetwork(t, enclaveCtx)
 
+	partitions := []enclaves.PartitionID{
+		firstPartition,
+		secondPartition,
+	}
+	nodeClientsByPartitionIds := []ethclient.Client{
+		nodeClientsByServiceIds[0],
+		nodeClientsByServiceIds[2],
+	}
 
+	fmt.Println("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
+	nextPartition1BlockNumber, nextPartition1BlockHash, err := getNextPartition1BlockNumberAndHash(ctx, partitions, nodeClientsByPartitionIds)
+	require.NoError(t, err, "An error occurred getting next partition1 block number")
+
+	err = waitUntilPartitionsDivergeBlockNumbers(ctx, nodeClientsByServiceIds[2], nextPartition1BlockNumber, nextPartition1BlockHash)
+	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
+	fmt.Println("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
 
 	fmt.Println("------------ HEALING PARTITION ---------------")
 	healNetwork(t, enclaveCtx)
-
-	time.Sleep(2 * time.Minute)
+	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC AFTER THE PARTITION ---------------")
+	err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
+	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER THE PARTITION --------------")
+	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
 }
 
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		firstPartition: {
-			transactionSpammerId: true,
 			node0Id:              true,
 			node1Id:              true,
 		},
@@ -133,7 +148,6 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		"pangea": {
-			transactionSpammerId: true,
 			node0Id:              true,
 			node1Id:              true,
 			node2Id:              true,
@@ -153,10 +167,10 @@ func getNodeClientsByServiceIds(
 	enclaveCtx *enclaves.EnclaveContext,
 	serviceIds []services.ServiceID,
 ) (
-	resultClientsByServiceId []*ethclient.Client,
+	resultClientsByServiceId []ethclient.Client,
 	resultErr error,
 ) {
-	nodeClientsByServiceIds := []*ethclient.Client{}
+	nodeClientsByServiceIds := []ethclient.Client{}
 	for _, serviceId := range serviceIds {
 		serviceCtx, err := enclaveCtx.GetServiceContext(serviceId)
 		if err != nil {
@@ -178,7 +192,7 @@ func getNodeClientsByServiceIds(
 			return nil, stacktrace.Propagate(err, "A fatal error occurred creating the ETH client for service '%v'", serviceId)
 		}
 
-		nodeClientsByServiceIds = append(nodeClientsByServiceIds, client)
+		nodeClientsByServiceIds = append(nodeClientsByServiceIds, *client)
 	}
 	return nodeClientsByServiceIds, nil
 }
@@ -186,7 +200,7 @@ func getNodeClientsByServiceIds(
 func printNodeInfoUntilStopped(
 	ctx context.Context,
 	serviceIds []services.ServiceID,
-	nodeClientsByServiceIds []*ethclient.Client,
+	nodeClientsByServiceIds []ethclient.Client,
 ) (func(), error) {
 
 	printingStopChan := make(chan struct{})
@@ -214,18 +228,18 @@ func printNodeInfoUntilStopped(
 
 func getMostRecentNodeBlock(
 	ctx context.Context,
-	serviceId services.ServiceID,
-	client *ethclient.Client,
+	resourceID string,
+	client ethclient.Client,
 ) (*types.Block, error) {
 	blockNumberUint64, err := client.BlockNumber(ctx)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "%-25sAn error occurred getting the block number", serviceId)
+		return nil, stacktrace.Propagate(err, "%-25sAn error occurred getting the block number", resourceID)
 	}
 
 	blockNumberBigint := new(big.Int).SetUint64(blockNumberUint64)
 	block, err := client.BlockByNumber(ctx, blockNumberBigint)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "%-25sAn error occurred getting the latest block", serviceId)
+		return nil, stacktrace.Propagate(err, "%-25sAn error occurred getting the latest block", resourceID)
 	}
 	if block == nil {
 		return nil, stacktrace.NewError("Something unexpected happened, block mustn't be nil; this is an error in the Geth client")
@@ -233,10 +247,11 @@ func getMostRecentNodeBlock(
 	return block, nil
 }
 
-func printNodeInfo(ctx context.Context, serviceId services.ServiceID, client *ethclient.Client) {
-	block, err := getMostRecentNodeBlock(ctx, serviceId, client)
+func printNodeInfo(ctx context.Context, serviceId services.ServiceID, client ethclient.Client) {
+	block, err := getMostRecentNodeBlock(ctx, string(serviceId), client)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error()))
+		return
 	}
 
 	hexStr := block.Hash().Hex()
@@ -244,62 +259,164 @@ func printNodeInfo(ctx context.Context, serviceId services.ServiceID, client *et
 	fmt.Println(fmt.Sprintf("%-25sblock number: %v, block hash: %v", serviceId, block.Number(), hexStr))
 }
 
+
+//TODO close the channels ??
 func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 	ctx context.Context,
 	serviceIds []services.ServiceID,
-	nodeClientsByServiceIds []*ethclient.Client,
+	nodeClientsByServiceIds []ethclient.Client,
 ) error {
 	var wg sync.WaitGroup
 	result := sync.Map{}
-
 	errorChan := make(chan error)
-	for true {
+
+	shouldCheckForSync := true
+	for shouldCheckForSync {
 		select {
-		case <-time.Tick(1 * time.Millisecond):
+		case <-time.Tick(1 * time.Second):
 			for idx, client := range nodeClientsByServiceIds {
 				wg.Add(1)
-
+				serviceClient := client
 				serviceId := serviceIds[idx]
 				go func() {
 					defer wg.Done()
-					block, err := getMostRecentNodeBlock(ctx, serviceId, client)
+					block, err := getMostRecentNodeBlock(ctx, string(serviceId), serviceClient)
 					if err != nil {
-						errorChan <- err
+						errorChan <- err //I think that we can change this for a return statement
 					}
+					result.Store(serviceId, block)
 					blockHash := block.Hash().Hex()
-					result.Store(serviceId, blockHash)
-					fmt.Println(fmt.Sprintf("Waiting until func serviceId '%v' - block hash '%v'", serviceId, blockHash))
+					fmt.Println(fmt.Sprintf("Checking sync - serviceId '%v' block number '%v' - block hash '%v'", serviceId, block.Number(), blockHash))
 				}()
 
 			}
 			wg.Wait()
 
 			var previousNodeBlockHash string
-			fmt.Println(fmt.Sprintf("Result '%v'", result))
+			var previosNodeBlockNumber *big.Int
+
 			areAllEqual := true
 			for _, serviceId := range serviceIds {
-				uncastedNodeBlockHash, ok := result.LoadAndDelete(serviceId)
+				uncastedNodeBlock, ok := result.LoadAndDelete(serviceId)
 				if !ok {
 					errorChan <- stacktrace.NewError("An error occurred loading the nodeBlock for service with ID '%v'", serviceId)
 				}
-				nodeBlockHash := uncastedNodeBlockHash.(string)
-				fmt.Println(fmt.Sprintf("Service ID %v - Previous blo '%v', node blo '%v'", serviceId, previousNodeBlockHash, nodeBlockHash))
-				if previousNodeBlockHash != nodeBlockHash {
+				nodeBlock := uncastedNodeBlock.(*types.Block)
+				nodeBlockNumber := nodeBlock.Number()
+				nodeBlockHash := nodeBlock.Hash().Hex()
+				fmt.Println(fmt.Sprintf("Service ID %v - Previous block number '%v' and hash '%v', node block number '%v' and hash '%v'", serviceId, previosNodeBlockNumber, previousNodeBlockHash, nodeBlockNumber, nodeBlockHash))
+				if previousNodeBlockHash != "" && previousNodeBlockHash != nodeBlockHash {
 					fmt.Println(fmt.Sprintf("No equal - Previous blo '%v', node blo '%v'", previousNodeBlockHash, nodeBlockHash))
 					areAllEqual = false
-				}else {
+					break
+				} else {
 					fmt.Println(fmt.Sprintf("Equal - Previous blo '%v', node blo '%v'", previousNodeBlockHash, nodeBlockHash))
 				}
+				previosNodeBlockNumber = nodeBlockNumber
 				previousNodeBlockHash = nodeBlockHash
 			}
+
 			if areAllEqual {
-				break
+				fmt.Println("--ALL ARE EQUALS!!--")
+				shouldCheckForSync = false
+			} else {
+				fmt.Println("--ALL AREN'T EQUALS!!--")
 			}
 
 		case err := <-errorChan:  //TODO checks if it works on this way
-			return stacktrace.Propagate(err, "An error occurred checking for synced nodes")
+			return stacktrace.Propagate(err, "An error occurred checking for synced nodes") //I think we can remove this
 		}
 	}
 
 	return nil
+}
+
+func waitUntilPartitionsDivergeBlockNumbers(
+	ctx context.Context,
+	partition2Client ethclient.Client,
+	partition1BlockNumber uint64,
+	partition1BlockHash string,
+	) error {
+
+
+	for true {
+		select {
+			case <-time.Tick(1 * time.Second):
+				block, err := getMostRecentNodeBlock(ctx, "partition2", partition2Client)
+				if err != nil {
+					return stacktrace.Propagate(err, "An error occurred waiting for partitin2 block number")
+				}
+
+				partition2BlockNumber := block.NumberU64()
+				partition2BlockHash :=  block.Hash().Hex()
+
+				fmt.Println(fmt.Sprintf("Partition1 number '%v' and hash '%v', Partition2 number '%v' and hash '%v'", partition1BlockNumber, partition1BlockHash, partition2BlockNumber, partition2BlockHash))
+				if partition2BlockNumber > partition1BlockNumber {
+					return stacktrace.NewError("If this happen we are in troubles, we should change this")
+				}
+
+				if partition1BlockNumber == partition2BlockNumber && partition1BlockHash == partition2BlockHash {
+					return stacktrace.NewError("This should never happen during a partition")
+				}
+
+				if partition1BlockNumber == partition2BlockNumber && partition1BlockHash != partition2BlockHash {
+					return nil
+				}
+		}
+	}
+	return nil
+}
+
+func getNextPartition1BlockNumberAndHash(
+	ctx context.Context,
+	partitionIDs []enclaves.PartitionID,
+	nodeClientsByPartitionIds []ethclient.Client,
+) (uint64, string, error){
+
+	var wg sync.WaitGroup
+	result := sync.Map{}
+	errorChan := make(chan error)
+
+	for true {
+		select {
+		case <-time.Tick(1 * time.Second):
+			for idx, client := range nodeClientsByPartitionIds {
+				wg.Add(1)
+				partitionClient := client
+				partitionID := partitionIDs[idx]
+				go func() {
+					defer wg.Done()
+					block, err := getMostRecentNodeBlock(ctx, string(partitionID), partitionClient)
+					if err != nil {
+						errorChan <- err
+					}
+					result.Store(partitionID, block)
+					blockHash := block.Hash().Hex()
+					fmt.Println(fmt.Sprintf("Checking sync - partitionID '%v' block number '%v' - block hash '%v'", partitionID, block.Number(), blockHash))
+				}()
+
+			}
+			wg.Wait()
+
+			uncastedPartition1NodeBlock, ok := result.LoadAndDelete(partitionIDs[0])
+			if !ok {
+				errorChan <- stacktrace.NewError("An error occurred loading the nodeBlock for partition with ID '%v'", partitionIDs[0])
+			}
+			partition1NodeBlock := uncastedPartition1NodeBlock.(*types.Block)
+
+			uncastedPartition2NodeBlock, ok := result.LoadAndDelete(partitionIDs[1])
+			if !ok {
+				errorChan <- stacktrace.NewError("An error occurred loading the nodeBlock for partition with ID '%v'", partitionIDs[1])
+			}
+			partition2NodeBlock := uncastedPartition2NodeBlock.(*types.Block)
+
+			fmt.Println(fmt.Sprintf("Comparing partitiong blocks - partition1 '%v' partition2 '%v' ", partition1NodeBlock.NumberU64(), partition2NodeBlock.NumberU64()))
+			if partition1NodeBlock.NumberU64() > partition2NodeBlock.NumberU64() {
+				return partition1NodeBlock.NumberU64(), partition1NodeBlock.Hash().Hex(), nil
+			}
+		case err := <-errorChan:  //TODO checks if it works on this way
+			return 0, "", stacktrace.Propagate(err, "An error occurred checking for synced nodes")
+		}
+	}
+	return 0, "", nil
 }
