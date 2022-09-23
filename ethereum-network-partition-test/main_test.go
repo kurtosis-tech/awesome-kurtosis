@@ -70,7 +70,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	))
 	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
 	require.NoError(t, err, "An error occurred creating the enclave")
-	// defer kurtosisCtx.StopEnclave(ctx, enclaveId)
+	//defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	ethModuleCtx, err := enclaveCtx.LoadModule(ethModuleId, ethModuleImage, "{}")
 	require.NoError(t, err, "An error occurred loading the ETH module")
@@ -79,6 +79,7 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	nodeClientsByServiceIds, err := getNodeClientsByServiceIds(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
+
 
 	stopPrintingFunc, err := printNodeInfoUntilStopped(
 		ctx,
@@ -89,9 +90,10 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer stopPrintingFunc()
 
 	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
-	err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
-	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
+	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
+	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
+	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
 
 	fmt.Println("------------ INDUCING PARTITION ---------------")
 	partitionNetwork(t, enclaveCtx)
@@ -106,19 +108,18 @@ func TestNetworkPartitioning(t *testing.T) {
 	}
 
 	fmt.Println("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
-	nextPartition1BlockNumber, nextPartition1BlockHash, err := getNextPartition1BlockNumberAndHash(ctx, partitions, nodeClientsByPartitionIds)
-	require.NoError(t, err, "An error occurred getting next partition1 block number")
-
-	err = waitUntilPartitionsDivergeBlockNumbers(ctx, nodeClientsByServiceIds[2], nextPartition1BlockNumber, nextPartition1BlockHash)
+	err = waitUntilPartitionsDivergeBlockNumbers(ctx, partitions, nodeClientsByPartitionIds, nodeClientsByServiceIds[2], syncedBlockNumber)
 	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
 	fmt.Println("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
 
 	fmt.Println("------------ HEALING PARTITION ---------------")
 	healNetwork(t, enclaveCtx)
-	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC AFTER THE PARTITION ---------------")
-	err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
-	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER THE PARTITION --------------")
+	fmt.Println("------------ PARTITION HEALED ---------------")
+	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC AFTER HEALING THE PARTITION ---------------")
+	syncedBlockNumber, err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
+	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
+	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
 }
 
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
@@ -265,13 +266,12 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 	ctx context.Context,
 	serviceIds []services.ServiceID,
 	nodeClientsByServiceIds []ethclient.Client,
-) error {
+) (uint64, error) {
 	var wg sync.WaitGroup
 	result := sync.Map{}
 	errorChan := make(chan error)
 
-	shouldCheckForSync := true
-	for shouldCheckForSync {
+	for true {
 		select {
 		case <-time.Tick(1 * time.Second):
 			for idx, client := range nodeClientsByServiceIds {
@@ -294,6 +294,7 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 
 			var previousNodeBlockHash string
 			var previosNodeBlockNumber *big.Int
+			var syncedBlockNumber uint64
 
 			areAllEqual := true
 			for _, serviceId := range serviceIds {
@@ -303,6 +304,7 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 				}
 				nodeBlock := uncastedNodeBlock.(*types.Block)
 				nodeBlockNumber := nodeBlock.Number()
+
 				nodeBlockHash := nodeBlock.Hash().Hex()
 				fmt.Println(fmt.Sprintf("Service ID %v - Previous block number '%v' and hash '%v', node block number '%v' and hash '%v'", serviceId, previosNodeBlockNumber, previousNodeBlockHash, nodeBlockNumber, nodeBlockHash))
 				if previousNodeBlockHash != "" && previousNodeBlockHash != nodeBlockHash {
@@ -314,30 +316,36 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 				}
 				previosNodeBlockNumber = nodeBlockNumber
 				previousNodeBlockHash = nodeBlockHash
+				syncedBlockNumber = nodeBlock.NumberU64()
 			}
 
 			if areAllEqual {
 				fmt.Println("--ALL ARE EQUALS!!--")
-				shouldCheckForSync = false
+				return syncedBlockNumber, nil
 			} else {
 				fmt.Println("--ALL AREN'T EQUALS!!--")
 			}
 
 		case err := <-errorChan:  //TODO checks if it works on this way
-			return stacktrace.Propagate(err, "An error occurred checking for synced nodes") //I think we can remove this
+			return 0, stacktrace.Propagate(err, "An error occurred checking for synced nodes") //I think we can remove this
 		}
 	}
 
-	return nil
+	return 0, nil
 }
 
 func waitUntilPartitionsDivergeBlockNumbers(
 	ctx context.Context,
+	partitionIDs []enclaves.PartitionID,
+	nodeClientsByPartitionIds []ethclient.Client,
 	partition2Client ethclient.Client,
-	partition1BlockNumber uint64,
-	partition1BlockHash string,
-	) error {
+	previousSyncedBlockNumber uint64,
+) error {
 
+	partition1BlockNumber, partition1BlockHash, err := getNextPartition1BlockNumberAndHash(ctx, partitionIDs, nodeClientsByPartitionIds, previousSyncedBlockNumber)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred getting the next partition 1 block number")
+	}
 
 	for true {
 		select {
@@ -364,6 +372,7 @@ func waitUntilPartitionsDivergeBlockNumbers(
 				}
 		}
 	}
+
 	return nil
 }
 
@@ -371,6 +380,7 @@ func getNextPartition1BlockNumberAndHash(
 	ctx context.Context,
 	partitionIDs []enclaves.PartitionID,
 	nodeClientsByPartitionIds []ethclient.Client,
+	previousSyncedBlockNumber uint64,
 ) (uint64, string, error){
 
 	var wg sync.WaitGroup
@@ -410,10 +420,14 @@ func getNextPartition1BlockNumberAndHash(
 			}
 			partition2NodeBlock := uncastedPartition2NodeBlock.(*types.Block)
 
+			if partition1NodeBlock.NumberU64() <= previousSyncedBlockNumber {
+				continue
+			}
 			fmt.Println(fmt.Sprintf("Comparing partitiong blocks - partition1 '%v' partition2 '%v' ", partition1NodeBlock.NumberU64(), partition2NodeBlock.NumberU64()))
 			if partition1NodeBlock.NumberU64() > partition2NodeBlock.NumberU64() {
 				return partition1NodeBlock.NumberU64(), partition1NodeBlock.Hash().Hex(), nil
 			}
+
 		case err := <-errorChan:  //TODO checks if it works on this way
 			return 0, "", stacktrace.Propagate(err, "An error occurred checking for synced nodes")
 		}
