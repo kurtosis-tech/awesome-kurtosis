@@ -193,7 +193,6 @@ func getNodeClientsByServiceID(
 			return nil, stacktrace.Propagate(err, "A fatal error occurred creating the ETH client for service '%v'", serviceId)
 		}
 
-		fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: setting node client by service ID - serviceID '%v'", serviceId))
 		nodeClientsByServiceIds[serviceId] = client
 	}
 	return nodeClientsByServiceIds, nil
@@ -284,15 +283,13 @@ func getMostRecentBlockAndStoreIt(
 	serviceClient *ethclient.Client,
 	nodeBlocksByServiceIds *sync.Map,
 ) error {
-	fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: node client pointer '%v', for service '%v'", &serviceClient, serviceId))
 	block, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, serviceClient, retriesAttempts, retriesSleepDuration)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred getting the most recent node block for service '%v'", serviceId)
 	}
-	fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: storing block for service '%v'", serviceId))
+
 	nodeBlocksByServiceIds.Store(serviceId, block)
-	blockHash := block.Hash().Hex()
-	fmt.Println(fmt.Sprintf("Checking sync - serviceId '%v' block number '%v' - block hash '%v'", serviceId, block.Number(), blockHash))
+
 	return nil
 }
 
@@ -306,7 +303,6 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 	errorChan := make(chan error, 1)
 	defer close(errorChan)
 
-	fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: node clients by service id '%+v'", nodeClientsByServiceIds))
 	for true {
 		select {
 		case <-time.Tick(1 * time.Second):
@@ -316,9 +312,7 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 				nodeClient := nodeClientsByServiceIds[serviceId]
 				go func() {
 					defer wg.Done()
-					fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: before executiong getMostRecentBlockAndStoreIt - serviceId '%v'", serviceId))
 
-					fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: before executiong getMostRecentBlockAndStoreIt - overrideId '%v'", nodeServiceId))
 					if err := getMostRecentBlockAndStoreIt(ctx, nodeServiceId, nodeClient, nodeBlocksByServiceIds); err != nil {
 						errorChan <- stacktrace.Propagate(err, "An error occurred getting the most recent node block and storing it for service '%v'", nodeServiceId)
 					}
@@ -327,40 +321,31 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 			wg.Wait()
 
 			var previousNodeBlockHash string
-			var previosNodeBlockNumber *big.Int
 			var syncedBlockNumber uint64
 
 			areAllEqual := true
-			fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: Chequeando valores del map '%+v'", nodeBlocksByServiceIds))
+
 			for _, serviceId := range serviceIds {
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR: loading block for service '%v'", serviceId))
+
 				uncastedNodeBlock, ok := nodeBlocksByServiceIds.LoadAndDelete(serviceId)
 				if !ok {
 					errorChan <- stacktrace.NewError("An error occurred loading the node's block for service with ID '%v'", serviceId)
 					break
 				}
 				nodeBlock := uncastedNodeBlock.(*types.Block)
-				nodeBlockNumber := nodeBlock.Number()
 				nodeBlockHash := nodeBlock.Hash().Hex()
-				fmt.Println(fmt.Sprintf("Service ID %v - Previous block number '%v' and hash '%v', node block number '%v' and hash '%v'", serviceId, previosNodeBlockNumber, previousNodeBlockHash, nodeBlockNumber, nodeBlockHash))
 
 				if previousNodeBlockHash != "" && previousNodeBlockHash != nodeBlockHash {
-					fmt.Println(fmt.Sprintf("No equal - Previous blo '%v', node blo '%v'", previousNodeBlockHash, nodeBlockHash))
 					areAllEqual = false
 					break
-				} else {
-					fmt.Println(fmt.Sprintf("Equal - Previous blo '%v', node blo '%v'", previousNodeBlockHash, nodeBlockHash))
 				}
-				previosNodeBlockNumber = nodeBlockNumber
+
 				previousNodeBlockHash = nodeBlockHash
 				syncedBlockNumber = nodeBlock.NumberU64()
 			}
 
 			if areAllEqual {
-				fmt.Println("--ALL ARE EQUALS!!--")
 				return syncedBlockNumber, nil
-			} else {
-				fmt.Println("--ALL AREN'T EQUALS!!--")
 			}
 
 		case err := <-errorChan:
@@ -432,48 +417,38 @@ func getNextNode0BlockNumberAndHash(
 		select {
 		case <-time.Tick(1 * time.Second):
 			wg.Add(2)
+
 			//node0
 			go func() {
 				defer wg.Done()
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: node client pointer '%v', for service '%v'", &node0Client, node0Id))
 				block, err := getMostRecentNodeBlockWithRetries(ctx, node0Id, node0Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: entro en chequeadno node0"))
 					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node0Id)
 				}
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: storing para node '%v' block '%+v'", node0Id, block))
 				ethNodeBlocksByServiceId.Store(node0Id, block)
-				blockHash := block.Hash().Hex()
-				fmt.Println(fmt.Sprintf("Checking sync - service '%v' block number '%v' - block hash '%v'", node0Id, block.Number(), blockHash))
+
 			}()
 
 			//node2
 			go func() {
 				defer wg.Done()
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: node client pointer '%v', for service '%v'", &node2Client, node2Id))
 				block, err := getMostRecentNodeBlockWithRetries(ctx, node2Id, node2Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: entro en chequeadno node2"))
 					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node2Id)
 				}
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: storing para node '%v' block '%+v'", node2Id, block))
 				ethNodeBlocksByServiceId.Store(node2Id, block)
-				blockHash := block.Hash().Hex()
-				fmt.Println(fmt.Sprintf("Checking sync - service '%v' block number '%v' - block hash '%v'", node2Id, block.Number(), blockHash))
 			}()
 
 			wg.Wait()
 
 			uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node0Id)
 			if !ok {
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: entro en loading node0"))
 				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", node0Id, node0Id)
 			}
 			node0Block := uncastedNode0Block.(*types.Block)
 
 			uncastedNode2Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node2Id)
 			if !ok {
-				fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR_EN_NODE0AND2: entro en loading node2"))
 				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", node2Id, node2Id)
 			}
 			node2Block := uncastedNode2Block.(*types.Block)
@@ -482,12 +457,12 @@ func getNextNode0BlockNumberAndHash(
 			if node0Block.NumberU64() <= previousSyncedBlockNumber {
 				continue
 			}
-			fmt.Println(fmt.Sprintf("Comparing node block numbers - node0 '%v' node2 '%v' ", node0Block.NumberU64(), node2Block.NumberU64()))
+
 			if node0Block.NumberU64() > node2Block.NumberU64() {
 				return node0Block.NumberU64(), node0Block.Hash().Hex(), nil
 			}
 		case err := <-errorChanForCheckingNode0:
-			fmt.Println(fmt.Sprintf("--LEO_CHECK_BORRAR valor del error %v", err))
+
 			if err != nil {
 				return 0, "", stacktrace.Propagate(err, "An error occurred checking for next partition1 block number and hash")
 			}
