@@ -39,7 +39,6 @@ const (
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
 
-	transactionSpammerId = "transaction-spammer"
 	node0Id              = "el-client-0"
 	node1Id              = "el-client-1"
 	node2Id              = "el-client-2"
@@ -59,9 +58,9 @@ var (
 		node1Id,
 		node2Id,
 	}
-)
 
-var isTestInExecution bool
+	isTestInExecution bool
+)
 
 func TestNetworkPartitioning(t *testing.T) {
 	isTestInExecution = true
@@ -383,9 +382,6 @@ func waitUntilNode0AndNode2DivergeBlockNumbers(
 				node2BlockHash :=  mostRecentNode2Block.Hash().Hex()
 
 				fmt.Println(fmt.Sprintf("Node0 number '%v' and hash '%v', Node2 number '%v' and hash '%v'", node0BlockNumber, node0BlockHash, node2BlockNumber, node2BlockHash))
-				if node2BlockNumber > node0BlockNumber {
-					return stacktrace.NewError("If this happen we are in troubles, we should change this") //TODO check this
-				}
 
 				if node0BlockNumber == node2BlockNumber && node0BlockHash == node2BlockHash {
 					return stacktrace.NewError("Something unexpected happened, the generate node block hash, between nodes in different network partitions and after the partition, shouldn't be equal")
