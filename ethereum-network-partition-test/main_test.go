@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/kurtosis-tech/kurtosis-core-api-lib/api/golang/lib/enclaves"
-	"github.com/kurtosis-tech/kurtosis-core-api-lib/api/golang/lib/services"
-	"github.com/kurtosis-tech/kurtosis-engine-api-lib/api/golang/lib/kurtosis_context"
+	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/lib/services"
+	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/engine/lib/kurtosis_context"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -39,13 +39,13 @@ const (
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
 
-	node0Id              = "el-client-0"
-	node1Id              = "el-client-1"
-	node2Id              = "el-client-2"
+	node0Id = "el-client-0"
+	node1Id = "el-client-1"
+	node2Id = "el-client-2"
 
 	rpcPortId = "rpc"
 
-	retriesAttempts = 20
+	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 )
 
@@ -124,8 +124,8 @@ func TestNetworkPartitioning(t *testing.T) {
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		firstPartition: {
-			node0Id:              true,
-			node1Id:              true,
+			node0Id: true,
+			node1Id: true,
 		},
 		secondPartition: {
 			node2Id: true,
@@ -148,9 +148,9 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		"pangea": {
-			node0Id:              true,
-			node1Id:              true,
-			node2Id:              true,
+			node0Id: true,
+			node1Id: true,
+			node2Id: true,
 		},
 	}
 	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
@@ -372,25 +372,25 @@ func waitUntilNode0AndNode2DivergeBlockNumbers(
 
 	for true {
 		select {
-			case <-time.Tick(1 * time.Second):
-				mostRecentNode2Block, err := getMostRecentNodeBlockWithRetries(ctx, node2Id, node2Client, retriesAttempts, retriesSleepDuration)
-				if err != nil {
-					return stacktrace.Propagate(err, "An error occurred waiting for node2 block number")
-				}
+		case <-time.Tick(1 * time.Second):
+			mostRecentNode2Block, err := getMostRecentNodeBlockWithRetries(ctx, node2Id, node2Client, retriesAttempts, retriesSleepDuration)
+			if err != nil {
+				return stacktrace.Propagate(err, "An error occurred waiting for node2 block number")
+			}
 
-				node2BlockNumber := mostRecentNode2Block.NumberU64()
-				node2BlockHash :=  mostRecentNode2Block.Hash().Hex()
+			node2BlockNumber := mostRecentNode2Block.NumberU64()
+			node2BlockHash := mostRecentNode2Block.Hash().Hex()
 
-				fmt.Println(fmt.Sprintf("Node0 number '%v' and hash '%v', Node2 number '%v' and hash '%v'", node0BlockNumber, node0BlockHash, node2BlockNumber, node2BlockHash))
+			fmt.Println(fmt.Sprintf("Node0 number '%v' and hash '%v', Node2 number '%v' and hash '%v'", node0BlockNumber, node0BlockHash, node2BlockNumber, node2BlockHash))
 
-				if node0BlockNumber == node2BlockNumber && node0BlockHash == node2BlockHash {
-					return stacktrace.NewError("Something unexpected happened, the generate node block hash, between nodes in different network partitions and after the partition, shouldn't be equal")
-				}
+			if node0BlockNumber == node2BlockNumber && node0BlockHash == node2BlockHash {
+				return stacktrace.NewError("Something unexpected happened, the generate node block hash, between nodes in different network partitions and after the partition, shouldn't be equal")
+			}
 
-				//Diverge assertion
-				if node0BlockNumber == node2BlockNumber && node0BlockHash != node2BlockHash {
-					return nil
-				}
+			//Diverge assertion
+			if node0BlockNumber == node2BlockNumber && node0BlockHash != node2BlockHash {
+				return nil
+			}
 		}
 	}
 
@@ -402,7 +402,7 @@ func getNextNode0BlockNumberAndHash(
 	node0Client *ethclient.Client,
 	node2Client *ethclient.Client,
 	previousSyncedBlockNumber uint64,
-) (uint64, string, error){
+) (uint64, string, error) {
 
 	var wg sync.WaitGroup
 	ethNodeBlocksByServiceId := &sync.Map{}
