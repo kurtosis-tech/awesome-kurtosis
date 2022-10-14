@@ -32,12 +32,14 @@ const (
 	"participants": [
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
+		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}
 	]
 }`
 
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
+	healedPartition = "pangea"
 
 	elNodeIdTemplate          = "el-client-%d"
 	clNodeBeaconIdTemplate    = "cl-client-%d-beacon"
@@ -53,12 +55,13 @@ var (
 	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
 	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
 
-	nodeIds = []int{0, 1, 2}
+	nodeIds = []int{0, 1, 2, 3}
 
 	idsToQuery = []services.ServiceID{
 		renderServiceId(elNodeIdTemplate, nodeIds[0]),
 		renderServiceId(elNodeIdTemplate, nodeIds[1]),
 		renderServiceId(elNodeIdTemplate, nodeIds[2]),
+		renderServiceId(elNodeIdTemplate, nodeIds[3]),
 	}
 
 	isTestInExecution bool
@@ -125,20 +128,22 @@ func TestNetworkPartitioning(t *testing.T) {
 
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
-		firstPartition: {
-			renderServiceId(elNodeIdTemplate, nodeIds[0]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[0]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[0]): true,
-			renderServiceId(elNodeIdTemplate, nodeIds[1]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[1]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[1]): true,
-		},
-		secondPartition: {
-			renderServiceId(elNodeIdTemplate, nodeIds[2]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[2]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[2]): true,
-		},
+		firstPartition:  make(map[services.ServiceID]bool),
+		secondPartition: make(map[services.ServiceID]bool),
 	}
+	// nodes with ID 0, 1 goes into partition 1
+	// nodes with ID 2, 3 goes into partition 2
+	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
+		partitionedNetworkServices[firstPartition][renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition)] = true
+		partitionedNetworkServices[firstPartition][renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition)] = true
+		partitionedNetworkServices[firstPartition][renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition)] = true
+	}
+	for _, nodeIdForSecondPartition := range nodeIds[len(nodeIds)/2:] {
+		partitionedNetworkServices[secondPartition][renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition)] = true
+		partitionedNetworkServices[secondPartition][renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition)] = true
+		partitionedNetworkServices[secondPartition][renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition)] = true
+	}
+
 	partitionedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{
 		firstPartition: {
 			secondPartition: blockedPartitionConnection,
@@ -155,17 +160,13 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 
 func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
-		"pangea": {
-			renderServiceId(elNodeIdTemplate, nodeIds[0]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[0]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[0]): true,
-			renderServiceId(elNodeIdTemplate, nodeIds[1]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[1]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[1]): true,
-			renderServiceId(elNodeIdTemplate, nodeIds[2]):          true,
-			renderServiceId(clNodeBeaconIdTemplate, nodeIds[2]):    true,
-			renderServiceId(clNodeValidatorIdTemplate, nodeIds[2]): true,
-		},
+		healedPartition: make(map[services.ServiceID]bool),
+	}
+	// All nodes go back into the same partition
+	for nodeId := range nodeIds {
+		healedNetworkServices[healedPartition][renderServiceId(elNodeIdTemplate, nodeId)] = true
+		healedNetworkServices[healedPartition][renderServiceId(clNodeBeaconIdTemplate, nodeId)] = true
+		healedNetworkServices[healedPartition][renderServiceId(clNodeValidatorIdTemplate, nodeId)] = true
 	}
 	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
 
