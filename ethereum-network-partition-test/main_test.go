@@ -26,9 +26,9 @@ const (
 	isPartitioningEnabled = true
 
 	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.6.7"
+	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:7.0.0"
 	moduleParams   = `{
-	"executionLayerOnly": true,
+	"launchAdditionalServices": false,
 	"participants": [
 		{"elType":"geth","clType":"lodestar"},
 		{"elType":"geth","clType":"lodestar"},
