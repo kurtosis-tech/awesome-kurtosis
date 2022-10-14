@@ -26,22 +26,22 @@ const (
 	isPartitioningEnabled = true
 
 	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:7.0.0"
+	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.0"
 	moduleParams   = `{
 	"launchAdditionalServices": false,
 	"participants": [
-		{"elType":"geth","clType":"lodestar"},
-		{"elType":"geth","clType":"lodestar"},
-		{"elType":"geth","clType":"lodestar"}
+		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
+		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
+		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}
 	]
 }`
 
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
 
-	node0Id = "el-client-0"
-	node1Id = "el-client-1"
-	node2Id = "el-client-2"
+	elNodeIdTemplate          = "el-client-%d"
+	clNodeBeaconIdTemplate    = "cl-client-%d-beacon"
+	clNodeValidatorIdTemplate = "cl-client-%d-validator"
 
 	rpcPortId = "rpc"
 
@@ -53,10 +53,12 @@ var (
 	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
 	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
 
+	nodeIds = []int{0, 1, 2}
+
 	idsToQuery = []services.ServiceID{
-		node0Id,
-		node1Id,
-		node2Id,
+		renderServiceId(elNodeIdTemplate, nodeIds[0]),
+		renderServiceId(elNodeIdTemplate, nodeIds[1]),
+		renderServiceId(elNodeIdTemplate, nodeIds[2]),
 	}
 
 	isTestInExecution bool
@@ -83,7 +85,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	_, err = ethModuleCtx.Execute(moduleParams)
 	require.NoError(t, err, "An error occurred executing the ETH module")
 
-	nodeClientsByServiceIds, err := getNodeClientsByServiceID(enclaveCtx, idsToQuery)
+	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
 	stopPrintingFunc, err := printNodeInfoUntilStopped(
@@ -94,7 +96,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer stopPrintingFunc()
 
 	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
-	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
+	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 2)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
 	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
 	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
@@ -103,8 +105,8 @@ func TestNetworkPartitioning(t *testing.T) {
 	partitionNetwork(t, enclaveCtx)
 
 	fmt.Println("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
-	node0Client := nodeClientsByServiceIds[node0Id]
-	node2Client := nodeClientsByServiceIds[node2Id]
+	node0Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[0])]
+	node2Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[2])]
 	err = waitUntilNode0AndNode2DivergeBlockNumbers(ctx, node0Client, node2Client, syncedBlockNumber)
 	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
 	fmt.Println("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
@@ -113,7 +115,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	healNetwork(t, enclaveCtx)
 	fmt.Println("------------ PARTITION HEALED ---------------")
 	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC AFTER HEALING THE PARTITION ---------------")
-	syncedBlockNumber, err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds)
+	syncedBlockNumber, err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 0)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
 	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
 	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
@@ -124,11 +126,17 @@ func TestNetworkPartitioning(t *testing.T) {
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		firstPartition: {
-			node0Id: true,
-			node1Id: true,
+			renderServiceId(elNodeIdTemplate, nodeIds[0]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[0]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[0]): true,
+			renderServiceId(elNodeIdTemplate, nodeIds[1]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[1]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[1]): true,
 		},
 		secondPartition: {
-			node2Id: true,
+			renderServiceId(elNodeIdTemplate, nodeIds[2]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[2]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[2]): true,
 		},
 	}
 	partitionedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{
@@ -148,9 +156,15 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
 		"pangea": {
-			node0Id: true,
-			node1Id: true,
-			node2Id: true,
+			renderServiceId(elNodeIdTemplate, nodeIds[0]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[0]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[0]): true,
+			renderServiceId(elNodeIdTemplate, nodeIds[1]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[1]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[1]): true,
+			renderServiceId(elNodeIdTemplate, nodeIds[2]):          true,
+			renderServiceId(clNodeBeaconIdTemplate, nodeIds[2]):    true,
+			renderServiceId(clNodeValidatorIdTemplate, nodeIds[2]): true,
 		},
 	}
 	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
@@ -163,7 +177,7 @@ func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 	require.NoError(t, err, "An error occurred healing the network partition")
 }
 
-func getNodeClientsByServiceID(
+func getElNodeClientsByServiceID(
 	enclaveCtx *enclaves.EnclaveContext,
 	serviceIds []services.ServiceID,
 ) (
@@ -296,6 +310,7 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 	ctx context.Context,
 	serviceIds []services.ServiceID,
 	nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client,
+	minimumBlockNumberConstraint uint64,
 ) (uint64, error) {
 	var wg sync.WaitGroup
 	nodeBlocksByServiceIds := &sync.Map{}
@@ -343,7 +358,7 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 				syncedBlockNumber = nodeBlock.NumberU64()
 			}
 
-			if areAllEqual {
+			if areAllEqual && syncedBlockNumber >= minimumBlockNumberConstraint {
 				return syncedBlockNumber, nil
 			}
 
@@ -373,7 +388,7 @@ func waitUntilNode0AndNode2DivergeBlockNumbers(
 	for true {
 		select {
 		case <-time.Tick(1 * time.Second):
-			mostRecentNode2Block, err := getMostRecentNodeBlockWithRetries(ctx, node2Id, node2Client, retriesAttempts, retriesSleepDuration)
+			mostRecentNode2Block, err := getMostRecentNodeBlockWithRetries(ctx, renderServiceId(elNodeIdTemplate, nodeIds[2]), node2Client, retriesAttempts, retriesSleepDuration)
 			if err != nil {
 				return stacktrace.Propagate(err, "An error occurred waiting for node2 block number")
 			}
@@ -409,43 +424,44 @@ func getNextNode0BlockNumberAndHash(
 	errorChanForCheckingNode0 := make(chan error, 1)
 	defer close(errorChanForCheckingNode0)
 
+	elNode0Id := renderServiceId(elNodeIdTemplate, nodeIds[0])
+	elNode2Id := renderServiceId(elNodeIdTemplate, nodeIds[2])
+
 	for true {
 		select {
 		case <-time.Tick(1 * time.Second):
 			wg.Add(2)
-
 			//node0
 			go func() {
 				defer wg.Done()
-				block, err := getMostRecentNodeBlockWithRetries(ctx, node0Id, node0Client, retriesAttempts, retriesSleepDuration)
+				block, err := getMostRecentNodeBlockWithRetries(ctx, elNode0Id, node0Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node0Id)
+					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", elNode0Id)
 				}
-				ethNodeBlocksByServiceId.Store(node0Id, block)
+				ethNodeBlocksByServiceId.Store(elNode0Id, block)
 
 			}()
 
 			//node2
 			go func() {
 				defer wg.Done()
-				block, err := getMostRecentNodeBlockWithRetries(ctx, node2Id, node2Client, retriesAttempts, retriesSleepDuration)
+				block, err := getMostRecentNodeBlockWithRetries(ctx, elNode2Id, node2Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node2Id)
+					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", elNode2Id)
 				}
-				ethNodeBlocksByServiceId.Store(node2Id, block)
+				ethNodeBlocksByServiceId.Store(elNode2Id, block)
 			}()
-
 			wg.Wait()
 
-			uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node0Id)
+			uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(elNode0Id)
 			if !ok {
-				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", node0Id, node0Id)
+				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", elNode0Id, elNode0Id)
 			}
 			node0Block := uncastedNode0Block.(*types.Block)
 
-			uncastedNode2Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node2Id)
+			uncastedNode2Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(elNode2Id)
 			if !ok {
-				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", node2Id, node2Id)
+				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", elNode2Id, elNode2Id)
 			}
 			node2Block := uncastedNode2Block.(*types.Block)
 
@@ -466,4 +482,8 @@ func getNextNode0BlockNumberAndHash(
 		}
 	}
 	return 0, "", nil
+}
+
+func renderServiceId(template string, nodeId int) services.ServiceID {
+	return services.ServiceID(fmt.Sprintf(template, nodeId))
 }
