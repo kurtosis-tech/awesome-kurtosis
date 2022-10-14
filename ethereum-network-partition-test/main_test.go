@@ -72,6 +72,7 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	ctx := context.Background()
 
+	fmt.Println("------------ CONNECTING TO KURTOSIS ENGINE ---------------")
 	kurtosisCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
 	require.NoError(t, err, "An error occurred connecting to the Kurtosis engine")
 
@@ -83,6 +84,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred creating the enclave")
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
+	fmt.Println("------------ EXECUTING MODULE ---------------")
 	ethModuleCtx, err := enclaveCtx.LoadModule(ethModuleId, ethModuleImage, "{}")
 	require.NoError(t, err, "An error occurred loading the ETH module")
 	_, err = ethModuleCtx.Execute(moduleParams)
@@ -91,6 +93,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
+	fmt.Println("------------ STARTING TEST CASE ---------------")
 	stopPrintingFunc, err := printNodeInfoUntilStopped(
 		ctx,
 		nodeClientsByServiceIds,
