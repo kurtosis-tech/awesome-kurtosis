@@ -32,6 +32,7 @@ const (
 	"participants": [
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
+		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}
 	]
 }`
@@ -54,12 +55,13 @@ var (
 	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
 	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
 
-	nodeIds = []int{0, 1, 2}
+	nodeIds = []int{0, 1, 2, 3}
 
 	idsToQuery = []services.ServiceID{
 		renderServiceId(elNodeIdTemplate, nodeIds[0]),
 		renderServiceId(elNodeIdTemplate, nodeIds[1]),
 		renderServiceId(elNodeIdTemplate, nodeIds[2]),
+		renderServiceId(elNodeIdTemplate, nodeIds[3]),
 	}
 
 	isTestInExecution bool
