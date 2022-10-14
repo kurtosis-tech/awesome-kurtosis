@@ -32,7 +32,6 @@ const (
 	"participants": [
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
-		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"},
 		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}
 	]
 }`
@@ -55,13 +54,12 @@ var (
 	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
 	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
 
-	nodeIds = []int{0, 1, 2, 3}
+	nodeIds = []int{0, 1, 2}
 
 	idsToQuery = []services.ServiceID{
 		renderServiceId(elNodeIdTemplate, nodeIds[0]),
 		renderServiceId(elNodeIdTemplate, nodeIds[1]),
 		renderServiceId(elNodeIdTemplate, nodeIds[2]),
-		renderServiceId(elNodeIdTemplate, nodeIds[3]),
 	}
 
 	isTestInExecution bool
@@ -134,8 +132,7 @@ func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
 		firstPartition:  make(map[services.ServiceID]bool),
 		secondPartition: make(map[services.ServiceID]bool),
 	}
-	// nodes with ID 0, 1 goes into partition 1
-	// nodes with ID 2, 3 goes into partition 2
+	// half of the nodes go to partition 1, the other half to partition 2
 	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
 		partitionedNetworkServices[firstPartition][renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition)] = true
 		partitionedNetworkServices[firstPartition][renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition)] = true
