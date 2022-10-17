@@ -9,6 +9,7 @@ import (
 	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/engine/lib/kurtosis_context"
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"sync"
@@ -72,7 +73,7 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	ctx := context.Background()
 
-	fmt.Println("------------ CONNECTING TO KURTOSIS ENGINE ---------------")
+	logrus.Info("------------ CONNECTING TO KURTOSIS ENGINE ---------------")
 	kurtosisCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
 	require.NoError(t, err, "An error occurred connecting to the Kurtosis engine")
 
@@ -84,7 +85,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred creating the enclave")
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
-	fmt.Println("------------ EXECUTING MODULE ---------------")
+	logrus.Info("------------ EXECUTING MODULE ---------------")
 	ethModuleCtx, err := enclaveCtx.LoadModule(ethModuleId, ethModuleImage, "{}")
 	require.NoError(t, err, "An error occurred loading the ETH module")
 	_, err = ethModuleCtx.Execute(moduleParams)
@@ -93,7 +94,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
-	fmt.Println("------------ STARTING TEST CASE ---------------")
+	logrus.Info("------------ STARTING TEST CASE ---------------")
 	stopPrintingFunc, err := printNodeInfoUntilStopped(
 		ctx,
 		nodeClientsByServiceIds,
@@ -101,30 +102,30 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred launching the node info printer thread")
 	defer stopPrintingFunc()
 
-	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
-	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 2)
+	logrus.Info("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
+	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 35)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
-	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
-	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
+	logrus.Info(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
+	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
 
-	fmt.Println("------------ INDUCING PARTITION ---------------")
+	logrus.Info("------------ INDUCING PARTITION ---------------")
 	partitionNetwork(t, enclaveCtx)
 
-	fmt.Println("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
+	logrus.Info("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
 	node0Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[0])]
 	node2Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[2])]
 	err = waitUntilNode0AndNode2DivergeBlockNumbers(ctx, node0Client, node2Client, syncedBlockNumber)
 	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
-	fmt.Println("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
+	logrus.Info("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
 
-	fmt.Println("------------ HEALING PARTITION ---------------")
+	logrus.Info("------------ HEALING PARTITION ---------------")
 	healNetwork(t, enclaveCtx)
-	fmt.Println("------------ PARTITION HEALED ---------------")
-	fmt.Println("------------ CHECKING IF ALL NODES ARE SYNC AFTER HEALING THE PARTITION ---------------")
+	logrus.Info("------------ PARTITION HEALED ---------------")
+	logrus.Info("------------ CHECKING IF ALL NODES ARE SYNC AFTER HEALING THE PARTITION ---------------")
 	syncedBlockNumber, err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 0)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
-	fmt.Println(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
-	fmt.Println("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
+	logrus.Info(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
+	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
 
 	isTestInExecution = false
 }
@@ -283,14 +284,14 @@ func printNodeInfo(ctx context.Context, serviceId services.ServiceID, client *et
 	block, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
 	if err != nil {
 		if isTestInExecution {
-			fmt.Println(fmt.Sprintf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error()))
+			logrus.Info(fmt.Sprintf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error()))
 		}
 		return
 	}
 
 	hexStr := block.Hash().Hex()
 
-	fmt.Println(fmt.Sprintf("%-25sblock number: %v, block hash: %v", serviceId, block.Number(), hexStr))
+	logrus.Info(fmt.Sprintf("%-25sblock number: %v, block hash: %v", serviceId, block.Number(), hexStr))
 }
 
 func getMostRecentBlockAndStoreIt(
