@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"math/big"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -28,15 +29,19 @@ const (
 
 	ethModuleId    = "eth-module"
 	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.0"
-	moduleParams   = `{
+
+	numParticipants = 3
+
+	participantsPlaceholder = "{{participants_param}}"
+	participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"}`
+	moduleParamsTemplate    = `{
 	"launchAdditionalServices": false,
 	"participants": [
-		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"},
-		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"},
-		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"},
-		{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"}
+		` + participantsPlaceholder + `
 	]
 }`
+
+	waitForBlockNumberBeforePartitioning = 8
 
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
@@ -56,20 +61,15 @@ var (
 	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
 	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
 
-	nodeIds = []int{0, 1, 2, 3}
-
-	idsToQuery = []services.ServiceID{
-		renderServiceId(elNodeIdTemplate, nodeIds[0]),
-		renderServiceId(elNodeIdTemplate, nodeIds[1]),
-		renderServiceId(elNodeIdTemplate, nodeIds[2]),
-		renderServiceId(elNodeIdTemplate, nodeIds[3]),
-	}
+	nodeIds    = make([]int, numParticipants)
+	idsToQuery = make([]services.ServiceID, numParticipants)
 
 	isTestInExecution bool
 )
 
 func TestNetworkPartitioning(t *testing.T) {
 	isTestInExecution = true
+	moduleParams := initNodeIdsAndRenderModuleParam()
 
 	ctx := context.Background()
 
@@ -103,7 +103,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer stopPrintingFunc()
 
 	logrus.Info("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
-	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 35)
+	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, waitForBlockNumberBeforePartitioning)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
 	logrus.Info(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
 	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
@@ -128,6 +128,16 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
 
 	isTestInExecution = false
+}
+
+func initNodeIdsAndRenderModuleParam() string {
+	participantParams := make([]string, numParticipants)
+	for idx := 0; idx < numParticipants; idx++ {
+		nodeIds[idx] = idx
+		idsToQuery[idx] = renderServiceId(elNodeIdTemplate, nodeIds[idx])
+		participantParams[idx] = participantParam
+	}
+	return strings.ReplaceAll(moduleParamsTemplate, participantsPlaceholder, strings.Join(participantParams, ","))
 }
 
 func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
