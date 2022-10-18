@@ -33,7 +33,7 @@ const (
 	numParticipants = 3
 
 	participantsPlaceholder = "{{participants_param}}"
-	participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.0.0"}`
+	participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}`
 	moduleParamsTemplate    = `{
 	"launchAdditionalServices": false,
 	"participants": [
