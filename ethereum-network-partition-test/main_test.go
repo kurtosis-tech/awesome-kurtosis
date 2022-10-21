@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"math/big"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -19,29 +20,58 @@ import (
 )
 
 /*
-This test will start a three-node Ethereum network, partition it, and then heal the partition to demonstrate
-Ethereum-forking behaviour in Kurtosis.
+This example will:
+1. Start an Ethereum network with `numParticipants` nodes
+2. Wait for all the nodes to be synced
+3. Partition the network into 2. Half of the nodes will be in partition 1, half will be in partition 2
+4. Wait for the block production to diverge in each partition
+5. Heal the partition and wait for all nodes to get back in sync
+
+This test demonstrate Ethereum-forking behaviour in Kurtosis.
 */
 
 const (
+	logLevel = logrus.InfoLevel
+
 	testName              = "go-network-partitioning"
 	isPartitioningEnabled = true
 
-	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.0"
+	nodeInfoPrefix = "NODES STATUS -- |"
 
-	numParticipants = 3
+	ethModuleId    = "eth-module"
+	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:gbouv_add-fee-recipient"
+
+	// must be something greater than 4 to have at least 2 nodes in each partition
+	numParticipants = 4
 
 	participantsPlaceholder = "{{participants_param}}"
-	participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}`
-	moduleParamsTemplate    = `{
+	//participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}`
+	participantParam     = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lighthouse","clImage":"sigp/lighthouse:v3.1.2"}`
+	moduleParamsTemplate = `{
 	"launchAdditionalServices": false,
 	"participants": [
 		` + participantsPlaceholder + `
 	]
 }`
 
-	waitForBlockNumberBeforePartitioning = 8
+	// Before partitioning, test will wait for all nodes to be synced AND this block number to be reached (whichever
+	// comes last)
+	// This is handy to make sure everything works fine before test introduces the partition.
+	// Set to 0 if you want the partition to happen as soon as possible
+	minimumNumberOfBlocksToProduceBeforePartition = 2
+
+	// Once the partition is enabled, number of blocks to wait in each partition before validating that it has diverged
+	// Technically, divergence should happen on the very first block after partition is introduced, so `1` is a good
+	// value here, but to slow down the test a bit it can be set to something > 1
+	// With this set to 2, it means that if partition is introduced when all nodes are synced on block #3, it will
+	// check divergence on block number 3 + 2 = 5 in each partition.
+	numberOfBlockToProduceBeforeCheckingDivergence = 2
+
+	// Once partitions are healed, test will wait for all node to be synced AND this number of blocks to be produced
+	// in the most advances partition.
+	// For example, with this set to 2, if healing happens when partition 1 is at block #10 and partition 2 at block
+	// number 6, it will wait for all node to be synced and minimum block number to be 10 + 2 = 12.
+	minimumNumberOfBlocksToProduceAfterHealing = 2
 
 	firstPartition  = "partition0"
 	secondPartition = "partition1"
@@ -68,6 +98,7 @@ var (
 )
 
 func TestNetworkPartitioning(t *testing.T) {
+	logrus.SetLevel(logLevel)
 	isTestInExecution = true
 	moduleParams := initNodeIdsAndRenderModuleParam()
 
@@ -102,30 +133,36 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred launching the node info printer thread")
 	defer stopPrintingFunc()
 
-	logrus.Info("------------ CHECKING IF ALL NODES ARE SYNC BEFORE THE PARTITION ---------------")
-	syncedBlockNumber, err := waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, waitForBlockNumberBeforePartitioning)
+	logrus.Infof("------------ CHECKING ALL NODES ARE IN SYNC AT BLOCK '%d' ---------------", minimumNumberOfBlocksToProduceBeforePartition)
+	syncedBlockNumber, err := waitUntilAllNodesGetSynced(ctx, idsToQuery, nodeClientsByServiceIds, minimumNumberOfBlocksToProduceBeforePartition)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
-	logrus.Info(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
-	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC BEFORE THE PARTITION --------------")
+	logrus.Infof("------------ ALL NODES SYNCED AT BLOCK NUMBER '%v' ------------", syncedBlockNumber)
+	printAllNodesInfo(ctx, nodeClientsByServiceIds)
+	logrus.Info("------------ VERIFIED ALL NODES ARE IN SYNC BEFORE THE PARTITION ------------")
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
 	partitionNetwork(t, enclaveCtx)
 
-	logrus.Info("------------ CHECKING FOR PARTITION BLOCKS DIVERGE ---------------")
+	logrus.Infof("------------ CHECKING BLOCKS DIVERGE AT BLOCK NUMBER '%d' ---------------", syncedBlockNumber+numberOfBlockToProduceBeforeCheckingDivergence)
+	// node 0 and node N will necessarily be in a different partition
+	node0ServiceId := renderServiceId(elNodeIdTemplate, nodeIds[0])
 	node0Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[0])]
-	node2Client := nodeClientsByServiceIds[renderServiceId(elNodeIdTemplate, nodeIds[2])]
-	err = waitUntilNode0AndNode2DivergeBlockNumbers(ctx, node0Client, node2Client, syncedBlockNumber)
+	nodeNServiceId := renderServiceId(elNodeIdTemplate, nodeIds[len(nodeIds)-1])
+	nodeNClient := nodeClientsByServiceIds[nodeNServiceId]
+	maxBlockNumberInPartitions, err := waitUntilNode0AndNodeNDivergeBlockNumbers(ctx, node0ServiceId, node0Client, nodeNServiceId, nodeNClient, syncedBlockNumber+numberOfBlockToProduceBeforeCheckingDivergence)
 	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
 	logrus.Info("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
+	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
 	healNetwork(t, enclaveCtx)
 	logrus.Info("------------ PARTITION HEALED ---------------")
-	logrus.Info("------------ CHECKING IF ALL NODES ARE SYNC AFTER HEALING THE PARTITION ---------------")
-	syncedBlockNumber, err = waitUntilAllNodesGetSyncedBeforeInducingThePartition(ctx, idsToQuery, nodeClientsByServiceIds, 0)
+	logrus.Infof("------------ CHECKING ALL NODES ARE BACK IN SYNC AT BLOCK '%d' ---------------", maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
+	syncedBlockNumber, err = waitUntilAllNodesGetSynced(ctx, idsToQuery, nodeClientsByServiceIds, maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
-	logrus.Info(fmt.Sprintf("--- ALL NODES SYNCED AT BLOCK NUMBER %v ---", syncedBlockNumber))
-	logrus.Info("----------- VERIFIED THAT ALL NODES ARE SYNC AFTER HEALING THE PARTITION --------------")
+	logrus.Infof("----------- ALL NODES SYNCED AT BLOCK NUMBER '%v' -----------", syncedBlockNumber)
+	printAllNodesInfo(ctx, nodeClientsByServiceIds)
+	logrus.Info("----------- VERIFIED THAT ALL NODES ARE IN SYNC AFTER HEALING THE PARTITION --------------")
 
 	isTestInExecution = false
 }
@@ -232,13 +269,12 @@ func printNodeInfoUntilStopped(
 
 	printingStopChan := make(chan struct{})
 
+	printHeader(nodeClientsByServiceIds)
 	go func() {
 		for true {
 			select {
-			case <-time.Tick(1 * time.Second):
-				for serviceId, client := range nodeClientsByServiceIds {
-					printNodeInfo(ctx, serviceId, client)
-				}
+			case <-time.Tick(3 * time.Second):
+				printAllNodesInfo(ctx, nodeClientsByServiceIds)
 			case <-printingStopChan:
 				break
 			}
@@ -290,18 +326,57 @@ func getMostRecentNodeBlockWithRetries(
 	return resultBlock, resultErr
 }
 
-func printNodeInfo(ctx context.Context, serviceId services.ServiceID, client *ethclient.Client) {
-	block, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
-	if err != nil {
-		if isTestInExecution {
-			logrus.Info(fmt.Sprintf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error()))
+func printHeader(nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
+	nodeInfoHeaderStr := nodeInfoPrefix
+	nodeInfoHeaderLine2Str := nodeInfoPrefix
+
+	sortedServiceIds := make([]services.ServiceID, 0, len(nodeClientsByServiceIds))
+	for serviceId, _ := range nodeClientsByServiceIds {
+		sortedServiceIds = append(sortedServiceIds, serviceId)
+	}
+	sort.Slice(sortedServiceIds, func(i, j int) bool {
+		return sortedServiceIds[i] < sortedServiceIds[j]
+	})
+	for _, serviceId := range sortedServiceIds {
+		nodeInfoHeaderStr = fmt.Sprintf(nodeInfoHeaderStr+"  %-18s  |", serviceId)
+		nodeInfoHeaderLine2Str = fmt.Sprintf(nodeInfoHeaderLine2Str+"  %-05s - %-10s  |", "block", "hash")
+	}
+	logrus.Infof(nodeInfoHeaderStr)
+	logrus.Infof(nodeInfoHeaderLine2Str)
+}
+
+func printAllNodesInfo(ctx context.Context, nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
+	nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
+	for serviceId, client := range nodeClientsByServiceIds {
+		nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
+		if err != nil && isTestInExecution {
+			logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
 		}
+		nodesCurrentBlock[serviceId] = nodeBlock
+	}
+	printAllNodesCurrentBlock(nodesCurrentBlock)
+}
+
+func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceID]*types.Block) {
+	if nodeCurrentBlocks == nil {
 		return
 	}
+	nodeInfoStr := nodeInfoPrefix
+	sortedServiceIds := make([]services.ServiceID, 0, len(nodeCurrentBlocks))
+	for serviceId, _ := range nodeCurrentBlocks {
+		sortedServiceIds = append(sortedServiceIds, serviceId)
+	}
+	sort.Slice(sortedServiceIds, func(i, j int) bool {
+		return sortedServiceIds[i] < sortedServiceIds[j]
+	})
 
-	hexStr := block.Hash().Hex()
-
-	logrus.Info(fmt.Sprintf("%-25sblock number: %v, block hash: %v", serviceId, block.Number(), hexStr))
+	for _, serviceId := range sortedServiceIds {
+		blockInfo := nodeCurrentBlocks[serviceId]
+		hash := blockInfo.Hash().Hex()
+		shortHash := hash[:5] + ".." + hash[len(hash)-3:]
+		nodeInfoStr = fmt.Sprintf(nodeInfoStr+"  %05d - %-10s  |", blockInfo.NumberU64(), shortHash)
+	}
+	logrus.Infof(nodeInfoStr)
 }
 
 func getMostRecentBlockAndStoreIt(
@@ -320,7 +395,7 @@ func getMostRecentBlockAndStoreIt(
 	return nil
 }
 
-func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
+func waitUntilAllNodesGetSynced(
 	ctx context.Context,
 	serviceIds []services.ServiceID,
 	nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client,
@@ -387,115 +462,120 @@ func waitUntilAllNodesGetSyncedBeforeInducingThePartition(
 	return 0, nil
 }
 
-func waitUntilNode0AndNode2DivergeBlockNumbers(
+func waitUntilNode0AndNodeNDivergeBlockNumbers(
 	ctx context.Context,
+	node0ServiceId services.ServiceID,
 	node0Client *ethclient.Client,
-	node2Client *ethclient.Client,
-	previousSyncedBlockNumber uint64,
-) error {
-
-	node0BlockNumber, node0BlockHash, err := getNextNode0BlockNumberAndHash(ctx, node0Client, node2Client, previousSyncedBlockNumber)
+	nodeNServiceId services.ServiceID,
+	nodeNClient *ethclient.Client,
+	blockNumberToWaitForOnEachNode uint64,
+) (uint64, error) {
+	node0BlockNumber, node0BlockHash, nodeNBlockNumber, nodeNBlockHash, err := waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(ctx, node0ServiceId, node0Client, nodeNServiceId, nodeNClient, blockNumberToWaitForOnEachNode)
 	if err != nil {
-		return stacktrace.Propagate(err, "An error occurred getting the next node0 block number")
+		return 0, stacktrace.Propagate(err, "An error occurred waiting for '%v' and '%v' to produce one new block after partitioning", node0ServiceId, nodeNServiceId)
 	}
 
-	for true {
-		select {
-		case <-time.Tick(1 * time.Second):
-			mostRecentNode2Block, err := getMostRecentNodeBlockWithRetries(ctx, renderServiceId(elNodeIdTemplate, nodeIds[2]), node2Client, retriesAttempts, retriesSleepDuration)
-			if err != nil {
-				return stacktrace.Propagate(err, "An error occurred waiting for node2 block number")
-			}
-
-			node2BlockNumber := mostRecentNode2Block.NumberU64()
-			node2BlockHash := mostRecentNode2Block.Hash().Hex()
-
-			fmt.Println(fmt.Sprintf("Node0 number '%v' and hash '%v', Node2 number '%v' and hash '%v'", node0BlockNumber, node0BlockHash, node2BlockNumber, node2BlockHash))
-
-			if node0BlockNumber == node2BlockNumber && node0BlockHash == node2BlockHash {
-				return stacktrace.NewError("Something unexpected happened, the generate node block hash, between nodes in different network partitions and after the partition, shouldn't be equal")
-			}
-
-			//Diverge assertion
-			if node0BlockNumber == node2BlockNumber && node0BlockHash != node2BlockHash {
-				return nil
-			}
-		}
+	if node0BlockNumber != nodeNBlockNumber {
+		return 0, stacktrace.NewError("Waiting for '%v' and '%v' to produce one new block after partitioning, they returned a block number that was not equal (resp. '%v' and '%v'). This is a bug in the test case, block number should exactly match here", node0ServiceId, nodeNServiceId, node0BlockNumber, nodeNBlockNumber)
 	}
-
-	return nil
+	if node0BlockHash == nodeNBlockHash {
+		return 0, stacktrace.NewError("Waiting for '%v' and '%v' to produce one new block after partitioning, they both produced the same block. Producing the same block means that both nodes are still able to communicate somehow. Double check that partitioning was successful, and also check that both nodes part of a different partition.", node0ServiceId, nodeNServiceId)
+	}
+	mostRecentBlockNumberForNode0, err := getMostRecentNodeBlockWithRetries(ctx, node0ServiceId, node0Client, retriesAttempts, retriesSleepDuration)
+	if err != nil {
+		return 0, stacktrace.NewError("Unable to retrieve current block for node '%s' after node diverged", node0ServiceId)
+	}
+	mostRecentBlockNumberForNodeN, err := getMostRecentNodeBlockWithRetries(ctx, nodeNServiceId, nodeNClient, retriesAttempts, retriesSleepDuration)
+	if err != nil {
+		return 0, stacktrace.NewError("Unable to retrieve current block for node '%s' after node diverged", nodeNServiceId)
+	}
+	if mostRecentBlockNumberForNode0.NumberU64() > mostRecentBlockNumberForNodeN.NumberU64() {
+		return mostRecentBlockNumberForNode0.NumberU64(), nil
+	} else {
+		return mostRecentBlockNumberForNodeN.NumberU64(), nil
+	}
 }
 
-func getNextNode0BlockNumberAndHash(
+func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 	ctx context.Context,
+	node0ServiceId services.ServiceID,
 	node0Client *ethclient.Client,
+	nodeNServiceId services.ServiceID,
 	node2Client *ethclient.Client,
-	previousSyncedBlockNumber uint64,
-) (uint64, string, error) {
+	blockNumberToWaitForOnEachNode uint64,
+) (uint64, string, uint64, string, error) {
 
 	var wg sync.WaitGroup
 	ethNodeBlocksByServiceId := &sync.Map{}
-	errorChanForCheckingNode0 := make(chan error, 1)
-	defer close(errorChanForCheckingNode0)
+	errorChan := make(chan error, 1)
+	defer close(errorChan)
 
-	elNode0Id := renderServiceId(elNodeIdTemplate, nodeIds[0])
-	elNode2Id := renderServiceId(elNodeIdTemplate, nodeIds[2])
-
-	for true {
+	node0ReachedExpectedBlockNumber := false
+	nodeNReachedExpectedBlockNumber := false
+	for !node0ReachedExpectedBlockNumber || !nodeNReachedExpectedBlockNumber {
 		select {
+		// In Eth2, a new block is produced every 12 seconds. Ticking every second is more than enough
 		case <-time.Tick(1 * time.Second):
 			wg.Add(2)
 			//node0
 			go func() {
 				defer wg.Done()
-				block, err := getMostRecentNodeBlockWithRetries(ctx, elNode0Id, node0Client, retriesAttempts, retriesSleepDuration)
-				if err != nil {
-					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", elNode0Id)
+				logrus.Debugf("Checking block number for node '%s'", node0ServiceId)
+				if node0ReachedExpectedBlockNumber {
+					logrus.Debugf("Node '%s' already reached block number '%d'", node0ServiceId, blockNumberToWaitForOnEachNode)
+					return
 				}
-				ethNodeBlocksByServiceId.Store(elNode0Id, block)
-
+				block, err := getMostRecentNodeBlockWithRetries(ctx, node0ServiceId, node0Client, retriesAttempts, retriesSleepDuration)
+				if err != nil {
+					errorChan <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node0ServiceId)
+				}
+				if block.NumberU64() == blockNumberToWaitForOnEachNode {
+					ethNodeBlocksByServiceId.Store(node0ServiceId, block)
+					logrus.Infof("Node '%s' produced one block after partitioning (block number '%d', block hash '%s')", node0ServiceId, block.NumberU64(), block.Hash().Hex())
+				}
 			}()
 
-			//node2
+			//nodeN
 			go func() {
 				defer wg.Done()
-				block, err := getMostRecentNodeBlockWithRetries(ctx, elNode2Id, node2Client, retriesAttempts, retriesSleepDuration)
-				if err != nil {
-					errorChanForCheckingNode0 <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", elNode2Id)
+				logrus.Debugf("Checking block number for node '%s'", nodeNServiceId)
+				if nodeNReachedExpectedBlockNumber {
+					logrus.Debugf("Node '%s' already reached block number '%d'", nodeNServiceId, blockNumberToWaitForOnEachNode)
+					return
 				}
-				ethNodeBlocksByServiceId.Store(elNode2Id, block)
+				block, err := getMostRecentNodeBlockWithRetries(ctx, nodeNServiceId, node2Client, retriesAttempts, retriesSleepDuration)
+				if err != nil {
+					errorChan <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", nodeNServiceId)
+				}
+				if block.NumberU64() == blockNumberToWaitForOnEachNode {
+					ethNodeBlocksByServiceId.Store(nodeNServiceId, block)
+					logrus.Infof("Node '%s' produced one block after partitioning (block number '%d', block hash '%s')", nodeNServiceId, block.NumberU64(), block.Hash().Hex())
+				}
 			}()
 			wg.Wait()
-
-			uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(elNode0Id)
-			if !ok {
-				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", elNode0Id, elNode0Id)
-			}
-			node0Block := uncastedNode0Block.(*types.Block)
-
-			uncastedNode2Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(elNode2Id)
-			if !ok {
-				return 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for ley '%v' was no loaded", elNode2Id, elNode2Id)
-			}
-			node2Block := uncastedNode2Block.(*types.Block)
-
-			//We are waiting for nex node0 block number after the partition
-			if node0Block.NumberU64() <= previousSyncedBlockNumber {
-				continue
-			}
-
-			if node0Block.NumberU64() > node2Block.NumberU64() {
-				return node0Block.NumberU64(), node0Block.Hash().Hex(), nil
-			}
-		case err := <-errorChanForCheckingNode0:
-
+			_, node0ReachedExpectedBlockNumber = ethNodeBlocksByServiceId.Load(node0ServiceId)
+			_, nodeNReachedExpectedBlockNumber = ethNodeBlocksByServiceId.Load(nodeNServiceId)
+		case err := <-errorChan:
 			if err != nil {
-				return 0, "", stacktrace.Propagate(err, "An error occurred checking for next partition1 block number and hash")
+				return 0, "", 0, "", stacktrace.Propagate(err, "An error occurred checking for next partition1 block number and hash")
 			}
-			return 0, "", stacktrace.NewError("Something unexpected happened, a new value was received from the error channel but it's nil")
+			return 0, "", 0, "", stacktrace.NewError("Something unexpected happened, a new value was received from the error channel but it's nil")
 		}
 	}
-	return 0, "", nil
+
+	uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node0ServiceId)
+	if !ok {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was no loaded", nodeNServiceId, nodeNServiceId)
+	}
+	node0Block := uncastedNode0Block.(*types.Block)
+
+	uncastedNodeNBlock, ok := ethNodeBlocksByServiceId.LoadAndDelete(nodeNServiceId)
+	if !ok {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was no loaded", nodeNServiceId, nodeNServiceId)
+	}
+	nodeNBlock := uncastedNodeNBlock.(*types.Block)
+
+	return node0Block.NumberU64(), node0Block.Hash().Hex(), nodeNBlock.NumberU64(), nodeNBlock.Hash().Hex(), nil
 }
 
 func renderServiceId(template string, nodeId int) services.ServiceID {
