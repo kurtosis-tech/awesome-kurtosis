@@ -150,7 +150,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeNServiceId := renderServiceId(elNodeIdTemplate, nodeIds[len(nodeIds)-1])
 	nodeNClient := nodeClientsByServiceIds[nodeNServiceId]
 	maxBlockNumberInPartitions, err := waitUntilNode0AndNodeNDivergeBlockNumbers(ctx, node0ServiceId, node0Client, nodeNServiceId, nodeNClient, syncedBlockNumber+numberOfBlockToProduceBeforeCheckingDivergence)
-	require.NoError(t, err, "An error occurred waiting until de partition blocks diverge")
+	require.NoError(t, err, "An error occurred waiting until the partition blocks diverge")
 	logrus.Info("------------ VERIFIED THAT PARTITIONS BLOCKS DIVERGE ---------------")
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
@@ -527,7 +527,8 @@ func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 				}
 				block, err := getMostRecentNodeBlockWithRetries(ctx, node0ServiceId, node0Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					errorChan <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", node0ServiceId)
+					errorChan <- stacktrace.Propagate(err, "An error occurred getting the most recent node block for service '%v'", node0ServiceId)
+					return
 				}
 				if block.NumberU64() == blockNumberToWaitForOnEachNode {
 					ethNodeBlocksByServiceId.Store(node0ServiceId, block)
@@ -545,7 +546,8 @@ func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 				}
 				block, err := getMostRecentNodeBlockWithRetries(ctx, nodeNServiceId, node2Client, retriesAttempts, retriesSleepDuration)
 				if err != nil {
-					errorChan <- stacktrace.Propagate(err, "An error occurred getting the mos recent node bloc for service '%v'", nodeNServiceId)
+					errorChan <- stacktrace.Propagate(err, "An error occurred getting the most recent node block for service '%v'", nodeNServiceId)
+					return
 				}
 				if block.NumberU64() == blockNumberToWaitForOnEachNode {
 					ethNodeBlocksByServiceId.Store(nodeNServiceId, block)
@@ -557,23 +559,29 @@ func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 			_, nodeNReachedExpectedBlockNumber = ethNodeBlocksByServiceId.Load(nodeNServiceId)
 		case err := <-errorChan:
 			if err != nil {
-				return 0, "", 0, "", stacktrace.Propagate(err, "An error occurred checking for next partition1 block number and hash")
+				return 0, "", 0, "", stacktrace.Propagate(err, "An error occurred checking for next block number and hash")
 			}
 			return 0, "", 0, "", stacktrace.NewError("Something unexpected happened, a new value was received from the error channel but it's nil")
 		}
 	}
 
-	uncastedNode0Block, ok := ethNodeBlocksByServiceId.LoadAndDelete(node0ServiceId)
-	if !ok {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was no loaded", nodeNServiceId, nodeNServiceId)
+	uncastedNode0Block, loaded := ethNodeBlocksByServiceId.LoadAndDelete(node0ServiceId)
+	if !loaded {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was not loaded", node0ServiceId, node0ServiceId)
 	}
-	node0Block := uncastedNode0Block.(*types.Block)
+	node0Block, ok := uncastedNode0Block.(*types.Block)
+	if !ok {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was present but of an unexpected type", node0ServiceId, node0ServiceId)
+	}
 
-	uncastedNodeNBlock, ok := ethNodeBlocksByServiceId.LoadAndDelete(nodeNServiceId)
-	if !ok {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was no loaded", nodeNServiceId, nodeNServiceId)
+	uncastedNodeNBlock, loaded := ethNodeBlocksByServiceId.LoadAndDelete(nodeNServiceId)
+	if !loaded {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was not loaded", nodeNServiceId, nodeNServiceId)
 	}
-	nodeNBlock := uncastedNodeNBlock.(*types.Block)
+	nodeNBlock, ok := uncastedNodeNBlock.(*types.Block)
+	if !ok {
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was present but of an unexpected type", nodeNServiceId, nodeNServiceId)
+	}
 
 	return node0Block.NumberU64(), node0Block.Hash().Hex(), nodeNBlock.NumberU64(), nodeNBlock.Hash().Hex(), nil
 }
