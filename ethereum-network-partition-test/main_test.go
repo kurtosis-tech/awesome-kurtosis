@@ -39,7 +39,7 @@ const (
 	nodeInfoPrefix = "NODES STATUS -- |"
 
 	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.1"
+	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.2"
 
 	// must be something greater than 4 to have at least 2 nodes in each partition
 	numParticipants = 4
