@@ -39,16 +39,16 @@ const (
 	nodeInfoPrefix = "NODES STATUS -- |"
 
 	ethModuleId    = "eth-module"
-	ethModuleImage = "kurtosistech/eth2-merge-kurtosis-module:0.7.2"
+	ethModuleImage = "/Users/gyani/work/eth2-module"
 
 	// must be something greater than 4 to have at least 2 nodes in each partition
 	numParticipants = 4
 
 	participantsPlaceholder = "{{participants_param}}"
 	//participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}`
-	participantParam     = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lighthouse","clImage":"sigp/lighthouse:v3.1.2"}`
+	participantParam     = `{"el_client_type":"geth","el_client_image":"ethereum/client-go:v1.10.25","cl_client_type":"lighthouse","cl_client_image":"sigp/lighthouse:v3.1.2"}`
 	moduleParamsTemplate = `{
-	"launchAdditionalServices": false,
+	"launch_additional_services": false,
 	"participants": [
 		` + participantsPlaceholder + `
 	]
@@ -117,10 +117,8 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
-	ethModuleCtx, err := enclaveCtx.LoadModule(ethModuleId, ethModuleImage, "{}")
+	_, err = enclaveCtx.ExecuteStartosisModule(ethModuleImage, moduleParams, false)
 	require.NoError(t, err, "An error occurred loading the ETH module")
-	_, err = ethModuleCtx.Execute(moduleParams)
-	require.NoError(t, err, "An error occurred executing the ETH module")
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
