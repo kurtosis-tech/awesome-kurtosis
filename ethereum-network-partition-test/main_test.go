@@ -116,7 +116,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
-	_, err = enclaveCtx.ExecuteStartosisModule(eth2StarlarkModule, moduleParams, false)
+	_, err = enclaveCtx.ExecuteStartosisRemoteModule(eth2StarlarkModule, moduleParams, false)
 	require.NoError(t, err, "An error occurred loading the ETH module")
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
