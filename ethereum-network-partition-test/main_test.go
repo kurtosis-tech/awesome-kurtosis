@@ -117,7 +117,7 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
 	_, err = enclaveCtx.ExecuteStartosisRemoteModule(eth2StarlarkModule, moduleParams, false)
-	require.NoError(t, err, "An error occurred loading the ETH module")
+	require.NoError(t, err, "An error executing loading the ETH module")
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
