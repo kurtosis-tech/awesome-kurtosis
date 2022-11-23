@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/kurtosis-tech/kurtosis-sdk/api/golang v0.0.0-20221123095031-c4e6ae708421
+	github.com/kurtosis-tech/kurtosis-sdk/api/golang v0.0.0-20221123113909-cfb50316b069
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 )
 
