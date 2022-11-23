@@ -38,8 +38,7 @@ const (
 
 	nodeInfoPrefix = "NODES STATUS -- |"
 
-	ethModuleId         = "eth-module"
-	startosisModulePath = "/Users/gyani/work/eth2-module"
+	eth2StarlarkModule = "github.com/kurtosis-tech/eth2-module"
 
 	// must be something greater than 4 to have at least 2 nodes in each partition
 	numParticipants = 4
@@ -117,7 +116,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
-	_, err = enclaveCtx.ExecuteStartosisModule(startosisModulePath, moduleParams, false)
+	_, err = enclaveCtx.ExecuteStartosisModule(eth2StarlarkModule, moduleParams, false)
 	require.NoError(t, err, "An error occurred loading the ETH module")
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
