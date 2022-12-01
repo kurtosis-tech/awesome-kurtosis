@@ -120,11 +120,11 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
 	starlarkResponseLine, _, err := enclaveCtx.RunStarlarkRemotePackage(ctx, eth2StarlarkPackage, moduleParams, false)
-	_, _, interpretationError, validationError, executionError := readStreamContentUntilClosed(starlarkResponseLine)
+	_, _, interpretationErrors, validationErrors, executionErrors := readStreamContentUntilClosed(starlarkResponseLine)
 	require.NoError(t, err, "An error executing loading the ETH module")
-	require.Nil(t, interpretationError)
-	require.Nil(t, executionError)
-	require.Nil(t, validationError)
+	require.Nil(t, interpretationErrors)
+	require.Nil(t, executionErrors)
+	require.Empty(t, validationErrors)
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
