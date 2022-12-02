@@ -7,18 +7,13 @@ executors:
   ubuntu_vm:
     machine:
       image: ubuntu-2004:202201-02
-      # DO NOT USE THIS YET! This costs 200 credits *per job run* so is extremely expensive for the free plan, but we can turn it on one day if we get more credits
-      # docker_layer_caching: true
 
 parameters:
-  enclave-dump-dirname:
-    type: string
-    default: eth2-enclave-dump
   # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/examples/triggers
   should-enable-check-latest-version-workflow:
     type: boolean
     default: false
-  # To enable/disabled the check_latest_version workflow execution which will be triggered by the PR's checkers
+  # To enable/disabled the check_code workflow execution which will be triggered by the PR's checkers
   should-enable-build-workflow:
     type: boolean
     default: true
@@ -85,4 +80,3 @@ workflows:
             branches:
               ignore:
                 - master
-      # -- End PR check jobs ---------------------------------------
