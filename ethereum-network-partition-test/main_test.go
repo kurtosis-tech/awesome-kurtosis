@@ -34,7 +34,7 @@ This test demonstrate Ethereum-forking behaviour in Kurtosis.
 const (
 	logLevel = logrus.InfoLevel
 
-	testName              = "go-network-partitioning"
+	enclaveId              = "ethereum-network-partitioning"
 	isPartitioningEnabled = true
 
 	nodeInfoPrefix = "NODES STATUS -- |"
@@ -110,10 +110,6 @@ func TestNetworkPartitioning(t *testing.T) {
 	kurtosisCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
 	require.NoError(t, err, "An error occurred connecting to the Kurtosis engine")
 
-	enclaveId := enclaves.EnclaveID(fmt.Sprintf(
-		"%v-%v",
-		testName, time.Now().Unix(),
-	))
 	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
 	require.NoError(t, err, "An error occurred creating the enclave")
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
