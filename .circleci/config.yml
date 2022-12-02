@@ -1,0 +1,82 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.10.1
+
+executors:
+  ubuntu_vm:
+    machine:
+      image: ubuntu-2004:202201-02
+
+parameters:
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/examples/triggers
+  should-enable-check-latest-version-workflow:
+    type: boolean
+    default: false
+  # To enable/disabled the check_code workflow execution which will be triggered by the PR's checkers
+  should-enable-build-workflow:
+    type: boolean
+    default: true
+
+jobs:
+  check_latest_version:
+    executor: ubuntu_vm
+    steps:
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+      
+      - run: |
+          cd ethereum-network-partition-test
+          go test -v .
+      # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
+      - slack/notify:
+          channel: engineering
+          event: fail
+          # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
+          template: basic_fail_1
+
+
+  check_code:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If the only changes are to the docs, don't run the slow (and expensive) code checks
+      # `git diff --exit-code` returns 0 exit code if no changes, and 1 if changes
+      - run: |
+          if git --no-pager diff --exit-code origin/master...HEAD -- . ':!docs'; then
+            circleci-agent step halt
+          fi
+
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+        
+      - run: |
+          cd ethereum-network-partition-test
+          go test -v .
+
+workflows:
+  check_latest_version:
+    when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
+    jobs:
+      - check_latest_version:
+          context:
+            - slack-secrets
+  build:
+    when: << pipeline.parameters.should-enable-build-workflow >>
+    jobs:
+      - check_code:
+          filters:
+            branches:
+              ignore:
+                - master
