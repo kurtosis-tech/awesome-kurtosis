@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/kurtosis_core_rpc_api_bindings"
 	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis-sdk/api/golang/engine/lib/kurtosis_context"
@@ -34,7 +33,7 @@ This test demonstrate Ethereum-forking behaviour in Kurtosis.
 const (
 	logLevel = logrus.InfoLevel
 
-	enclaveId              = "ethereum-network-partitioning"
+	enclaveId             = "ethereum-network-partitioning"
 	isPartitioningEnabled = true
 
 	nodeInfoPrefix = "NODES STATUS -- |"
@@ -115,12 +114,11 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
-	starlarkResponseLine, _, err := enclaveCtx.RunStarlarkRemotePackage(ctx, eth2StarlarkPackage, moduleParams, false)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, moduleParams, false)
 	require.NoError(t, err, "An error executing loading the ETH module")
-	_, _, interpretationErrors, validationErrors, executionErrors := readStreamContentUntilClosed(starlarkResponseLine)
-	require.Nil(t, interpretationErrors)
-	require.Empty(t, validationErrors)
-	require.Nil(t, executionErrors)
+	require.Nil(t, starlarkRunResult.InterpretationError)
+	require.Empty(t, starlarkRunResult.ValidationErrors)
+	require.Nil(t, starlarkRunResult.ExecutionError)
 
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
@@ -588,31 +586,4 @@ func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 
 func renderServiceId(template string, nodeId int) services.ServiceID {
 	return services.ServiceID(fmt.Sprintf(template, nodeId))
-}
-
-// TODO remove this when we have a product supported way of doing this
-func readStreamContentUntilClosed(responseLines chan *kurtosis_core_rpc_api_bindings.StarlarkRunResponseLine) (string, []*kurtosis_core_rpc_api_bindings.StarlarkInstruction, *kurtosis_core_rpc_api_bindings.StarlarkInterpretationError, []*kurtosis_core_rpc_api_bindings.StarlarkValidationError, *kurtosis_core_rpc_api_bindings.StarlarkExecutionError) {
-	scriptOutput := strings.Builder{}
-	instructions := make([]*kurtosis_core_rpc_api_bindings.StarlarkInstruction, 0)
-	var interpretationError *kurtosis_core_rpc_api_bindings.StarlarkInterpretationError
-	validationErrors := make([]*kurtosis_core_rpc_api_bindings.StarlarkValidationError, 0)
-	var executionError *kurtosis_core_rpc_api_bindings.StarlarkExecutionError
-
-	for responseLine := range responseLines {
-		if responseLine.GetInstruction() != nil {
-			instructions = append(instructions, responseLine.GetInstruction())
-		} else if responseLine.GetInstructionResult() != nil {
-			scriptOutput.WriteString(responseLine.GetInstructionResult().GetSerializedInstructionResult())
-			scriptOutput.WriteString(newlineChar)
-		} else if responseLine.GetError() != nil {
-			if responseLine.GetError().GetInterpretationError() != nil {
-				interpretationError = responseLine.GetError().GetInterpretationError()
-			} else if responseLine.GetError().GetValidationError() != nil {
-				validationErrors = append(validationErrors, responseLine.GetError().GetValidationError())
-			} else if responseLine.GetError().GetExecutionError() != nil {
-				executionError = responseLine.GetError().GetExecutionError()
-			}
-		}
-	}
-	return scriptOutput.String(), instructions, interpretationError, validationErrors, executionError
 }
