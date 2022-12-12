@@ -111,6 +111,8 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
 	require.NoError(t, err, "An error occurred creating the enclave")
+	// we only stop the enclave instead of destroying it as this allows users  to debug  their enclave after the tests are run
+	// we recommend using `DestroyEnclave` to destroy & clean up the enclave if you don't want remaining artifacts
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING MODULE ---------------")
