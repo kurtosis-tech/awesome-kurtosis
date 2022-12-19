@@ -33,7 +33,7 @@ jobs:
       
       - run: |
           cd ethereum-network-partition-test
-          go test -v -t 20m .
+          go test -v -d 20m .
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
           channel: engineering
@@ -64,7 +64,7 @@ jobs:
         
       - run: |
           cd ethereum-network-partition-test
-          go test -v -t 20m .
+          go test -v -d 20m .
 
 workflows:
   check_latest_version:
