@@ -276,7 +276,7 @@ func printNodeInfoUntilStopped(
 			case <-time.Tick(3 * time.Second):
 				printAllNodesInfo(ctx, nodeClientsByServiceIds)
 			case <-printingStopChan:
-				break
+				return
 			}
 		}
 	}()
