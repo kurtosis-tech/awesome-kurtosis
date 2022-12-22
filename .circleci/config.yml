@@ -33,6 +33,7 @@ jobs:
 
       # run the golang tests
       - run: |
+          kurtosis run . --with-subnetworks
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
 
@@ -89,6 +90,11 @@ workflows:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
       - check_code:
+          filters:
+            branches:
+              ignore:
+                - master
+      - check_starlark_code:
           filters:
             branches:
               ignore:

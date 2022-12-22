@@ -40,7 +40,6 @@ def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
         field="extract." + BLOCK_NUMBER_FIELD,
         assertion=">=",
         target_value=pad(target_block_number_hex),
-        interval="1ms",
         timeout="20m",  # Ethereum nodes can take a while to get in good shapes, especially at the beginning
     )
     return block_number_response[extracted_field_name(BLOCK_NUMBER_FIELD)]
