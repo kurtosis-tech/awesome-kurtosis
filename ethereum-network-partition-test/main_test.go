@@ -152,7 +152,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Info("------------ VERIFIED ALL NODES ARE IN SYNC BEFORE THE PARTITION ------------")
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
-	starlarkRunResult, err = enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun)
 	require.NoError(t, err, "An error executing Stalark to partition network")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -170,7 +170,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
-	starlarkRunResult, err = enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, healConnectionStarlark, noSerializedParams, noDryRun)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, healConnectionStarlark, noSerializedParams, noDryRun)
 	require.NoError(t, err, "An error executing Stalark to update services to partition")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
