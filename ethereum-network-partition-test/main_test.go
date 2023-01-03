@@ -205,9 +205,9 @@ func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.Encl
 		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition), firstPartition))
 	}
 	for _, nodeIdForSecondPartition := range nodeIds[len(nodeIds)/2:] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition), firstPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition), firstPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), secondPartition))
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
 	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun)
