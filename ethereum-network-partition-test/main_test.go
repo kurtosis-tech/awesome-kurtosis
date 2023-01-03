@@ -87,9 +87,9 @@ const (
 
 	newlineChar = "\n"
 
-	updateScriptStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	updateScriptStarlarkTemplate  = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
 	setConnectionStarlarkTemplate = `plan.set_connection(subnetworks = ("%s", "%s"), config = ConnectionConfig(packet_loss_percentage = %f))`
-	headerStarlarkTemplate = `def run(plan):`
+	headerStarlarkTemplate        = `def run(plan):`
 )
 
 var (
@@ -184,18 +184,18 @@ func initNodeIdsAndRenderModuleParam() string {
 func repartitionNetworkUsingStarlark(
 	ctx context.Context,
 	enclaveCtx *enclaves.EnclaveContext,
-	partitionedNetworkServices map[enclaves.PartitionID]map[services.ServiceID],
+	partitionedNetworkServices map[enclaves.PartitionID]map[services.ServiceID]bool,
 	partitionedNetworkConnections map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection,
-	) error {
+) error {
 	commands := []string{headerStarlarkTemplate}
 	for partitionId, partition := range partitionedNetworkServices {
 		for serviceId := range partition {
-			commands = append(commands, "\t" + fmt.Sprintf(updateScriptStarlarkTemplate, serviceId, partitionId))
+			commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, serviceId, partitionId))
 		}
 	}
 	for firstPartition, otherPartitions := range partitionedNetworkConnections {
 		for secondPartition, packetLossPercentage := range otherPartitions {
-			commands = append(commands, "\t" + fmt.Sprintf(setConnectionStarlarkTemplate, firstPartition, secondPartition, packetLossPercentage))
+			commands = append(commands, "\t"+fmt.Sprintf(setConnectionStarlarkTemplate, firstPartition, secondPartition, packetLossPercentage))
 		}
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
