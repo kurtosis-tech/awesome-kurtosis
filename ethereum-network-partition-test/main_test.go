@@ -98,10 +98,10 @@ var (
 	isTestInExecution bool
 
 	healConnectionStarlark = fmt.Sprintf(`
-def run(plan)
+def run(plan):
 	plan.set_connection(subnetworks = ("%s", "%s"), config = kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
 	blockConnectionStarlark = fmt.Sprintf(`
-def run(plan)
+def run(plan):
 	plan.set_connection(subnetworks = ("%s", "%s"), config = kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
 )
 
