@@ -85,17 +85,17 @@ const (
 	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 
-	newlineChar = "\n"
-
 	updateScriptStarlarkTemplate  = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
 	setConnectionStarlarkTemplate = `plan.set_connection(subnetworks = ("%s", "%s"), config = ConnectionConfig(packet_loss_percentage = %f))`
 	headerStarlarkTemplate        = `def run(plan):`
+
+	noSerializedParams = ""
+	noDryRun           = false
+
+	blockedPartitionPacketLossPercentage = 100.0
 )
 
 var (
-	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
-	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
-
 	nodeIds    = make([]int, numParticipants)
 	idsToQuery = make([]services.ServiceID, numParticipants)
 
@@ -185,7 +185,7 @@ func repartitionNetworkUsingStarlark(
 	ctx context.Context,
 	enclaveCtx *enclaves.EnclaveContext,
 	partitionedNetworkServices map[enclaves.PartitionID]map[services.ServiceID]bool,
-	partitionedNetworkConnections map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection,
+	partitionedNetworkConnections map[enclaves.PartitionID]map[enclaves.PartitionID]float64,
 ) error {
 	commands := []string{headerStarlarkTemplate}
 	for partitionId, partition := range partitionedNetworkServices {
@@ -199,7 +199,7 @@ func repartitionNetworkUsingStarlark(
 		}
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, "", false)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun)
 	if err != nil {
 		return err
 	}
@@ -232,9 +232,9 @@ func partitionNetwork(t *testing.T, ctx context.Context, enclaveCtx *enclaves.En
 		partitionedNetworkServices[secondPartition][renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition)] = true
 	}
 
-	partitionedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{
+	partitionedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]float64{
 		firstPartition: {
-			secondPartition: blockedPartitionConnection,
+			secondPartition: blockedPartitionPacketLossPercentage,
 		},
 	}
 
@@ -252,7 +252,7 @@ func healNetwork(t *testing.T, ctx context.Context, enclaveCtx *enclaves.Enclave
 		healedNetworkServices[healedPartition][renderServiceId(clNodeBeaconIdTemplate, nodeId)] = true
 		healedNetworkServices[healedPartition][renderServiceId(clNodeValidatorIdTemplate, nodeId)] = true
 	}
-	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
+	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]float64{}
 
 	err := repartitionNetworkUsingStarlark(ctx, enclaveCtx, healedNetworkServices, healedNetworkConnections)
 	require.NoError(t, err, "An error occurred healing the network partition")
