@@ -72,8 +72,8 @@ const (
 	// number 6, it will wait for all node to be synced and minimum block number to be 10 + 2 = 12.
 	minimumNumberOfBlocksToProduceAfterHealing = 2
 
-	firstPartition  = "partition0"
-	secondPartition = "partition1"
+	firstPartition  = "subnetwork0"
+	secondPartition = "subnetwork1"
 
 	elNodeIdTemplate          = "el-client-%d"
 	clNodeBeaconIdTemplate    = "cl-client-%d-beacon"
@@ -84,8 +84,8 @@ const (
 	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 
-	updateScriptStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
-	headerStarlarkTemplate       = `def run(plan):`
+	updateServiceStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	headerStarlarkTemplate        = `def run(plan):`
 
 	noSerializedParams = ""
 	noDryRun           = false
@@ -97,8 +97,8 @@ var (
 
 	isTestInExecution bool
 
-	healConnectionStarlark = fmt.Sprintf(`def run(plan):
-	plan.set_connection(("%s", "%s"),kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
+	allowConnectionStarlark = fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
 	blockConnectionStarlark = fmt.Sprintf(`def run(plan):
 	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
 )
@@ -131,7 +131,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
 	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx)
-	require.NoError(t, err, "An error executing Starlark the ETH module")
+	require.NoError(t, err, "An error occurred while executing Starlark to update service with partitions")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
@@ -153,7 +153,7 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
 	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun)
-	require.NoError(t, err, "An error executing Stalark to partition network")
+	require.NoError(t, err, "An error occurred while executing Stalark to partition network")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
@@ -170,8 +170,8 @@ func TestNetworkPartitioning(t *testing.T) {
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
-	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, healConnectionStarlark, noSerializedParams, noDryRun)
-	require.NoError(t, err, "An error executing Stalark to update services to partition")
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun)
+	require.NoError(t, err, "An error occurred while executing Stalark to update services to partition")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
@@ -200,14 +200,14 @@ func initNodeIdsAndRenderModuleParam() string {
 func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
 	commands := []string{headerStarlarkTemplate}
 	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition), firstPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition), firstPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition), firstPartition))
 	}
 	for _, nodeIdForSecondPartition := range nodeIds[len(nodeIds)/2:] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition), secondPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition), secondPartition))
-		commands = append(commands, "\t"+fmt.Sprintf(updateScriptStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), secondPartition))
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
 	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun)
