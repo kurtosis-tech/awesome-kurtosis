@@ -72,9 +72,8 @@ const (
 	// number 6, it will wait for all node to be synced and minimum block number to be 10 + 2 = 12.
 	minimumNumberOfBlocksToProduceAfterHealing = 2
 
-	firstPartition  = "partition0"
-	secondPartition = "partition1"
-	healedPartition = "pangea"
+	firstPartition  = "subnetwork0"
+	secondPartition = "subnetwork1"
 
 	elNodeIdTemplate          = "el-client-%d"
 	clNodeBeaconIdTemplate    = "cl-client-%d-beacon"
@@ -85,17 +84,23 @@ const (
 	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 
-	newlineChar = "\n"
+	updateServiceStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	headerStarlarkTemplate        = `def run(plan):`
+
+	noSerializedParams = ""
+	noDryRun           = false
 )
 
 var (
-	unblockedPartitionConnection = enclaves.NewUnblockedPartitionConnection()
-	blockedPartitionConnection   = enclaves.NewBlockedPartitionConnection()
-
 	nodeIds    = make([]int, numParticipants)
 	idsToQuery = make([]services.ServiceID, numParticipants)
 
 	isTestInExecution bool
+
+	allowConnectionStarlark = fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
+	blockConnectionStarlark = fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
 )
 
 func TestNetworkPartitioning(t *testing.T) {
@@ -125,6 +130,12 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
+	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx)
+	require.NoError(t, err, "An error occurred while executing Starlark to update service with partitions")
+	require.Nil(t, starlarkRunResult.InterpretationError)
+	require.Empty(t, starlarkRunResult.ValidationErrors)
+	require.Nil(t, starlarkRunResult.ExecutionError)
+
 	logrus.Info("------------ STARTING TEST CASE ---------------")
 	stopPrintingFunc, err := printNodeInfoUntilStopped(
 		ctx,
@@ -141,7 +152,11 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Info("------------ VERIFIED ALL NODES ARE IN SYNC BEFORE THE PARTITION ------------")
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
-	partitionNetwork(t, enclaveCtx)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun)
+	require.NoError(t, err, "An error occurred while executing Stalark to partition network")
+	require.Nil(t, starlarkRunResult.InterpretationError)
+	require.Empty(t, starlarkRunResult.ValidationErrors)
+	require.Nil(t, starlarkRunResult.ExecutionError)
 
 	logrus.Infof("------------ CHECKING BLOCKS DIVERGE AT BLOCK NUMBER '%d' ---------------", syncedBlockNumber+numberOfBlockToProduceBeforeCheckingDivergence)
 	// node 0 and node N will necessarily be in a different partition
@@ -155,7 +170,12 @@ func TestNetworkPartitioning(t *testing.T) {
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
-	healNetwork(t, enclaveCtx)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun)
+	require.NoError(t, err, "An error occurred while executing Stalark to update services to partition")
+	require.Nil(t, starlarkRunResult.InterpretationError)
+	require.Empty(t, starlarkRunResult.ValidationErrors)
+	require.Nil(t, starlarkRunResult.ExecutionError)
+
 	logrus.Info("------------ PARTITION HEALED ---------------")
 	logrus.Infof("------------ CHECKING ALL NODES ARE BACK IN SYNC AT BLOCK '%d' ---------------", maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
 	syncedBlockNumber, err = waitUntilAllNodesGetSynced(ctx, idsToQuery, nodeClientsByServiceIds, maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
@@ -177,55 +197,20 @@ func initNodeIdsAndRenderModuleParam() string {
 	return strings.ReplaceAll(moduleParamsTemplate, participantsPlaceholder, strings.Join(participantParams, ","))
 }
 
-func partitionNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
-	partitionedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
-		firstPartition:  make(map[services.ServiceID]bool),
-		secondPartition: make(map[services.ServiceID]bool),
-	}
-	// half of the nodes go to partition 1, the other half to partition 2
+func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+	commands := []string{headerStarlarkTemplate}
 	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
-		partitionedNetworkServices[firstPartition][renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition)] = true
-		partitionedNetworkServices[firstPartition][renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition)] = true
-		partitionedNetworkServices[firstPartition][renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition)] = true
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForFirstPartition), firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForFirstPartition), firstPartition))
 	}
 	for _, nodeIdForSecondPartition := range nodeIds[len(nodeIds)/2:] {
-		partitionedNetworkServices[secondPartition][renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition)] = true
-		partitionedNetworkServices[secondPartition][renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition)] = true
-		partitionedNetworkServices[secondPartition][renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition)] = true
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeBeaconIdTemplate, nodeIdForSecondPartition), secondPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), secondPartition))
 	}
-
-	partitionedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{
-		firstPartition: {
-			secondPartition: blockedPartitionConnection,
-		},
-	}
-
-	err := enclaveCtx.RepartitionNetwork(
-		partitionedNetworkServices,
-		partitionedNetworkConnections,
-		blockedPartitionConnection,
-	)
-	require.NoError(t, err, "An error occurred repartitioning the network")
-}
-
-func healNetwork(t *testing.T, enclaveCtx *enclaves.EnclaveContext) {
-	healedNetworkServices := map[enclaves.PartitionID]map[services.ServiceID]bool{
-		healedPartition: make(map[services.ServiceID]bool),
-	}
-	// All nodes go back into the same partition
-	for nodeId := range nodeIds {
-		healedNetworkServices[healedPartition][renderServiceId(elNodeIdTemplate, nodeId)] = true
-		healedNetworkServices[healedPartition][renderServiceId(clNodeBeaconIdTemplate, nodeId)] = true
-		healedNetworkServices[healedPartition][renderServiceId(clNodeValidatorIdTemplate, nodeId)] = true
-	}
-	healedNetworkConnections := map[enclaves.PartitionID]map[enclaves.PartitionID]enclaves.PartitionConnection{}
-
-	err := enclaveCtx.RepartitionNetwork(
-		healedNetworkServices,
-		healedNetworkConnections,
-		unblockedPartitionConnection,
-	)
-	require.NoError(t, err, "An error occurred healing the network partition")
+	fullStarlarkScript := strings.Join(commands, "\n")
+	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun)
 }
 
 func getElNodeClientsByServiceID(
