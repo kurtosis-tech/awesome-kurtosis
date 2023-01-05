@@ -91,19 +91,19 @@ const (
 	noDryRun           = false
 )
 
-var (
-	nodeIds    = make([]int, numParticipants)
-	idsToQuery = make([]services.ServiceID, numParticipants)
-
-	allowConnectionStarlark = fmt.Sprintf(`def run(plan):
-	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
-	blockConnectionStarlark = fmt.Sprintf(`def run(plan):
-	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
-)
-
 func TestNetworkPartitioning(t *testing.T) {
+
+	nodeIds := make([]int, numParticipants)
+	idsToQuery := make([]services.ServiceID, numParticipants)
+
+	allowConnectionStarlark := fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
+
+	blockConnectionStarlark := fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
+
 	logrus.SetLevel(logLevel)
-	packageParams := initNodeIdsAndRenderPackageParam()
+	packageParams := initNodeIdsAndRenderPackageParam(nodeIds, idsToQuery)
 
 	ctx, cancelCtxFunc := context.WithCancel(context.Background())
 	defer cancelCtxFunc()
@@ -128,7 +128,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
-	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx)
+	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx, nodeIds)
 	require.NoError(t, err, "An error occurred while executing Starlark to update service with partitions")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -183,7 +183,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Info("----------- VERIFIED THAT ALL NODES ARE IN SYNC AFTER HEALING THE PARTITION --------------")
 }
 
-func initNodeIdsAndRenderPackageParam() string {
+func initNodeIdsAndRenderPackageParam(nodeIds []int, idsToQuery []services.ServiceID) string {
 	participantParams := make([]string, numParticipants)
 	for idx := 0; idx < numParticipants; idx++ {
 		nodeIds[idx] = idx
@@ -193,7 +193,7 @@ func initNodeIdsAndRenderPackageParam() string {
 	return strings.ReplaceAll(packageParamsTemplate, participantsPlaceholder, strings.Join(participantParams, ","))
 }
 
-func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext, nodeIds []int) (*enclaves.StarlarkRunResult, error) {
 	commands := []string{headerStarlarkTemplate}
 	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
 		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition), firstPartition))
