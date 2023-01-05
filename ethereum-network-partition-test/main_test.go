@@ -44,9 +44,9 @@ const (
 	numParticipants = 4
 
 	participantsPlaceholder = "{{participants_param}}"
-	//participantParam        = `{"elType":"geth","elImage":"ethereum/client-go:v1.10.25","clType":"lodestar","clImage":"chainsafe/lodestar:v1.1.0"}`
-	participantParam     = `{"el_client_type":"geth","el_client_image":"ethereum/client-go:v1.10.25","cl_client_type":"lighthouse","cl_client_image":"sigp/lighthouse:v3.1.2"}`
-	moduleParamsTemplate = `{
+
+	participantParam      = `{"el_client_type":"geth","el_client_image":"ethereum/client-go:v1.10.25","cl_client_type":"lighthouse","cl_client_image":"sigp/lighthouse:v3.1.2"}`
+	packageParamsTemplate = `{
 	"launch_additional_services": false,
 	"participants": [
 		` + participantsPlaceholder + `
@@ -91,24 +91,22 @@ const (
 	noDryRun           = false
 )
 
-var (
-	nodeIds    = make([]int, numParticipants)
-	idsToQuery = make([]services.ServiceID, numParticipants)
-
-	isTestInExecution bool
-
-	allowConnectionStarlark = fmt.Sprintf(`def run(plan):
-	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
-	blockConnectionStarlark = fmt.Sprintf(`def run(plan):
-	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
-)
-
 func TestNetworkPartitioning(t *testing.T) {
-	logrus.SetLevel(logLevel)
-	isTestInExecution = true
-	moduleParams := initNodeIdsAndRenderModuleParam()
 
-	ctx := context.Background()
+	nodeIds := make([]int, numParticipants)
+	idsToQuery := make([]services.ServiceID, numParticipants)
+
+	allowConnectionStarlark := fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
+
+	blockConnectionStarlark := fmt.Sprintf(`def run(plan):
+	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
+
+	logrus.SetLevel(logLevel)
+	packageParams := initNodeIdsAndRenderPackageParam(nodeIds, idsToQuery)
+
+	ctx, cancelCtxFunc := context.WithCancel(context.Background())
+	defer cancelCtxFunc()
 
 	logrus.Info("------------ CONNECTING TO KURTOSIS ENGINE ---------------")
 	kurtosisCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
@@ -116,13 +114,13 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
 	require.NoError(t, err, "An error occurred creating the enclave")
-	// we only stop the enclave instead of destroying it as this allows users  to debug  their enclave after the tests are run
+	// we only stop the enclave instead of destroying it as this allows users to debug their enclave after the tests are run
 	// we recommend using `DestroyEnclave` to destroy & clean up the enclave if you don't want remaining artifacts
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
-	logrus.Info("------------ EXECUTING MODULE ---------------")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, moduleParams, false)
-	require.NoError(t, err, "An error executing loading the ETH module")
+	logrus.Info("------------ EXECUTING PACKAGE ---------------")
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, packageParams, false)
+	require.NoError(t, err, "An error executing loading the ETH package")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
@@ -130,7 +128,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
 	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
 
-	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx)
+	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx, nodeIds)
 	require.NoError(t, err, "An error occurred while executing Starlark to update service with partitions")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -183,21 +181,19 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Infof("----------- ALL NODES SYNCED AT BLOCK NUMBER '%v' -----------", syncedBlockNumber)
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 	logrus.Info("----------- VERIFIED THAT ALL NODES ARE IN SYNC AFTER HEALING THE PARTITION --------------")
-
-	isTestInExecution = false
 }
 
-func initNodeIdsAndRenderModuleParam() string {
+func initNodeIdsAndRenderPackageParam(nodeIds []int, idsToQuery []services.ServiceID) string {
 	participantParams := make([]string, numParticipants)
 	for idx := 0; idx < numParticipants; idx++ {
 		nodeIds[idx] = idx
 		idsToQuery[idx] = renderServiceId(elNodeIdTemplate, nodeIds[idx])
 		participantParams[idx] = participantParam
 	}
-	return strings.ReplaceAll(moduleParamsTemplate, participantsPlaceholder, strings.Join(participantParams, ","))
+	return strings.ReplaceAll(packageParamsTemplate, participantsPlaceholder, strings.Join(participantParams, ","))
 }
 
-func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext) (*enclaves.StarlarkRunResult, error) {
+func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext, nodeIds []int) (*enclaves.StarlarkRunResult, error) {
 	commands := []string{headerStarlarkTemplate}
 	for _, nodeIdForFirstPartition := range nodeIds[:len(nodeIds)/2] {
 		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(elNodeIdTemplate, nodeIdForFirstPartition), firstPartition))
@@ -331,15 +327,21 @@ func printHeader(nodeClientsByServiceIds map[services.ServiceID]*ethclient.Clien
 }
 
 func printAllNodesInfo(ctx context.Context, nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
-	nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
-	for serviceId, client := range nodeClientsByServiceIds {
-		nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
-		if err != nil && isTestInExecution {
-			logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
+	select {
+	case <-ctx.Done():
+		//The test has finished
+		return
+	default:
+		nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
+		for serviceId, client := range nodeClientsByServiceIds {
+			nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
+			if err != nil {
+				logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
+			}
+			nodesCurrentBlock[serviceId] = nodeBlock
 		}
-		nodesCurrentBlock[serviceId] = nodeBlock
+		printAllNodesCurrentBlock(nodesCurrentBlock)
 	}
-	printAllNodesCurrentBlock(nodesCurrentBlock)
 }
 
 func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceID]*types.Block) {
