@@ -327,20 +327,21 @@ func printHeader(nodeClientsByServiceIds map[services.ServiceID]*ethclient.Clien
 }
 
 func printAllNodesInfo(ctx context.Context, nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
-	if ctx.Err() != nil && ctx.Err() == context.Canceled {
+	select {
+	case <-ctx.Done():
 		//The test has finished
 		return
-	}
-
-	nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
-	for serviceId, client := range nodeClientsByServiceIds {
-		nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
-		if err != nil {
-			logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
+	default:
+		nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
+		for serviceId, client := range nodeClientsByServiceIds {
+			nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
+			if err != nil {
+				logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
+			}
+			nodesCurrentBlock[serviceId] = nodeBlock
 		}
-		nodesCurrentBlock[serviceId] = nodeBlock
+		printAllNodesCurrentBlock(nodesCurrentBlock)
 	}
-	printAllNodesCurrentBlock(nodesCurrentBlock)
 }
 
 func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceID]*types.Block) {
