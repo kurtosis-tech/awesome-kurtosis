@@ -11,3 +11,5 @@ A common test flow is as follows:
 1. call the service to test or verify state
 1. remove service
 1. remove enclave
+
+In the file `basic/main_test.go` you can find an example of the above flow using the Kurtosis Go SDK.
