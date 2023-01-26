@@ -84,7 +84,7 @@ const (
 	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 
-	updateServiceStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	updateServiceStarlarkTemplate = `plan.update_service(service_name = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
 	headerStarlarkTemplate        = `def run(plan):`
 
 	noSerializedParams = ""
@@ -94,7 +94,7 @@ const (
 func TestNetworkPartitioning(t *testing.T) {
 
 	nodeIds := make([]int, numParticipants)
-	idsToQuery := make([]services.ServiceID, numParticipants)
+	namesToQuery := make([]services.ServiceName, numParticipants)
 
 	allowConnectionStarlark := fmt.Sprintf(`def run(plan):
 	plan.set_connection(("%s", "%s"), kurtosis.connection.ALLOWED)`, firstPartition, secondPartition)
@@ -103,7 +103,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	plan.set_connection(("%s", "%s"), kurtosis.connection.BLOCKED)`, firstPartition, secondPartition)
 
 	logrus.SetLevel(logLevel)
-	packageParams := initNodeIdsAndRenderPackageParam(nodeIds, idsToQuery)
+	packageParams := initNodeIdsAndRenderPackageParam(nodeIds, namesToQuery)
 
 	ctx, cancelCtxFunc := context.WithCancel(context.Background())
 	defer cancelCtxFunc()
@@ -125,8 +125,8 @@ func TestNetworkPartitioning(t *testing.T) {
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
 
-	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, idsToQuery)
-	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", idsToQuery)
+	nodeClientsByServiceIds, err := getElNodeClientsByServiceID(enclaveCtx, namesToQuery)
+	require.NoError(t, err, "An error occurred when trying to get the node clients for services with IDs '%+v'", namesToQuery)
 
 	starlarkRunResult, err = updateServicesWithPartitions(ctx, enclaveCtx, nodeIds)
 	require.NoError(t, err, "An error occurred while executing Starlark to update service with partitions")
@@ -143,7 +143,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer stopPrintingFunc()
 
 	logrus.Infof("------------ CHECKING ALL NODES ARE IN SYNC AT BLOCK '%d' ---------------", minimumNumberOfBlocksToProduceBeforePartition)
-	syncedBlockNumber, err := waitUntilAllNodesGetSynced(ctx, idsToQuery, nodeClientsByServiceIds, minimumNumberOfBlocksToProduceBeforePartition)
+	syncedBlockNumber, err := waitUntilAllNodesGetSynced(ctx, namesToQuery, nodeClientsByServiceIds, minimumNumberOfBlocksToProduceBeforePartition)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced before inducing the partition")
 	logrus.Infof("------------ ALL NODES SYNCED AT BLOCK NUMBER '%v' ------------", syncedBlockNumber)
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
@@ -176,14 +176,14 @@ func TestNetworkPartitioning(t *testing.T) {
 
 	logrus.Info("------------ PARTITION HEALED ---------------")
 	logrus.Infof("------------ CHECKING ALL NODES ARE BACK IN SYNC AT BLOCK '%d' ---------------", maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
-	syncedBlockNumber, err = waitUntilAllNodesGetSynced(ctx, idsToQuery, nodeClientsByServiceIds, maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
+	syncedBlockNumber, err = waitUntilAllNodesGetSynced(ctx, namesToQuery, nodeClientsByServiceIds, maxBlockNumberInPartitions+minimumNumberOfBlocksToProduceAfterHealing)
 	require.NoError(t, err, "An error occurred waiting until all nodes get synced after inducing the partition")
 	logrus.Infof("----------- ALL NODES SYNCED AT BLOCK NUMBER '%v' -----------", syncedBlockNumber)
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 	logrus.Info("----------- VERIFIED THAT ALL NODES ARE IN SYNC AFTER HEALING THE PARTITION --------------")
 }
 
-func initNodeIdsAndRenderPackageParam(nodeIds []int, idsToQuery []services.ServiceID) string {
+func initNodeIdsAndRenderPackageParam(nodeIds []int, idsToQuery []services.ServiceName) string {
 	participantParams := make([]string, numParticipants)
 	for idx := 0; idx < numParticipants; idx++ {
 		nodeIds[idx] = idx
@@ -211,21 +211,21 @@ func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.Encl
 
 func getElNodeClientsByServiceID(
 	enclaveCtx *enclaves.EnclaveContext,
-	serviceIds []services.ServiceID,
+	serviceIds []services.ServiceName,
 ) (
-	resultNodeClientsByServiceId map[services.ServiceID]*ethclient.Client,
+	resultNodeClientsByServiceId map[services.ServiceName]*ethclient.Client,
 	resultErr error,
 ) {
-	nodeClientsByServiceIds := map[services.ServiceID]*ethclient.Client{}
-	for _, serviceId := range serviceIds {
-		serviceCtx, err := enclaveCtx.GetServiceContext(serviceId)
+	nodeClientsByServiceIds := map[services.ServiceName]*ethclient.Client{}
+	for _, serviceName := range serviceIds {
+		serviceCtx, err := enclaveCtx.GetServiceContext(string(serviceName))
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "A fatal error occurred getting context for service '%v'", serviceId)
+			return nil, stacktrace.Propagate(err, "A fatal error occurred getting context for service '%v'", serviceName)
 		}
 
 		rpcPort, found := serviceCtx.GetPublicPorts()[rpcPortId]
 		if !found {
-			return nil, stacktrace.NewError("Service '%v' doesn't have expected RPC port with ID '%v'", serviceId, rpcPortId)
+			return nil, stacktrace.NewError("Service '%v' doesn't have expected RPC port with ID '%v'", serviceName, rpcPortId)
 		}
 
 		url := fmt.Sprintf(
@@ -235,17 +235,17 @@ func getElNodeClientsByServiceID(
 		)
 		client, err := ethclient.Dial(url)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "A fatal error occurred creating the ETH client for service '%v'", serviceId)
+			return nil, stacktrace.Propagate(err, "A fatal error occurred creating the ETH client for service '%v'", serviceName)
 		}
 
-		nodeClientsByServiceIds[serviceId] = client
+		nodeClientsByServiceIds[serviceName] = client
 	}
 	return nodeClientsByServiceIds, nil
 }
 
 func printNodeInfoUntilStopped(
 	ctx context.Context,
-	nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client,
+	nodeClientsByServiceIds map[services.ServiceName]*ethclient.Client,
 ) (func(), error) {
 
 	printingStopChan := make(chan struct{})
@@ -271,7 +271,7 @@ func printNodeInfoUntilStopped(
 
 func getMostRecentNodeBlockWithRetries(
 	ctx context.Context,
-	serviceId services.ServiceID,
+	serviceName services.ServiceName,
 	client *ethclient.Client,
 	attempts int,
 	sleep time.Duration,
@@ -282,14 +282,14 @@ func getMostRecentNodeBlockWithRetries(
 
 	blockNumberUint64, err := client.BlockNumber(ctx)
 	if err != nil {
-		resultErr = stacktrace.Propagate(err, "%-25sAn error occurred getting the block number", serviceId)
+		resultErr = stacktrace.Propagate(err, "%-25sAn error occurred getting the block number", serviceName)
 	}
 
 	if resultErr == nil {
 		blockNumberBigint := new(big.Int).SetUint64(blockNumberUint64)
 		resultBlock, err = client.BlockByNumber(ctx, blockNumberBigint)
 		if err != nil {
-			resultErr = stacktrace.Propagate(err, "%-25sAn error occurred getting the latest block", serviceId)
+			resultErr = stacktrace.Propagate(err, "%-25sAn error occurred getting the latest block", serviceName)
 		}
 		if resultBlock == nil {
 			resultErr = stacktrace.NewError("Something unexpected happened, block mustn't be nil; this is an error in the Geth client")
@@ -300,65 +300,65 @@ func getMostRecentNodeBlockWithRetries(
 		//Sometimes the client do not find the block, so we do retries
 		if attempts--; attempts > 0 {
 			time.Sleep(sleep)
-			return getMostRecentNodeBlockWithRetries(ctx, serviceId, client, attempts, sleep)
+			return getMostRecentNodeBlockWithRetries(ctx, serviceName, client, attempts, sleep)
 		}
 	}
 
 	return resultBlock, resultErr
 }
 
-func printHeader(nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
+func printHeader(nodeClientsByServiceIds map[services.ServiceName]*ethclient.Client) {
 	nodeInfoHeaderStr := nodeInfoPrefix
 	nodeInfoHeaderLine2Str := nodeInfoPrefix
 
-	sortedServiceIds := make([]services.ServiceID, 0, len(nodeClientsByServiceIds))
-	for serviceId, _ := range nodeClientsByServiceIds {
-		sortedServiceIds = append(sortedServiceIds, serviceId)
+	sortedServiceIds := make([]services.ServiceName, 0, len(nodeClientsByServiceIds))
+	for serviceName, _ := range nodeClientsByServiceIds {
+		sortedServiceIds = append(sortedServiceIds, serviceName)
 	}
 	sort.Slice(sortedServiceIds, func(i, j int) bool {
 		return sortedServiceIds[i] < sortedServiceIds[j]
 	})
-	for _, serviceId := range sortedServiceIds {
-		nodeInfoHeaderStr = fmt.Sprintf(nodeInfoHeaderStr+"  %-18s  |", serviceId)
+	for _, serviceName := range sortedServiceIds {
+		nodeInfoHeaderStr = fmt.Sprintf(nodeInfoHeaderStr+"  %-18s  |", serviceName)
 		nodeInfoHeaderLine2Str = fmt.Sprintf(nodeInfoHeaderLine2Str+"  %-05s - %-10s  |", "block", "hash")
 	}
 	logrus.Infof(nodeInfoHeaderStr)
 	logrus.Infof(nodeInfoHeaderLine2Str)
 }
 
-func printAllNodesInfo(ctx context.Context, nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client) {
+func printAllNodesInfo(ctx context.Context, nodeClientsByServiceIds map[services.ServiceName]*ethclient.Client) {
 	select {
 	case <-ctx.Done():
 		//The test has finished
 		return
 	default:
-		nodesCurrentBlock := make(map[services.ServiceID]*types.Block, 4)
-		for serviceId, client := range nodeClientsByServiceIds {
-			nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, client, retriesAttempts, retriesSleepDuration)
+		nodesCurrentBlock := make(map[services.ServiceName]*types.Block, 4)
+		for serviceName, client := range nodeClientsByServiceIds {
+			nodeBlock, err := getMostRecentNodeBlockWithRetries(ctx, serviceName, client, retriesAttempts, retriesSleepDuration)
 			if err != nil {
-				logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceId, err.Error())
+				logrus.Warnf("%-25sAn error occurred getting the most recent block, err:\n%v", serviceName, err.Error())
 			}
-			nodesCurrentBlock[serviceId] = nodeBlock
+			nodesCurrentBlock[serviceName] = nodeBlock
 		}
 		printAllNodesCurrentBlock(nodesCurrentBlock)
 	}
 }
 
-func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceID]*types.Block) {
+func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceName]*types.Block) {
 	if nodeCurrentBlocks == nil {
 		return
 	}
 	nodeInfoStr := nodeInfoPrefix
-	sortedServiceIds := make([]services.ServiceID, 0, len(nodeCurrentBlocks))
-	for serviceId, _ := range nodeCurrentBlocks {
-		sortedServiceIds = append(sortedServiceIds, serviceId)
+	sortedServiceIds := make([]services.ServiceName, 0, len(nodeCurrentBlocks))
+	for serviceName, _ := range nodeCurrentBlocks {
+		sortedServiceIds = append(sortedServiceIds, serviceName)
 	}
 	sort.Slice(sortedServiceIds, func(i, j int) bool {
 		return sortedServiceIds[i] < sortedServiceIds[j]
 	})
 
-	for _, serviceId := range sortedServiceIds {
-		blockInfo := nodeCurrentBlocks[serviceId]
+	for _, serviceName := range sortedServiceIds {
+		blockInfo := nodeCurrentBlocks[serviceName]
 		hash := blockInfo.Hash().Hex()
 		shortHash := hash[:5] + ".." + hash[len(hash)-3:]
 		nodeInfoStr = fmt.Sprintf(nodeInfoStr+"  %05d - %-10s  |", blockInfo.NumberU64(), shortHash)
@@ -368,24 +368,24 @@ func printAllNodesCurrentBlock(nodeCurrentBlocks map[services.ServiceID]*types.B
 
 func getMostRecentBlockAndStoreIt(
 	ctx context.Context,
-	serviceId services.ServiceID,
+	serviceName services.ServiceName,
 	serviceClient *ethclient.Client,
 	nodeBlocksByServiceIds *sync.Map,
 ) error {
-	block, err := getMostRecentNodeBlockWithRetries(ctx, serviceId, serviceClient, retriesAttempts, retriesSleepDuration)
+	block, err := getMostRecentNodeBlockWithRetries(ctx, serviceName, serviceClient, retriesAttempts, retriesSleepDuration)
 	if err != nil {
-		return stacktrace.Propagate(err, "An error occurred getting the most recent node block for service '%v'", serviceId)
+		return stacktrace.Propagate(err, "An error occurred getting the most recent node block for service '%v'", serviceName)
 	}
 
-	nodeBlocksByServiceIds.Store(serviceId, block)
+	nodeBlocksByServiceIds.Store(serviceName, block)
 
 	return nil
 }
 
 func waitUntilAllNodesGetSynced(
 	ctx context.Context,
-	serviceIds []services.ServiceID,
-	nodeClientsByServiceIds map[services.ServiceID]*ethclient.Client,
+	serviceIds []services.ServiceName,
+	nodeClientsByServiceIds map[services.ServiceName]*ethclient.Client,
 	minimumBlockNumberConstraint uint64,
 ) (uint64, error) {
 	var wg sync.WaitGroup
@@ -396,10 +396,10 @@ func waitUntilAllNodesGetSynced(
 	for true {
 		select {
 		case <-time.Tick(1 * time.Second):
-			for _, serviceId := range serviceIds {
+			for _, serviceName := range serviceIds {
 				wg.Add(1)
-				nodeServiceId := serviceId
-				nodeClient := nodeClientsByServiceIds[serviceId]
+				nodeServiceId := serviceName
+				nodeClient := nodeClientsByServiceIds[serviceName]
 				go func() {
 					defer wg.Done()
 
@@ -415,11 +415,11 @@ func waitUntilAllNodesGetSynced(
 
 			areAllEqual := true
 
-			for _, serviceId := range serviceIds {
+			for _, serviceName := range serviceIds {
 
-				uncastedNodeBlock, ok := nodeBlocksByServiceIds.LoadAndDelete(serviceId)
+				uncastedNodeBlock, ok := nodeBlocksByServiceIds.LoadAndDelete(serviceName)
 				if !ok {
-					errorChan <- stacktrace.NewError("An error occurred loading the node's block for service with ID '%v'", serviceId)
+					errorChan <- stacktrace.NewError("An error occurred loading the node's block for service with name '%v'", serviceName)
 					break
 				}
 				nodeBlock := uncastedNodeBlock.(*types.Block)
@@ -451,9 +451,9 @@ func waitUntilAllNodesGetSynced(
 
 func waitUntilNode0AndNodeNDivergeBlockNumbers(
 	ctx context.Context,
-	node0ServiceId services.ServiceID,
+	node0ServiceId services.ServiceName,
 	node0Client *ethclient.Client,
-	nodeNServiceId services.ServiceID,
+	nodeNServiceId services.ServiceName,
 	nodeNClient *ethclient.Client,
 	blockNumberToWaitForOnEachNode uint64,
 ) (uint64, error) {
@@ -485,9 +485,9 @@ func waitUntilNode0AndNodeNDivergeBlockNumbers(
 
 func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 	ctx context.Context,
-	node0ServiceId services.ServiceID,
+	node0ServiceId services.ServiceName,
 	node0Client *ethclient.Client,
-	nodeNServiceId services.ServiceID,
+	nodeNServiceId services.ServiceName,
 	node2Client *ethclient.Client,
 	blockNumberToWaitForOnEachNode uint64,
 ) (uint64, string, uint64, string, error) {
@@ -554,25 +554,25 @@ func waitForNodesToProduceBlockNumberAfterPartitionWasIntroduced(
 
 	uncastedNode0Block, loaded := ethNodeBlocksByServiceId.LoadAndDelete(node0ServiceId)
 	if !loaded {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was not loaded", node0ServiceId, node0ServiceId)
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with name '%v', the value for key '%v' was not loaded", node0ServiceId, node0ServiceId)
 	}
 	node0Block, ok := uncastedNode0Block.(*types.Block)
 	if !ok {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was present but of an unexpected type", node0ServiceId, node0ServiceId)
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with name '%v', the value for key '%v' was present but of an unexpected type", node0ServiceId, node0ServiceId)
 	}
 
 	uncastedNodeNBlock, loaded := ethNodeBlocksByServiceId.LoadAndDelete(nodeNServiceId)
 	if !loaded {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was not loaded", nodeNServiceId, nodeNServiceId)
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with name '%v', the value for key '%v' was not loaded", nodeNServiceId, nodeNServiceId)
 	}
 	nodeNBlock, ok := uncastedNodeNBlock.(*types.Block)
 	if !ok {
-		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with ID '%v', the value for key '%v' was present but of an unexpected type", nodeNServiceId, nodeNServiceId)
+		return 0, "", 0, "", stacktrace.NewError("An error occurred loading the node's block for service with name '%v', the value for key '%v' was present but of an unexpected type", nodeNServiceId, nodeNServiceId)
 	}
 
 	return node0Block.NumberU64(), node0Block.Hash().Hex(), nodeNBlock.NumberU64(), nodeNBlock.Hash().Hex(), nil
 }
 
-func renderServiceId(template string, nodeId int) services.ServiceID {
-	return services.ServiceID(fmt.Sprintf(template, nodeId))
+func renderServiceId(template string, nodeId int) services.ServiceName {
+	return services.ServiceName(fmt.Sprintf(template, nodeId))
 }
