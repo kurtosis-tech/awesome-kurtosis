@@ -84,7 +84,7 @@ const (
 	retriesAttempts      = 20
 	retriesSleepDuration = 10 * time.Millisecond
 
-	updateServiceStarlarkTemplate = `plan.update_service(service_id = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	updateServiceStarlarkTemplate = `plan.update_service(service_name = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
 	headerStarlarkTemplate        = `def run(plan):`
 
 	noSerializedParams = ""
