@@ -38,7 +38,6 @@ jobs:
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
-          cd ..
           cd quickstart
           kurtosis run . '{"nginx_count": 3}'
 
