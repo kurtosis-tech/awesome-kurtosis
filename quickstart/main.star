@@ -1,3 +1,5 @@
+#We should upgrade this script every time that we modify the quickstart guide code on: https://docs.kurtosis.com/quickstart/
+
 nginx_conf_template = read_file("github.com/kurtosis-tech/quickstart/default.conf.tmpl")
 
 def run(plan, args):
