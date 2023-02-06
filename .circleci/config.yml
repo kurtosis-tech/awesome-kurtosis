@@ -30,10 +30,17 @@ jobs:
           kurtosis config init dont-send-metrics
           kurtosis cluster set docker
           kurtosis engine start
-      
+
+      # run the golang tests
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
+
+      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      - run: |
+          cd quickstart
+          kurtosis run . '{"nginx_count": 3}'
+
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
           channel: engineering
