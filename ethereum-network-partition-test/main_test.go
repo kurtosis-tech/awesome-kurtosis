@@ -89,6 +89,8 @@ const (
 
 	noSerializedParams = ""
 	noDryRun           = false
+
+	defaultParallelism = 4
 )
 
 func TestNetworkPartitioning(t *testing.T) {
@@ -119,7 +121,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING PACKAGE ---------------")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, packageParams, false)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, packageParams, false, defaultParallelism)
 	require.NoError(t, err, "An error executing loading the ETH package")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -150,7 +152,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	logrus.Info("------------ VERIFIED ALL NODES ARE IN SYNC BEFORE THE PARTITION ------------")
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
-	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun, defaultParallelism)
 	require.NoError(t, err, "An error occurred while executing Stalark to partition network")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -168,7 +170,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	printAllNodesInfo(ctx, nodeClientsByServiceIds)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
-	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun)
+	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun, defaultParallelism)
 	require.NoError(t, err, "An error occurred while executing Stalark to update services to partition")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -206,7 +208,7 @@ func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.Encl
 		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, renderServiceId(clNodeValidatorIdTemplate, nodeIdForSecondPartition), secondPartition))
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
-	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun)
+	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun, defaultParallelism)
 }
 
 func getElNodeClientsByServiceID(
