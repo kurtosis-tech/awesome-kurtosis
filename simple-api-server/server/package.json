@@ -1,0 +1,22 @@
+{
+  "name": "simple-api-server",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "rimraf build && tsc",
+    "start": "nodemon src/index.ts",
+    "postbuild": "cpy 'src/data/*.json' build/data/"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "cpy-cli": "^4.2.0",
+    "express": "^4.18.2",
+    "nodemon": "^2",
+    "rimraf": "^4.1.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5"
+  }
+}
