@@ -1,2 +1,3 @@
-# examples
+# Examples
+
 Official Kurtosis examples library.

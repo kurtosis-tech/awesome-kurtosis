@@ -41,6 +41,11 @@ jobs:
           cd quickstart
           kurtosis run . '{"nginx_count": 3}'
 
+      # run the simple-api-server example
+      - run: |
+          cd simple-api-server
+          kurtosis run . 
+
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
           channel: engineering
@@ -72,6 +77,11 @@ jobs:
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
+
+      # run the simple-api-server example
+      - run: |
+          cd simple-api-server
+          kurtosis run . 
 
 workflows:
   check_latest_version:
