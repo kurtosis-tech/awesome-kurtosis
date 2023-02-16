@@ -1,5 +1,5 @@
 # For more information on how to use Starlark with Kurtosis please see: https://docs.kurtosis.com/explanations/starlark/
-PACKAGE_NAME = "simple-api-server"
+PACKAGE_NAME = "simple-api"
 KURTOSIS_API_PORT = 8080
 KURTOSIS_API_SERVICE_NAME = "kurtosis-simple-api"
 KURTOSIS_API_IMAGE_NAME = "kurtosistech/kurtosis-simple-api"
