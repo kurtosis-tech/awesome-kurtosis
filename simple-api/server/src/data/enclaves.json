@@ -1,0 +1,17 @@
+[
+  {
+    "enclave_name": "kurtosis-manager",
+    "enclave_uuid": "46400478c923485eace75e65018d1545",
+    "cluster_uuid": "f663e6b9d60a42b696d765785db4c69f"
+  },
+  {
+    "enclave_name": "ethereum",
+    "enclave_uuid": "a6b63ba447c54bb7ab385e39f39b4a57",
+    "cluster_uuid": "35ffab763967484c97f2781d416b91d7"
+  },
+  {
+    "enclave_name": "red-darkness",
+    "enclave_uuid": "548cc5241dd44dfbae3e8a732b4aa2e7",
+    "cluster_uuid": "35ffab763967484c97f2781d416b91d7"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "service_name": "httpd",
+    "service_uuid": "14bb7d2d6f654a5c80e682623473e296",
+    "enclave_uuid": "46400478c923485eace75e65018d1545"
+  },
+  {
+    "service_name": "dynamodb",
+    "service_uuid": "13972c20f7d34b39b2ee75036778c9e3",
+    "enclave_uuid": "46400478c923485eace75e65018d1545"
+  },
+  {
+    "service_name": "indexer-node",
+    "service_uuid": "88faa5491d3e4c6cbfb513105a0215db",
+    "enclave_uuid": "a6b63ba447c54bb7ab385e39f39b4a57"
+  }
+]
