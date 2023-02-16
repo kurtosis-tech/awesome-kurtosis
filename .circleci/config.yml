@@ -78,6 +78,11 @@ jobs:
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
 
+      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      - run: |
+          cd quickstart
+          kurtosis run . '{"nginx_count": 3}'
+
       # run the simple-api-server example
       - run: |
           cd simple-api-server

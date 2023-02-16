@@ -1,5 +1,6 @@
 FROM node:18-alpine
-COPY . .
+WORKDIR /usr/app
+COPY ./* ./
 RUN npm install
 RUN npm run build
 RUN npm run postbuild
