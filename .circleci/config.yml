@@ -78,6 +78,22 @@ jobs:
           cd quickstart
           kurtosis run . '{"nginx_count": 3}'
 
+  build_deploy_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - setup_remote_docker:
+          version: "<< pipeline.parameters.docker-engine-version>>"
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
+
+      - run: core/files_artifacts_expander/scripts/build.sh
+      - run: |
+          set -euo pipefail
+          version_to_publish="latest"
+          echo "Version that will be published: ${version_to_publish}"
+          image_name_with_version="${IMAGE_ORG_AND_REPO}:${version_to_publish}"
+          docker tag "${image_name_with_version}"
+#          docker push "${image_name_with_version}"
+
 workflows:
   check_latest_version:
     when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
