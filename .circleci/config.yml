@@ -89,7 +89,6 @@ jobs:
           set -euo pipefail
           version_to_publish="latest"
           image_org_and_repo="kurtosistech/kurtosis-simple-api"
-          echo "Version that will be published: ${version_to_publish}"
           image_name_with_version="${image_org_and_repo}:${version_to_publish}"
           docker tag "${image_name_with_version}" "${image_name_with_version}"
           docker push "${image_org_and_repo}"
