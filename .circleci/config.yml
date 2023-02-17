@@ -101,6 +101,8 @@ workflows:
           context:
             - slack-secrets
   build:
+    context:
+      - docker-user
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
 #      - check_code:
