@@ -109,6 +109,6 @@ workflows:
 #                - master
       - build_deploy_simple_api:
           filters:
-#            branches:
-#              ignore:
-#                - master
+            branches:
+              ignore:
+                - main
