@@ -101,8 +101,6 @@ workflows:
           context:
             - slack-secrets
   build:
-    context:
-      - docker-user
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
 #      - check_code:
@@ -111,6 +109,8 @@ workflows:
 #              ignore:
 #                - master
       - build_deploy_simple_api:
+          context:
+            - docker-user
           filters:
             branches:
               ignore:
