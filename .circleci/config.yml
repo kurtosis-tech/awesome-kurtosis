@@ -81,6 +81,7 @@ jobs:
   build_deploy_simple_api:
     executor: ubuntu_vm
     steps:
+      - run: echo "du ${DOCKER_USERNAME}"
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
 
       - run: simple-api/scripts/build.sh
