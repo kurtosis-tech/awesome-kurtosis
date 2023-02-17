@@ -85,7 +85,7 @@ jobs:
           version: "<< pipeline.parameters.docker-engine-version>>"
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
 
-      - run: core/files_artifacts_expander/scripts/build.sh
+      - run: simple-api/scripts/build.sh
       - run: |
           set -euo pipefail
           version_to_publish="latest"
@@ -104,7 +104,12 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-      - check_code:
+#      - check_code:
+#          filters:
+#            branches:
+#              ignore:
+#                - master
+      - build_deploy_simple_api:
           filters:
             branches:
               ignore:
