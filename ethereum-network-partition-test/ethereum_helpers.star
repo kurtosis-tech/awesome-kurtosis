@@ -59,11 +59,10 @@ def get_block_recipe(node_id, block_number_hex):
     "id":1,
     "jsonrpc":"2.0"
 }"""
-    return struct(
-        service_id=node_id,
+    return PostHttpRequestRecipe(
+        service_name=node_id,
         port_id="rpc",
         endpoint="/",
-        method="POST",
         content_type="application/json",
         body=request_body,
         extract={
