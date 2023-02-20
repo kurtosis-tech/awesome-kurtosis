@@ -31,7 +31,7 @@ jobs:
           kurtosis cluster set docker
           kurtosis engine start
 
-      # run the golang tests
+      # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
@@ -40,13 +40,18 @@ jobs:
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
 
-      # run the simple-subpackage-example
-      - run: |
-          kurtosis run ./simple-subpackage-example/
-
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+      # run the simple-api
+      - run: |
+          ./simple-api/scripts/build.sh
+          kurtosis run ./simple-api/kurtosis-package/
+
+      # run the simple-subpackage-example
+      - run: |
+          kurtosis run ./simple-subpackage-example/
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
@@ -55,16 +60,14 @@ jobs:
           # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
           template: basic_fail_1
 
-
-  check_code:
+  check_ethereum_network_partition_test:
     executor: ubuntu_vm
     steps:
       - checkout
 
-      # If the only changes are to the docs, don't run the slow (and expensive) code checks
-      # `git diff --exit-code` returns 0 exit code if no changes, and 1 if changes
+      # If this sub-repo hasn't changed, don't run the tests
       - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- . ':!docs'; then
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':ethereum-network-partition-test'; then
             circleci-agent step halt
           fi
 
@@ -75,7 +78,8 @@ jobs:
           kurtosis config init dont-send-metrics
           kurtosis cluster set docker
           kurtosis engine start
-        
+
+      # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
@@ -84,13 +88,75 @@ jobs:
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
 
-      # run the simple-subpackage-example
-      - run: |
-          kurtosis run ./simple-subpackage-example/
+  check_quickstart:
+    executor: ubuntu_vm
+    steps:
+      - checkout
 
-      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':quickstart'; then
+            circleci-agent step halt
+          fi
+
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+  check_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
+
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+
+      # build the docker image locally first
+      - run: |
+          ./simple-api/scripts/build.sh
+
+      - run: |
+          kurtosis run ./simple-api/kurtosis-package/
+
+  check_simple_subpackage_example:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-subpackage-example'; then
+            circleci-agent step halt
+          fi
+
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+
+      - run: |
+          kurtosis run ./simple-subpackage-example/
 
 workflows:
   check_latest_version:
@@ -102,7 +168,22 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-      - check_code:
+      - check_ethereum_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_quickstart:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_simple_api:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_simple_subpackage_example:
           filters:
             branches:
               ignore:

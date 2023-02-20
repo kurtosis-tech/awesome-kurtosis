@@ -24,7 +24,7 @@ def run(plan, args):
             "default.conf": struct(
                 template = nginx_conf_template,
                 data = nginx_conf_data,
-            )
+            ),
         },
     )
 
@@ -42,6 +42,6 @@ def run(plan, args):
                 },
                 files = {
                     "/etc/nginx/conf.d": nginx_config_file_artifact,
-                }
+                },
             ),
         )
