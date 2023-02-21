@@ -1,3 +1,19 @@
+##############
+# Yaml Anchors
+##############
+# Install Kurtosis CLI
+install_and_start_kurtosis: &install_and_start_kurtosis
+  run: |
+      echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+      sudo apt update
+      sudo apt install kurtosis-cli
+      kurtosis config init dont-send-metrics
+      kurtosis cluster set docker
+      kurtosis engine start
+
+##############
+# CircleCI
+##############
 version: 2.1
 
 orbs:
@@ -23,22 +39,16 @@ jobs:
     executor: ubuntu_vm
     steps:
       - checkout
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
       # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
 
-      # run the Starlark ethereum partioning test in dry-run mode since it takes up to 15 minutes in reality
+      # run the Starlark ethereum partioning test
       - run: |
-          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
+          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
@@ -71,13 +81,7 @@ jobs:
             circleci-agent step halt
           fi
 
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
       # run the Go ethereum partioning test
       - run: |
@@ -99,13 +103,7 @@ jobs:
             circleci-agent step halt
           fi
 
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
@@ -121,13 +119,7 @@ jobs:
             circleci-agent step halt
           fi
 
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
       # build the docker image locally first
       - run: |
@@ -147,13 +139,7 @@ jobs:
             circleci-agent step halt
           fi
 
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
       - run: |
           kurtosis run ./simple-subpackage-example/
