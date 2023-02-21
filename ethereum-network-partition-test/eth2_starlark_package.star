@@ -1,4 +1,4 @@
-eth_package = import_module("github.com/kurtosis-tech/eth2-package/main.star")
+eth2_package = import_module("github.com/kurtosis-tech/eth2-package/main.star")
 
 PARTICIPANT_CONFIG = {
     "el_client_type": "geth",
@@ -19,7 +19,7 @@ def run_eth2_package(plan, number_of_nodes):
     Runs the starlark eth2_package that spins un an Ethereum network
     """
     eth2_package_args = get_eth2_package_args(number_of_nodes)
-    eth_package.run(plan, eth2_package_args)
+    eth2_package.run(plan, eth2_package_args)
 
 
 def get_eth2_package_args(number_of_nodes):
