@@ -45,3 +45,4 @@ def run(plan, args):
                 },
             ),
         )
+    plan.print("The Quickstart Example is up and runing to learn more visit %s \n, Run kurotsis enclave inspect <enclave_name> to see whats running", "https://docs.kurtosis.com/quickstart")
