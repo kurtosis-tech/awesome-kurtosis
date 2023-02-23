@@ -1,5 +1,5 @@
-eth2 = import_module("github.com/kurtosis-tech/example/ethereum-network-partition-test/eth2_starlark_package.star")
-ethereum_helpers = import_module("github.com/kurtosis-tech/example/ethereum-network-partition-test/ethereum_helpers.star")
+eth2 = import_module("github.com/kurtosis-tech/examples/ethereum-network-partition-test/eth2_starlark_package.star")
+ethereum_helpers = import_module("github.com/kurtosis-tech/examples/ethereum-network-partition-test/ethereum_helpers.star")
 
 NUM_PARTICIPANTS = 4
 
