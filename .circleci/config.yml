@@ -124,22 +124,6 @@ jobs:
       - run: |
           kurtosis run ./simple-api/kurtosis-package/
 
-  check_simple_subpackage_example:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-subpackage-example'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./simple-subpackage-example/
-
 workflows:
   check_latest_version:
     when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
