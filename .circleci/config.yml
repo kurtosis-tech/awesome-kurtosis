@@ -149,8 +149,3 @@ workflows:
             branches:
               ignore:
                 - main
-      - check_simple_subpackage_example:
-          filters:
-            branches:
-              ignore:
-                - main
