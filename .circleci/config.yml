@@ -153,9 +153,6 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-      - build_deploy_simple_api:
-          context:
-            - docker-user
       - check_ethereum_network_partition_test:
           filters:
             branches:
