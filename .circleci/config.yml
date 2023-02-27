@@ -171,8 +171,8 @@ workflows:
             branches:
               ignore:
                 - main
-      - build_deploy_simple_api:
-          filters:
-            branches:
-              ignore:
-                - main
+#      - build_deploy_simple_api:
+#          filters:
+#            branches:
+#              ignore:
+#                - main
