@@ -1,3 +1,19 @@
+##############
+# Yaml Anchors
+##############
+# Install Kurtosis CLI
+install_and_start_kurtosis: &install_and_start_kurtosis
+  run: |
+      echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+      sudo apt update
+      sudo apt install kurtosis-cli
+      kurtosis config init dont-send-metrics
+      kurtosis cluster set docker
+      kurtosis engine start
+
+##############
+# CircleCI
+##############
 version: 2.1
 
 orbs:
@@ -23,23 +39,25 @@ jobs:
     executor: ubuntu_vm
     steps:
       - checkout
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
+      - <<: *install_and_start_kurtosis
 
-      # run the golang tests
+      # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
 
+      # run the Starlark ethereum partioning test
+      - run: |
+          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
+
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
-          cd quickstart
-          kurtosis run . '{"nginx_count": 3}'
+          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+      # run the simple-api
+      - run: |
+          ./simple-api/scripts/build.sh
+          kurtosis run ./simple-api/kurtosis-package/
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
@@ -48,40 +66,73 @@ jobs:
           # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
           template: basic_fail_1
 
-
-  check_code:
+  check_ethereum_network_partition_test:
     executor: ubuntu_vm
     steps:
       - checkout
 
-      # If the only changes are to the docs, don't run the slow (and expensive) code checks
-      # `git diff --exit-code` returns 0 exit code if no changes, and 1 if changes
+      # If this sub-repo hasn't changed, don't run the tests
       - run: |
-          if git --no-pager diff --exit-code origin/master...HEAD -- . ':!docs'; then
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':ethereum-network-partition-test'; then
             circleci-agent step halt
           fi
 
-      - run: |
-          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
-          sudo apt update
-          sudo apt install kurtosis-cli
-          kurtosis config init dont-send-metrics
-          kurtosis cluster set docker
-          kurtosis engine start
-        
+      - <<: *install_and_start_kurtosis
+
+      # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
 
-      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      # run the Starlark ethereum partioning test in dry-run mode since it takes up to 15 minutes in reality
       - run: |
-          cd quickstart
-          kurtosis run . '{"nginx_count": 3}'
+          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
+
+  check_quickstart:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':quickstart'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      - run: |
+          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+  check_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      # build the docker image locally first
+      - run: |
+          ./simple-api/scripts/build.sh
+
+      - run: |
+          kurtosis run ./simple-api/kurtosis-package/
 
   build_deploy_simple_api:
     executor: ubuntu_vm
     steps:
       - checkout
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: simple-api/scripts/build.sh
       - run: |
@@ -102,14 +153,25 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-#      - check_code:
-#          filters:
-#            branches:
-#              ignore:
-#                - master
       - build_deploy_simple_api:
           context:
             - docker-user
+      - check_ethereum_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_quickstart:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_simple_api:
+          filters:
+            branches:
+              ignore:
+                - main
+      - build_deploy_simple_api:
           filters:
             branches:
               ignore:

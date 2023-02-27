@@ -1,6 +1,6 @@
 #We should upgrade this script every time that we modify the quickstart guide code on: https://docs.kurtosis.com/quickstart/
 
-nginx_conf_template = read_file("github.com/kurtosis-tech/quickstart/default.conf.tmpl")
+nginx_conf_template = read_file("github.com/kurtosis-tech/examples/quickstart/default.conf.tmpl")
 
 def run(plan, args):
     rest_service = plan.add_service(
@@ -24,7 +24,7 @@ def run(plan, args):
             "default.conf": struct(
                 template = nginx_conf_template,
                 data = nginx_conf_data,
-            )
+            ),
         },
     )
 
@@ -42,6 +42,6 @@ def run(plan, args):
                 },
                 files = {
                     "/etc/nginx/conf.d": nginx_config_file_artifact,
-                }
+                },
             ),
         )
