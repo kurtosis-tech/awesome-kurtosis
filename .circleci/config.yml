@@ -83,7 +83,6 @@ jobs:
     steps:
       - checkout
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
-
       - run: simple-api/scripts/build.sh
       - run: |
           set -euo pipefail
@@ -91,7 +90,7 @@ jobs:
           image_org_and_repo="kurtosistech/kurtosis-simple-api"
           image_name_with_version="${image_org_and_repo}:${version_to_publish}"
           docker tag "${image_name_with_version}" "${image_name_with_version}"
-          docker push "${image_org_and_repo}"
+          docker push "${image_name_with_version}"
 
 workflows:
   check_latest_version:
