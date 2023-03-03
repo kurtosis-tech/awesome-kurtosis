@@ -104,43 +104,35 @@ jobs:
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
 
-  check_simple_api:
+  build_simple_api:
     executor: ubuntu_vm
     steps:
       - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
+      # If this sub-repo hasn't changed, don't run the build
       - run: |
           if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
             circleci-agent step halt
           fi
-
-      - <<: *install_and_start_kurtosis
-
-      # build the docker image locally first
-      - run: |
-          ./simple-api/scripts/build.sh
-
-      - run: |
-          kurtosis run ./simple-api/kurtosis-package/
-
-  build_deploy_simple_api:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
-            circleci-agent step halt
-          fi
-      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: simple-api/scripts/build.sh
+      - run: kurtosis run ./simple-api/kurtosis-package/
+
+  publish_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      # If this sub-repo hasn't changed, don't build and deploy
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
+      - run: simple-api/scripts/build.sh
+      - run: kurtosis run ./simple-api/kurtosis-package/
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: |
           set -euo pipefail
           version_to_publish="latest"
           image_org_and_repo="kurtosistech/kurtosis-simple-api"
           image_name_with_version="${image_org_and_repo}:${version_to_publish}"
-          docker tag "${image_name_with_version}" "${image_name_with_version}"
           docker push "${image_name_with_version}"
 
 workflows:
@@ -163,15 +155,15 @@ workflows:
             branches:
               ignore:
                 - main
-      - check_simple_api:
+      - build_simple_api:
           filters:
             branches:
               ignore:
                 - main
-      - build_deploy_simple_api:
+      - publish_simple_api:
           context:
             - docker-user
           filters:
             branches:
-              ignore:
+              only:
                 - main
