@@ -5,6 +5,7 @@ KURTOSIS_API_SERVICE_NAME = "kurtosis-simple-api"
 KURTOSIS_API_IMAGE_NAME = "kurtosistech/kurtosis-simple-api"
 KURTOSIS_API_PORT_NAME = "http"
 
+
 def run(plan):
     plan.print("Starting the " + PACKAGE_NAME + " package")
 
