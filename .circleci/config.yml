@@ -130,10 +130,16 @@ jobs:
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: |
           set -euo pipefail
-          version_to_publish="latest"
+          if ! git_ref="$(git rev-parse --short HEAD)"; then
+            echo "Error: Couldn't get a Git ref to use for a Docker tag" >&2
+            exit 1
+          fi
           image_org_and_repo="kurtosistech/kurtosis-simple-api"
-          image_name_with_version="${image_org_and_repo}:${version_to_publish}"
-          docker push "${image_name_with_version}"
+          image_name_with_git_ref_version${image_org_and_repo}:${git_ref}"
+          image_name_with_latest_version="${image_org_and_repo}:latest"
+          docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version$}"
+          docker push "${image_name_with_latest_version}"
+          docker push "${image_name_with_git_ref_version$}"
 
 workflows:
   check_latest_version:
@@ -163,7 +169,3 @@ workflows:
       - publish_simple_api:
           context:
             - docker-user
-          filters:
-            branches:
-              only:
-                - main
