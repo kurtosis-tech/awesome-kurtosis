@@ -139,7 +139,7 @@ jobs:
           image_name_with_latest_version="${image_org_and_repo}:latest"
           docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version}"
           docker push "${image_name_with_latest_version}"
-          docker push "${image_name_with_git_ref_version$}"
+          docker push "${image_name_with_git_ref_version}"
 
 workflows:
   check_latest_version:
