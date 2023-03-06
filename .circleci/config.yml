@@ -169,3 +169,7 @@ workflows:
       - publish_simple_api:
           context:
             - docker-user
+          filters:
+            branches:
+              only:
+                - main
