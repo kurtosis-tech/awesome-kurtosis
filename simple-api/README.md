@@ -61,7 +61,7 @@ The code in the Starlark script first creates the service and afterwards waits u
 $ kurtosis service logs kurtosis-enclave kurtosis-simple-api
 ```
 
-which will produce an output as this:
+which will produce an output like this:
 
 ```shell
 $ kurtosis service logs kurtosis-enclave kurtosis-simple-api
@@ -91,7 +91,8 @@ UUID           Name                  Ports                                      
 ddf04ab5ba64   kurtosis-simple-api   http: 8080/tcp -> http://127.0.0.1:50137   RUNNING
 ```
 
-We can see that the `kurtosis-simple-api` service is running on port 8080 inside the enclave and that it's mapped to port `50137` outside of Docker.
+We can see that the `kurtosis-simple-api` service is listening on port 8080 on the container inside the enclave 
+and that it's mapped to port `50137` outside of Docker.
 This means that we can interact with the service using port `50137` as in this example (assuming `jq` is installed):
 
 ```shell
