@@ -137,7 +137,7 @@ jobs:
           image_org_and_repo="kurtosistech/kurtosis-simple-api"
           image_name_with_git_ref_version="${image_org_and_repo}:${git_ref}"
           image_name_with_latest_version="${image_org_and_repo}:latest"
-          docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version$}"
+          docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version}"
           docker push "${image_name_with_latest_version}"
           docker push "${image_name_with_git_ref_version$}"
 
