@@ -121,6 +121,11 @@ jobs:
     executor: ubuntu_vm
     steps:
       - checkout
+      # If this sub-repo hasn't changed, don't build and deploy 
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
       - run: simple-api/scripts/build.sh
       - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: |
