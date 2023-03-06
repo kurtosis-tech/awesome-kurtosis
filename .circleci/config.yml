@@ -104,25 +104,42 @@ jobs:
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
 
-  check_simple_api:
+  build_simple_api:
     executor: ubuntu_vm
     steps:
       - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
+      # If this sub-repo hasn't changed, don't run the build
       - run: |
           if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
             circleci-agent step halt
           fi
-
+      - run: simple-api/scripts/build.sh
       - <<: *install_and_start_kurtosis
+      - run: kurtosis run ./simple-api/kurtosis-package/
 
-      # build the docker image locally first
+  publish_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      # If this sub-repo hasn't changed, don't build and deploy 
       - run: |
-          ./simple-api/scripts/build.sh
-
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
+      - run: simple-api/scripts/build.sh
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
       - run: |
-          kurtosis run ./simple-api/kurtosis-package/
+          set -euo pipefail
+          if ! git_ref="$(git rev-parse --short HEAD)"; then
+            echo "Error: Couldn't get a Git ref to use for a Docker tag" >&2
+            exit 1
+          fi
+          image_org_and_repo="kurtosistech/kurtosis-simple-api"
+          image_name_with_git_ref_version="${image_org_and_repo}:${git_ref}"
+          image_name_with_latest_version="${image_org_and_repo}:latest"
+          docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version}"
+          docker push "${image_name_with_latest_version}"
+          docker push "${image_name_with_git_ref_version}"
 
 workflows:
   check_latest_version:
@@ -144,8 +161,15 @@ workflows:
             branches:
               ignore:
                 - main
-      - check_simple_api:
+      - build_simple_api:
           filters:
             branches:
               ignore:
+                - main
+      - publish_simple_api:
+          context:
+            - docker-user
+          filters:
+            branches:
+              only:
                 - main
