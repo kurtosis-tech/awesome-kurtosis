@@ -21,7 +21,8 @@ def get_block(plan, node_id, block_number_hex):
     The object returned is a struct with 2 fields `number` and `hash`, both hexadecimal encoded strings.
     """
     block_response = plan.request(
-        recipe=get_block_recipe(node_id, block_number_hex),
+        recipe=get_block_recipe(block_number_hex),
+        service_name=node_id,
     )
     return struct(
         number=block_response[extracted_field_name(BLOCK_NUMBER_FIELD)],
@@ -36,16 +37,17 @@ def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
     If node has already produced this block, it returns immediately.
     """
     block_number_response = plan.wait(
-        recipe=get_block_recipe(node_id, LATEST_BLOCK_NUMBER_GENERIC),
+        recipe=get_block_recipe(LATEST_BLOCK_NUMBER_GENERIC),
         field="extract." + BLOCK_NUMBER_FIELD,
         assertion=">=",
         target_value=pad(target_block_number_hex),
         timeout="20m",  # Ethereum nodes can take a while to get in good shapes, especially at the beginning
+        service_name=node_id,
     )
     return block_number_response[extracted_field_name(BLOCK_NUMBER_FIELD)]
 
 
-def get_block_recipe(node_id, block_number_hex):
+def get_block_recipe(block_number_hex):
     """
     Returns the recipe to run to get the block information for block number `block_number_hex` (which should be a
     hexadecimal string starting with `0x`, i.e. `0x2d`)
@@ -60,7 +62,6 @@ def get_block_recipe(node_id, block_number_hex):
     "jsonrpc":"2.0"
 }"""
     return PostHttpRequestRecipe(
-        service_name=node_id,
         port_id="rpc",
         endpoint="/",
         content_type="application/json",

@@ -24,10 +24,9 @@ def run(plan):
 
     # Wait till the service becomes healthy
     get_health_recipe = GetHttpRequestRecipe(
-        service_name = KURTOSIS_API_SERVICE_NAME,
         port_id = KURTOSIS_API_PORT_NAME,
         endpoint = "/health",
     )
-    plan.wait(get_health_recipe, "code", "IN", [200], timeout="30s")
+    plan.wait(recipe=get_health_recipe, field="code", assertion="IN", target_value=[200], timeout="30s", service_name=KURTOSIS_API_SERVICE_NAME)
 
     return
