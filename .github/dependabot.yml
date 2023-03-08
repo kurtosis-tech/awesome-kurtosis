@@ -5,4 +5,4 @@ updates:
     schedule:
       interval: "daily"
     allow:
-      - dependency-name: "github.com/kurtosis-tech/kurtosis-sdk/api/golang"
+      - dependency-name: "github.com/kurtosis-tech/kurtosis/api/golang"
