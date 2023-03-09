@@ -88,6 +88,24 @@ jobs:
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
 
+  check_cassandra_network_partition_test:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':cassandra-network-partition-test'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      # run the Starlark Cassandra partioning test
+      - run: |
+          kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
+  
+
   check_quickstart:
     executor: ubuntu_vm
     steps:
