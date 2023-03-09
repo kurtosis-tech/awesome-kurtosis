@@ -4,13 +4,10 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.10.21
+	github.com/kurtosis-tech/kurtosis/api/golang v0.0.0-20230308121529-55ff33009cca
+	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
-)
-
-require (
-	github.com/kurtosis-tech/kurtosis-sdk/api/golang v0.0.0-20230307203050-478c693b5559
-	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 )
 
 require (
