@@ -169,6 +169,11 @@ workflows:
             branches:
               ignore:
                 - main
+      - check_cassandra_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
       - check_quickstart:
           filters:
             branches:
