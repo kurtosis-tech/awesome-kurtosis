@@ -1,9 +1,9 @@
-# Awesome Kurtosis Starlark Packages [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
+# Awesome Kurtosis [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 ----
 
 <img src="./logo.png" width="500">
 
-> A curated list of Kurtosis Starlark Package samples
+> A curated list of Kurtosis Starlark Packages
 
 These Kurtosis packages and examples provide a starting point for how to setup and test different environments using a Kurtosis Stalrlark package and
 to manage their lifetime using the Kurtosis CLI.
