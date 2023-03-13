@@ -1,0 +1,193 @@
+##############
+# Yaml Anchors
+##############
+# Install Kurtosis CLI
+install_and_start_kurtosis: &install_and_start_kurtosis
+  run: |
+      echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+      sudo apt update
+      sudo apt install kurtosis-cli
+      kurtosis config init dont-send-metrics
+      kurtosis cluster set docker
+      kurtosis engine start
+
+##############
+# CircleCI
+##############
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.10.1
+
+executors:
+  ubuntu_vm:
+    machine:
+      image: ubuntu-2004:202201-02
+
+parameters:
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/examples/triggers
+  should-enable-check-latest-version-workflow:
+    type: boolean
+    default: false
+  # To enable/disabled the check_code workflow execution which will be triggered by the PR's checkers
+  should-enable-build-workflow:
+    type: boolean
+    default: true
+
+jobs:
+  check_latest_version:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      - <<: *install_and_start_kurtosis
+
+      # run the Go ethereum partioning test
+      - run: |
+          cd ethereum-network-partition-test
+          go test -timeout 15m  -v
+
+      # run the Starlark ethereum partioning test
+      - run: |
+          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
+
+      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      - run: |
+          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+      # run the simple-api
+      - run: |
+          ./simple-api/scripts/build.sh
+          kurtosis run ./simple-api/kurtosis-package/
+
+      # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
+      - slack/notify:
+          channel: engineering
+          event: fail
+          # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
+          template: basic_fail_1
+
+  check_ethereum_network_partition_test:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':ethereum-network-partition-test'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      # run the Go ethereum partioning test
+      - run: |
+          cd ethereum-network-partition-test
+          go test -timeout 15m  -v .
+
+      # run the Starlark ethereum partioning test in dry-run mode since it takes up to 15 minutes in reality
+      - run: |
+          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
+
+  check_cassandra_network_partition_test:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':cassandra-network-partition-test'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      # run the Starlark Cassandra partioning test
+      - run: |
+          kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
+  
+
+  check_quickstart:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':quickstart'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      - run: |
+          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+
+  build_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      # If this sub-repo hasn't changed, don't run the build
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
+            circleci-agent step halt
+          fi
+      - run: simple-api/scripts/build.sh
+      - <<: *install_and_start_kurtosis
+      - run: kurtosis run ./simple-api/kurtosis-package/
+
+  publish_simple_api:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      - run: simple-api/scripts/build.sh
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
+      - run: |
+          set -euo pipefail
+          if ! git_ref="$(git rev-parse --short HEAD)"; then
+            echo "Error: Couldn't get a Git ref to use for a Docker tag" >&2
+            exit 1
+          fi
+          image_org_and_repo="kurtosistech/kurtosis-simple-api"
+          image_name_with_git_ref_version="${image_org_and_repo}:${git_ref}"
+          image_name_with_latest_version="${image_org_and_repo}:latest"
+          docker tag "${image_name_with_latest_version}" "${image_name_with_git_ref_version}"
+          docker push "${image_name_with_latest_version}"
+          docker push "${image_name_with_git_ref_version}"
+
+workflows:
+  check_latest_version:
+    when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
+    jobs:
+      - check_latest_version:
+          context:
+            - slack-secrets
+  build:
+    when: << pipeline.parameters.should-enable-build-workflow >>
+    jobs:
+      - check_ethereum_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_cassandra_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_quickstart:
+          filters:
+            branches:
+              ignore:
+                - main
+      - build_simple_api:
+          filters:
+            branches:
+              ignore:
+                - main
+      - publish_simple_api:
+          context:
+            - docker-user
+          filters:
+            branches:
+              only:
+                - main
