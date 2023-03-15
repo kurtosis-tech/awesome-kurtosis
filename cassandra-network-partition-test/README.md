@@ -6,7 +6,7 @@ disconnecting the last node from the rest of the nodes in the Cassandra Cluster.
 The test verifies that the Cluster became unhealthy, then it moves the last node to the same network as the rest of the nodes and verifies
 that the cluster has healed.
 
-To run
+To run:
 
 ```
 kurtosis run github.com/kurtosis-tech/examples/cassandra-network-partition-test --with-subnetworks
