@@ -5,7 +5,6 @@
 > A curated list of [Kurtosis Packages ](https://docs.kurtosis.com/reference/packages) written in [Starlark](https://docs.kurtosis.com/explanations/starlark)
 
 These example [Kurtosis packages](https://docs.kurtosis.com/reference/packages) provide a starting point for understanding how to setup, test, and manage different types of environments using [Starlark](https://docs.kurtosis.com/explanations/starlark) and the [Kurtosis CLI](https://docs.kurtosis.com/install).
-to manage their lifetime using the Kurtosis CLI.
 
 > **Note**
 > The following samples are intended for use in local development and testing environments. These samples must not be deployed in production environments.
