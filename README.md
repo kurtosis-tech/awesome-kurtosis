@@ -32,4 +32,4 @@ to manage their lifetime using the Kurtosis CLI.
 - [Ethereum Network Partition Test](https://github.com/kurtosis-tech/examples/tree/main/ethereum-network-partition-test) - A test that verifies how the Ethereum network behaves under network partitioning. The test is written in both Golang and Starlark.
 - [Quick Start](https://github.com/kurtosis-tech/examples/tree/main/quickstart) - The example used by the [Quickstart guide](https://docs.kurtosis.com/quickstart) to quickly onboard a user to Kurtosis
 - [Simple NodeJS API](https://github.com/kurtosis-tech/examples/tree/main/simple-api) - An example of how a Simple NodeJS based API can be setup to test using Kurtosis
-
+- [Data Package](https://github.com/kurtosis-tech/examples/tree/main/data-package) - An example package that contains a tar that you can import and use within the Quickstart and other packages
