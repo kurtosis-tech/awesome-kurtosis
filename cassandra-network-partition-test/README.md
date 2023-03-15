@@ -9,5 +9,5 @@ that the cluster has healed.
 To run:
 
 ```
-kurtosis run github.com/kurtosis-tech/examples/cassandra-network-partition-test --with-subnetworks
+kurtosis run github.com/kurtosis-tech/awesome-kurtosis/cassandra-network-partition-test --with-subnetworks
 ```

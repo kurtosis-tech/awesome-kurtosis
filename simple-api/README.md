@@ -30,9 +30,9 @@ which will output something similar to this once execution has completed:
 $ kurtosis run kurtosis-package/kurtosis.yml --enclave-id kurtosis-enclave
 INFO[2023-02-27T16:21:36-05:00] Creating a new enclave for Starlark to run inside... 
 INFO[2023-02-27T16:21:38-05:00] Enclave 'kurtosis-enclave' created successfully 
-INFO[2023-02-27T16:21:38-05:00] Executing Starlark package at '/Users/ads/code/kurtosis-tech/examples/simple-api/kurtosis-package' as the passed argument 'kurtosis-package' looks like a directory 
-INFO[2023-02-27T16:21:38-05:00] Compressing package 'github.com/kurtosis-tech/examples/kurtosis-simple-api' at 'kurtosis-package' for upload 
-INFO[2023-02-27T16:21:38-05:00] Uploading and executing package 'github.com/kurtosis-tech/examples/kurtosis-simple-api' 
+INFO[2023-02-27T16:21:38-05:00] Executing Starlark package at '/Users/ads/code/kurtosis-tech/awesome-kurtosis/simple-api/kurtosis-package' as the passed argument 'kurtosis-package' looks like a directory
+INFO[2023-02-27T16:21:38-05:00] Compressing package 'github.com/kurtosis-tech/awesome-kurtosis/kurtosis-simple-api' at 'kurtosis-package' for upload 
+INFO[2023-02-27T16:21:38-05:00] Uploading and executing package 'github.com/kurtosis-tech/awesome-kurtosis/kurtosis-simple-api'
 
 > print "Starting the simple-api package"
 Starting the simple-api package

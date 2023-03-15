@@ -1,4 +1,4 @@
-module github.com/kurtosis-tech/examples/go-network-partitioning-test
+module github.com/kurtosis-tech/awesome-kurtosis/go-network-partitioning-test
 
 go 1.18
 

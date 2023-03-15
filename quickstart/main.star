@@ -1,6 +1,6 @@
 #We should upgrade this script every time that we modify the quickstart guide code on: https://docs.kurtosis.com/quickstart/
 
-nginx_conf_template = read_file("github.com/kurtosis-tech/examples/quickstart/default.conf.tmpl")
+nginx_conf_template = read_file("github.com/kurtosis-tech/awesome-kurtosis/quickstart/default.conf.tmpl")
 
 def run(plan, args):
     rest_service = plan.add_service(

@@ -25,7 +25,7 @@ executors:
       image: ubuntu-2004:202201-02
 
 parameters:
-  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/examples/triggers
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/awesome-kurtosis/triggers
   should-enable-check-latest-version-workflow:
     type: boolean
     default: false
