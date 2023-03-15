@@ -24,7 +24,7 @@ to manage their lifetime using the Kurtosis CLI.
 ## Kurtosis Starlark Web3 Examples
 
 - [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark Package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
-- [near Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local near testnet with an indexer, wallet, explorer and more.
+- [NEAR Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local NEAR testnet with a local RPC endpoint, a NEAR explorer, an indexer for the explorer, and a NEAR wallet.
 
 ## Tests and other examples
 
