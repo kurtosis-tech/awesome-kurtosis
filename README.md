@@ -27,8 +27,8 @@ These example [Kurtosis packages](https://docs.kurtosis.com/reference/packages) 
 
 ## Tests and other examples
 
-- [Cassandra Network Partition Test](https://github.com/kurtosis-tech/examples/tree/main/cassandra-network-partition-test) - A test written in Kurtosis Starlark that verifies Cassandra's behavior under network failure using the [cassandra-package](https://github.com/kurtosis-tech/cassandra-package)
-- [Ethereum Network Partition Test](https://github.com/kurtosis-tech/examples/tree/main/ethereum-network-partition-test) - A test that verifies how the Ethereum network behaves under network partitioning. The test is written in both Golang and Starlark.
-- [Quick Start](https://github.com/kurtosis-tech/examples/tree/main/quickstart) - The example used in the [Quickstart guide](https://docs.kurtosis.com/quickstart) to get started with Kurtosis.
-- [Simple NodeJS API](https://github.com/kurtosis-tech/examples/tree/main/simple-api) - An example of how a Simple NodeJS based API can be setup to test using Kurtosis
-- [Data Package](https://github.com/kurtosis-tech/examples/tree/main/data-package) - An example package that contains a tar that you can import and use within the Quickstart and other packages
+- [Cassandra Network Partition Test](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/cassandra-network-partition-test) - A test written in Kurtosis Starlark that verifies Cassandra's behavior under network failure using the [cassandra-package](https://github.com/kurtosis-tech/cassandra-package)
+- [Ethereum Network Partition Test](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/ethereum-network-partition-test) - A test that verifies how the Ethereum network behaves under network partitioning. The test is written in both Golang and Starlark.
+- [Quick Start](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/quickstart) - The example used in the [Quickstart guide](https://docs.kurtosis.com/quickstart) to get started with Kurtosis.
+- [Simple NodeJS API](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/simple-api) - An example of how a Simple NodeJS based API can be setup to test using Kurtosis
+- [Data Package](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/data-package) - An example package that contains a tar that you can import and use within the Quickstart and other packages

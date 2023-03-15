@@ -7,7 +7,7 @@ Using this package will give you a [future reference](https://docs.kurtosis.com/
 For example, your Starlark might look like so:
 
 ```python
-data_package_main = import_module("github.com/kurtosis-tech/examples/data-package/main.star")
+data_package_main = import_module("github.com/kurtosis-tech/awesome-kurtosis/data-package/main.star")
 
 def run(plan, args):
     # ...your code here...
