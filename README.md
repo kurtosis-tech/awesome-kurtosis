@@ -2,7 +2,7 @@
 
 <img src="./logo.png" width="500">
 
-> A curated list of Kurtosis Starlark Packages
+> A curated list of [Kurtosis Packages ](https://docs.kurtosis.com/reference/packages) written in [Starlark](https://docs.kurtosis.com/explanations/starlark)
 
 These Kurtosis packages and examples provide a starting point for how to setup and test different environments using a Kurtosis Stalrlark package and
 to manage their lifetime using the Kurtosis CLI.
