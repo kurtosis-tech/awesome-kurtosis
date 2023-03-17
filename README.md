@@ -7,7 +7,7 @@
 These example [Kurtosis packages](https://docs.kurtosis.com/reference/packages) provide a starting point for understanding how to setup, test, and manage different types of environments using [Starlark](https://docs.kurtosis.com/explanations/starlark) and the [Kurtosis CLI](https://docs.kurtosis.com/install).
 
 > **Note**
-> The following samples are intended for use in local development and testing environments. These samples must not be deployed in production environments.
+> Feel free to use Kurtosis however you want, as long as you’re not directly re-selling “Kurtosis-as-a-service” to customers.
 
 ## Contents
 
