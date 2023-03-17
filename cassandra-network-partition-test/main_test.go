@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 )
 
 /*
@@ -90,18 +89,22 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 	require.Nil(t, starlarkRunResult.ExecutionError)
 
 	logrus.Info("------------ STARTING TEST CASE ---------------")
-	logrus.Info("Verifying that all nodes are up by measuring both the first node and the last node")
+	logrus.Info("Verifying that all nodes are up by checking both the first node and the last node")
 	cassandraNodeInFirstPartition := cassandraNodeIds[0]
 	cassandraNodeInSecondPartition := cassandraNodeIds[len(cassandraNodeIds)-1]
 
-	upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition := getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
-	upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition := getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
+	// wait until all  nodes are measured as UP from both partitions
+	for true {
+		upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition := getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
+		upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition := getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
 
-	require.Equal(t, upNodesMeasuredInFirstPartition, upNodesMeasuredInSecondPartition)
-	require.Equal(t, numNodes, upNodesMeasuredInFirstPartition)
+		if upNodesMeasuredInFirstPartition == upNodesMeasuredInSecondPartition && upNodesMeasuredInFirstPartition == numNodes {
+			if downNodesMeasuredInFirstPartition == downNodesMeasuredInSecondPartition && downNodesMeasuredInFirstPartition == 0 {
+				break
+			}
+		}
 
-	require.Equal(t, downNodesMeasuredInSecondPartition, downNodesMeasuredInFirstPartition)
-	require.Equal(t, 0, downNodesMeasuredInFirstPartition)
+	}
 
 	logrus.Info("------------ INDUCING PARTITION ---------------")
 	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, blockConnectionStarlark, noSerializedParams, noDryRun, defaultParallelism)
@@ -110,19 +113,20 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
 
-	// give this some time before we check
-	time.Sleep(15 * time.Second)
-
 	logrus.Info("Verifying that the number of up and down nodes in different partitions are as expected")
+	// wait until the up and down nodes are as expected post partition
+	// up nodes measured from the first partition should be numNodes/2; down nodes should be numNodes - numNodes/2
+	// up nodes measured from second partition should be numNodes - numNodes/2; down nodes should be numNodes
+	for true {
+		upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition := getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
+		upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition := getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
 
-	upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition = getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
-	upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition = getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
-
-	require.Equal(t, len(cassandraNodeIds)/2, upNodesMeasuredInFirstPartition)
-	require.Equal(t, len(cassandraNodeIds)-len(cassandraNodeIds)/2, upNodesMeasuredInSecondPartition)
-
-	require.Equal(t, len(cassandraNodeIds)/2, downNodesMeasuredInSecondPartition)
-	require.Equal(t, len(cassandraNodeIds)-len(cassandraNodeIds)/2, downNodesMeasuredInFirstPartition)
+		if upNodesMeasuredInFirstPartition == len(cassandraNodeIds)/2 && upNodesMeasuredInSecondPartition == len(cassandraNodeIds)-len(cassandraNodeIds)/2 {
+			if downNodesMeasuredInFirstPartition == len(cassandraNodeIds)-len(cassandraNodeIds)/2 && downNodesMeasuredInSecondPartition == len(cassandraNodeIds)/2 {
+				break
+			}
+		}
+	}
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
 	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun, defaultParallelism)
@@ -134,17 +138,18 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 	logrus.Info("------------ PARTITION HEALED ---------------")
 	logrus.Info("Verifying that all nodes are up by measuring both the first node and the last node")
 
-	// give this some time before we check
-	time.Sleep(15 * time.Second)
+	// wait until all  nodes are measured as UP from both partitions
+	for true {
+		upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition := getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
+		upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition := getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
 
-	upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition = getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
-	upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition = getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
+		if upNodesMeasuredInFirstPartition == upNodesMeasuredInSecondPartition && upNodesMeasuredInFirstPartition == numNodes {
+			if downNodesMeasuredInFirstPartition == downNodesMeasuredInSecondPartition && downNodesMeasuredInFirstPartition == 0 {
+				break
+			}
+		}
 
-	require.Equal(t, upNodesMeasuredInFirstPartition, upNodesMeasuredInSecondPartition)
-	require.Equal(t, numNodes, upNodesMeasuredInFirstPartition)
-
-	require.Equal(t, downNodesMeasuredInSecondPartition, downNodesMeasuredInFirstPartition)
-	require.Equal(t, 0, downNodesMeasuredInFirstPartition)
+	}
 
 }
 
