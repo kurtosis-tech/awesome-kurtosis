@@ -18,13 +18,13 @@ import (
 
 /*
 This example will:
-1. Start an Ethereum network with `numNodes` nodes
-2. Wait for all the nodes to be synced
+1. Start a Cassandra network with `numNodes` nodes
+2. Wait for all nodes to be healthy
 3. Partition the network into 2. Half of the nodes will be in partition 1, half will be in partition 2
-4. Wait for the block production to diverge in each partition
+4. Ensure that the network is unhealthy after partition
 5. Heal the partition and wait for all nodes to get back in sync
 
-This test demonstrate Ethereum-forking behaviour in Kurtosis.
+This test demonstrate Network Partitioning Testing Behavior of Kurtosis
 */
 
 const (
@@ -110,7 +110,8 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
 
-	time.Sleep(30 * time.Second)
+	// give this some time before we check
+	time.Sleep(15 * time.Second)
 
 	logrus.Info("Verifying that the number of up and down nodes in different partitions are as expected")
 
@@ -132,6 +133,10 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 
 	logrus.Info("------------ PARTITION HEALED ---------------")
 	logrus.Info("Verifying that all nodes are up by measuring both the first node and the last node")
+
+	// give this some time before we check
+	time.Sleep(15 * time.Second)
+
 	upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition = getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
 	upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition = getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
 
@@ -145,11 +150,11 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 
 func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.EnclaveContext, cassandraNodeIds []services.ServiceName) (*enclaves.StarlarkRunResult, error) {
 	commands := []string{headerStarlarkTemplate}
-	for nodeIdForFirstPartition := range cassandraNodeIds[:len(cassandraNodeIds)/2] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, cassandraNodeIds[nodeIdForFirstPartition], firstPartition))
+	for _, nodeIdForFirstPartition := range cassandraNodeIds[:len(cassandraNodeIds)/2] {
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, nodeIdForFirstPartition, firstPartition))
 	}
-	for nodeIdForSecondPartition := range cassandraNodeIds[len(cassandraNodeIds)/2:] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, cassandraNodeIds[nodeIdForSecondPartition], secondPartition))
+	for _, nodeIdForSecondPartition := range cassandraNodeIds[len(cassandraNodeIds)/2:] {
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, nodeIdForSecondPartition, secondPartition))
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
 	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun, defaultParallelism)
