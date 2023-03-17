@@ -55,6 +55,10 @@ jobs:
           cd cassandra-network-partition-test
           go test -timeout 5m -v
 
+      # run the Starlark Cassandra partioning test
+      - run: |
+          kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
+
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
@@ -109,6 +113,11 @@ jobs:
       # run the Starlark Cassandra partioning test
       - run: |
           kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
+
+      # run the Go Cassandra Network Partitioning Test
+      - run: |
+          cd cassandra-network-partition-test
+          go test -timeout 5m -v
   
 
   check_quickstart:
