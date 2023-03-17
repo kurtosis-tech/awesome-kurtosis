@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 /*
@@ -29,13 +30,13 @@ This test demonstrate Ethereum-forking behaviour in Kurtosis.
 const (
 	logLevel = logrus.InfoLevel
 
-	enclaveId             = "cassandra-network-partitioning"
+	enclaveId             = "cassandra-network-partitioning-0"
 	isPartitioningEnabled = true
 
 	cassandraStarlarkPackage = "github.com/kurtosis-tech/cassandra-package"
 
-	// must be something greater than 4 to have at least 2 nodes in each partition
-	numNodes = 5
+	// number of nodes to spin up, should be greater than or equal to 3
+	numNodes = 3
 
 	firstPartition  = "subnetwork0"
 	secondPartition = "subnetwork1"
@@ -69,9 +70,7 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 
 	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
 	require.NoError(t, err, "An error occurred creating the enclave")
-	// we only stop the enclave instead of destroying it as this allows users to debug their enclave after the tests are run
-	// we recommend using `DestroyEnclave` to destroy & clean up the enclave if you don't want remaining artifacts
-	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
+	defer kurtosisCtx.DestroyEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING PACKAGE ---------------")
 	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, cassandraStarlarkPackage, packageParams, false, defaultParallelism)
@@ -111,16 +110,18 @@ func TestCassandraNetworkPartitioning(t *testing.T) {
 	require.Empty(t, starlarkRunResult.ValidationErrors)
 	require.Nil(t, starlarkRunResult.ExecutionError)
 
+	time.Sleep(30 * time.Second)
+
 	logrus.Info("Verifying that the number of up and down nodes in different partitions are as expected")
 
 	upNodesMeasuredInFirstPartition, downNodesMeasuredInFirstPartition = getNumberOfUpAndDownNodes(cassandraNodeInFirstPartition, enclaveCtx, t)
 	upNodesMeasuredInSecondPartition, downNodesMeasuredInSecondPartition = getNumberOfUpAndDownNodes(cassandraNodeInSecondPartition, enclaveCtx, t)
 
-	require.Equal(t, upNodesMeasuredInFirstPartition, len(cassandraNodeIds)/2)
-	require.Equal(t, upNodesMeasuredInSecondPartition, len(cassandraNodeIds)-len(cassandraNodeIds)/2)
+	require.Equal(t, len(cassandraNodeIds)/2, upNodesMeasuredInFirstPartition)
+	require.Equal(t, len(cassandraNodeIds)-len(cassandraNodeIds)/2, upNodesMeasuredInSecondPartition)
 
-	require.Equal(t, downNodesMeasuredInSecondPartition, len(cassandraNodeIds)/2)
-	require.Equal(t, downNodesMeasuredInFirstPartition, len(cassandraNodeIds)-len(cassandraNodeIds)/2)
+	require.Equal(t, len(cassandraNodeIds)/2, downNodesMeasuredInSecondPartition)
+	require.Equal(t, len(cassandraNodeIds)-len(cassandraNodeIds)/2, downNodesMeasuredInFirstPartition)
 
 	logrus.Info("------------ HEALING PARTITION ---------------")
 	starlarkRunResult, err = enclaveCtx.RunStarlarkScriptBlocking(ctx, allowConnectionStarlark, noSerializedParams, noDryRun, defaultParallelism)
@@ -148,7 +149,7 @@ func updateServicesWithPartitions(ctx context.Context, enclaveCtx *enclaves.Encl
 		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, cassandraNodeIds[nodeIdForFirstPartition], firstPartition))
 	}
 	for nodeIdForSecondPartition := range cassandraNodeIds[len(cassandraNodeIds)/2:] {
-		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, cassandraNodeIds[nodeIdForSecondPartition], firstPartition))
+		commands = append(commands, "\t"+fmt.Sprintf(updateServiceStarlarkTemplate, cassandraNodeIds[nodeIdForSecondPartition], secondPartition))
 	}
 	fullStarlarkScript := strings.Join(commands, "\n")
 	return enclaveCtx.RunStarlarkScriptBlocking(ctx, fullStarlarkScript, noSerializedParams, noDryRun, defaultParallelism)
@@ -180,11 +181,11 @@ func getNumberOfUpAndDownNodes(cassandraNodeToCheck services.ServiceName, enclav
 	serviceContext, err := enclaveContext.GetServiceContext(string(cassandraNodeToCheck))
 	require.Nil(t, err)
 
-	code, downNodesStr, err := serviceContext.ExecCommand([]string{"/bin/sh", "nodetool status | grep DN | wc -l | tr -d '\n'"})
+	code, downNodesStr, err := serviceContext.ExecCommand([]string{"/bin/sh", "-c", "nodetool status | grep DN | wc -l | tr -d '\n'"})
 	require.Nil(t, err)
 	require.Zero(t, code)
 
-	code, upNodesStr, err := serviceContext.ExecCommand([]string{"/bin/sh", "nodetool status | grep UN | wc -l | tr -d '\n'"})
+	code, upNodesStr, err := serviceContext.ExecCommand([]string{"/bin/sh", "-c", "nodetool status | grep UN | wc -l | tr -d '\n'"})
 	require.Nil(t, err)
 	require.Zero(t, code)
 
