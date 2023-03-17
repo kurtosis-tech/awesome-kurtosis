@@ -25,5 +25,7 @@ and verifies that the number of nodes seen as "UN" from both the partitions are 
 To run
 
 ```
+git clone https://github.com/kurtosis-tech/awesome-kurtosis.git
+cd cassandra-network-partition-test/
 go test -timeout 5m -v
 ```
