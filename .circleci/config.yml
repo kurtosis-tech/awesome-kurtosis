@@ -50,6 +50,11 @@ jobs:
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
 
+      # run the Go Cassandra Network Partitioning Test
+      - run: |
+          cd cassandra-network-partition-test
+          go test -timeout 5m -v
+
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
