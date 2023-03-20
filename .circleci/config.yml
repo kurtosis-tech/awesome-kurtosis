@@ -11,6 +11,20 @@ install_and_start_kurtosis: &install_and_start_kurtosis
       kurtosis cluster set docker
       kurtosis engine start
 
+# Run quickstart (used in two places)
+run_quickstart: &run_quickstart
+  run: |
+    kurtosis run ./quickstart '[{"first_name":"Kevin", "last_name": "Bacon"}, {"first_name":"Steve", "last_name":"Buscemi"}]'
+
+run_data_package: &run_data_package
+  run: |
+    kurtosis run ./data-package
+
+run_simple_api_package: &run_simple_api_package
+  run: |
+    ./simple-api/scripts/build.sh
+    kurtosis run ./simple-api/kurtosis-package/
+
 ##############
 # CircleCI
 ##############
@@ -41,32 +55,38 @@ jobs:
       - checkout
       - <<: *install_and_start_kurtosis
 
+      # TODO Because the steps are hardcoded, it's very easy to forget to add a subdirectory to either this step, or
+      # TODO  to the check_XXXX step below. Instead, new subpackages/examples should automatically get picked up here
+      # TODO  and in a generic (but parallelized) check_all_subdirectories step below
+
       # run the Go ethereum partioning test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v
 
       # run the Starlark ethereum partioning test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
 
       # run the Go Cassandra Network Partitioning Test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           cd cassandra-network-partition-test
           go test -timeout 5m -v
 
       # run the Starlark Cassandra partioning test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
-      - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+      - <<: *run_quickstart
 
-      # run the simple-api
-      - run: |
-          ./simple-api/scripts/build.sh
-          kurtosis run ./simple-api/kurtosis-package/
+      - <<: *run_data_package
+
+      - <<: *run_simple_api_package
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
@@ -89,11 +109,13 @@ jobs:
       - <<: *install_and_start_kurtosis
 
       # run the Go ethereum partioning test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
 
       # run the Starlark ethereum partioning test in dry-run mode since it takes up to 15 minutes in reality
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
 
@@ -111,10 +133,12 @@ jobs:
       - <<: *install_and_start_kurtosis
 
       # run the Starlark Cassandra partioning test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
 
       # run the Go Cassandra Network Partitioning Test
+      # TODO Migrate to using a YAML anchor so we don't duplicate this with the check_XXXX step
       - run: |
           cd cassandra-network-partition-test
           go test -timeout 5m -v
@@ -132,9 +156,7 @@ jobs:
           fi
 
       - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+      - <<: *run_quickstart
 
   check_data_package:
     executor: ubuntu_vm
@@ -148,9 +170,7 @@ jobs:
           fi
 
       - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./data-package
+      - <<: *run_data_package
 
   build_simple_api:
     executor: ubuntu_vm
@@ -161,9 +181,8 @@ jobs:
           if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
             circleci-agent step halt
           fi
-      - run: simple-api/scripts/build.sh
       - <<: *install_and_start_kurtosis
-      - run: kurtosis run ./simple-api/kurtosis-package/
+      - <<: *run_simple_api_package
 
   publish_simple_api:
     executor: ubuntu_vm
