@@ -19,6 +19,7 @@ These example [Kurtosis packages](https://docs.kurtosis.com/reference/packages) 
 
 - [Cassandra Package](https://github.com/kurtosis-tech/cassandra-package) - A Kurtosis Starlark Package that spins up an n node Cassandra cluster and verifies that the cluster that was spun up was healthy
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
+- [Redis Package](https://github.com/kurtosis-tech/redis-package) - A Kurtosis Starlark Package that spins up a Redis instance
 
 ## Kurtosis Starlark Web3 Examples
 
@@ -32,3 +33,4 @@ These example [Kurtosis packages](https://docs.kurtosis.com/reference/packages) 
 - [Quick Start](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/quickstart) - The example used in the [Quickstart guide](https://docs.kurtosis.com/quickstart) to get started with Kurtosis.
 - [Simple NodeJS API](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/simple-api) - An example of how a Simple NodeJS based API can be setup to test using Kurtosis
 - [Data Package](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/data-package) - An example package that contains a tar that you can import and use within the Quickstart and other packages
+- [Redis Voting App](./redis-voting-app) - An example package highlighting composition in Kurtosis that uses the [redis-package](https://github.com/kurtosis-tech/redis-package) and [Azure Voting Front](https://github.com/Azure-Samples/azure-voting-app-redis/tree/master/azure-vote) to spin up a voting app backed by Redis.
