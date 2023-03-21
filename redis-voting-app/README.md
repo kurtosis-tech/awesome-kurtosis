@@ -13,7 +13,7 @@ cd redis-voting-app
 kurtosis run .
 ```
 
-Once the package is up and running use the localhost binding of port 80 for the `voting-app`
+Once the package is up and running use the localhost binding of port 80 for the `voting-app`; like
 
 
 ```bash
