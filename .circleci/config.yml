@@ -152,6 +152,22 @@ jobs:
       - run: |
           kurtosis run ./data-package
 
+  check_redis_voting_app:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':data-package'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      - run: |
+          kurtosis run ./redis-voting-app
+
   build_simple_api:
     executor: ubuntu_vm
     steps:
@@ -210,6 +226,11 @@ workflows:
               ignore:
                 - main
       - check_data_package:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_redis_voting_app:
           filters:
             branches:
               ignore:
