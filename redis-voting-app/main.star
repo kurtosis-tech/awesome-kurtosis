@@ -17,7 +17,7 @@ def run(plan, args):
             },
             image = VOTING_APP_IMAGE,
             env_vars = {
-                "REDIS": redis_service_name,
+                "REDIS": redis_hostname,
             }
         )
     )
