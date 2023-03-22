@@ -6,9 +6,9 @@ NUM_PARTICIPANTS = 4
 MAIN_NETWORK = "main_network"
 ISOLATED_NETWORK = "isolated_network"
 
-CHECKPOINT_1_NODES_SYNCED = "0x2" # block number 2
-CHECKPOINT_2_NODES_OUT_OF_SYNC = "0xc" # block number 12
-CHECKPOINT_3_NODES_SYNCED = "0x16" # block number 22
+CHECKPOINT_1_NODES_SYNCED = 0x2 # block number 2
+CHECKPOINT_2_NODES_OUT_OF_SYNC = 0xc # block number 12
+CHECKPOINT_3_NODES_SYNCED = 0x16 # block number 22
 
 
 def run(plan):
