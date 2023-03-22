@@ -6,9 +6,9 @@ NUM_PARTICIPANTS = 4
 MAIN_NETWORK = "main_network"
 ISOLATED_NETWORK = "isolated_network"
 
-CHECKPOINT_1_NODES_SYNCED = 0x2 # block number 2
-CHECKPOINT_2_NODES_OUT_OF_SYNC = 0xc # block number 12
-CHECKPOINT_3_NODES_SYNCED = 0x16 # block number 22
+CHECKPOINT_1_NODES_SYNCED = "0x2" # block number 2
+CHECKPOINT_2_NODES_OUT_OF_SYNC = "0xc" # block number 12
+CHECKPOINT_3_NODES_SYNCED = "0x16" # block number 22
 
 
 def run(plan):
@@ -18,17 +18,17 @@ def run(plan):
     network_topology = assign_nodes_subnetwork(plan)
     plan.print("Starting test with the following network topology: \n{0}".format(network_topology))
 
-    assert_all_nodes_synced_at_block(plan, CHECKPOINT_1_NODES_SYNCED)
+    assert_all_nodes_synced_at_block(plan, int(CHECKPOINT_1_NODES_SYNCED, 16))
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_1_NODES_SYNCED, get_blocks_for_all_nodes(plan, CHECKPOINT_1_NODES_SYNCED)))
 
     plan.set_connection((MAIN_NETWORK, ISOLATED_NETWORK), kurtosis.connection.BLOCKED)
     plan.print("Subnetwork '{0}' was disconnected from '{1}'".format(ISOLATED_NETWORK, MAIN_NETWORK))
 
-    assert_nodes_out_of_sync_at_block(plan, CHECKPOINT_2_NODES_OUT_OF_SYNC)
+    assert_nodes_out_of_sync_at_block(plan, int(CHECKPOINT_2_NODES_OUT_OF_SYNC, 16))
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_2_NODES_OUT_OF_SYNC, get_blocks_for_all_nodes(plan, CHECKPOINT_2_NODES_OUT_OF_SYNC)))
 
     plan.remove_connection((MAIN_NETWORK, ISOLATED_NETWORK))
-    assert_all_nodes_synced_at_block(plan, CHECKPOINT_3_NODES_SYNCED)
+    assert_all_nodes_synced_at_block(plan, int(CHECKPOINT_3_NODES_SYNCED, 16))
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_3_NODES_SYNCED, get_blocks_for_all_nodes(plan, CHECKPOINT_3_NODES_SYNCED)))
 
 
