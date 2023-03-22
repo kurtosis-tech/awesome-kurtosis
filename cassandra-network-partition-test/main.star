@@ -40,7 +40,7 @@ def simulate_network_failure(plan, cassandra_run_output):
         command = ["/bin/sh", "-c", check_un_nodes],
     )
 
-    plan.wait(check_un_nodes_recipe, "output", "==", str(len(cassandra_run_output["node_names"])-1))
+    plan.wait(check_un_nodes_recipe, "output", "==", str(len(cassandra_run_output["node_names"])-1), timeout="5m")
 
     check_dn_nodes = "nodetool status | grep DN | wc -l | tr -d '\n'"
 
@@ -73,4 +73,4 @@ def heal_and_verify(plan, cassandra_run_output):
         command = ["/bin/sh", "-c", node_tool_check],
     )
 
-    plan.wait(check_nodes_are_up, "output", "==", str(len(cassandra_run_output["node_names"])))
+    plan.wait(check_nodes_are_up, "output", "==", str(len(cassandra_run_output["node_names"])), timeout="5m")
