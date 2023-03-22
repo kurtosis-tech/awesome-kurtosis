@@ -76,17 +76,5 @@ def get_block_recipe(block_number_hex):
     )
 
 
-def pad(hex):
-    """
-    Removes the `0x` prefix and pads the hexadecimal string with zeros to reach a HEX_PAD_NUMBER character long string
-    As explained above for JQ_PAD_HEX_FILTER, this is to make hexadecimal numbers comparable
-    """
-    res = ""
-    hex_no_prefix = hex.replace("0x", "")
-    for _ in range(0, HEX_PAD_NUMBER - len(hex_no_prefix)):
-        res += "0"
-    return res + hex_no_prefix
-
-
 def extracted_field_name(field_name):
     return "extract." + field_name
