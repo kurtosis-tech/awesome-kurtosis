@@ -7,7 +7,7 @@ def run(plan, args):
     plan.print("Spinning up the Redis Package")
     redis_run_output = main_redis_module.run(plan, args)
 
-    redis_service_name = redis_run_output["hostname"]
+    redis_hostname = redis_run_output["hostname"]
 
     plan.add_service(
         service_name = "voting-app",
