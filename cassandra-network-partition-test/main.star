@@ -36,20 +36,18 @@ def simulate_network_failure(plan, cassandra_run_output):
     check_un_nodes = "nodetool status | grep UN | wc -l | tr -d '\n'"
 
     check_un_nodes_recipe = ExecRecipe(
-        service_name = main_cassandra_module.get_first_node_name(),
         command = ["/bin/sh", "-c", check_un_nodes],
     )
 
-    plan.wait(recipe=check_un_nodes_recipe, field="output", assertion="==", target_value=str(len(cassandra_run_output["node_names"])-1), timeout="5m")
+    plan.wait(recipe=check_un_nodes_recipe, field="output", assertion="==", target_value=str(len(cassandra_run_output["node_names"])-1), timeout="5m", service_name = main_cassandra_module.get_first_node_name())
 
     check_dn_nodes = "nodetool status | grep DN | wc -l | tr -d '\n'"
 
     check_dn_nodes_recipe = ExecRecipe(
-        service_name = main_cassandra_module.get_first_node_name(),
         command = ["/bin/sh", "-c", check_dn_nodes],
     )
 
-    result = plan.exec(check_dn_nodes_recipe)
+    result = plan.exec(check_dn_nodes_recipe, service_name = main_cassandra_module.get_first_node_name())
 
     plan.assert(result["output"], "==", "1")
 
@@ -69,8 +67,7 @@ def heal_and_verify(plan, cassandra_run_output):
     node_tool_check = "nodetool status | grep UN | wc -l | tr -d '\n'"
 
     check_nodes_are_up = ExecRecipe(
-        service_name = main_cassandra_module.get_first_node_name(),
         command = ["/bin/sh", "-c", node_tool_check],
     )
 
-    plan.wait(recipe=check_nodes_are_up, field="output", assertion="==", target_value=str(len(cassandra_run_output["node_names"])), timeout="5m")
+    plan.wait(recipe=check_nodes_are_up, field="output", assertion="==", target_value=str(len(cassandra_run_output["node_names"])), timeout="5m", service_name = main_cassandra_module.get_first_node_name())
