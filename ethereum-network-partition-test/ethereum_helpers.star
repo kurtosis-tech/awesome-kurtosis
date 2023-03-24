@@ -7,12 +7,12 @@ LATEST_BLOCK_NUMBER_GENERIC = "latest"
 # We have the equivalent function in Starlark below (see `pad`)
 JQ_PAD_HEX_FILTER = """
 {} |
+ascii_upcase 
 split("") |
 map({{"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15}}[.]) |
 reduce .[] as $item (0; . * 16 + $item)
 """
 
-BLOCK_HEX_FIELD = "block-hex"
 BLOCK_NUMBER_FIELD = "block-number"
 BLOCK_HASH_FIELD = "block-hash"
 
@@ -22,14 +22,13 @@ def get_block(plan, node_id, block_number_hex):
     Returns the block information for block number `block_number_hex` (which should be a hexadecimal string starting
     with `0x`, i.e. `0x2d`)
 
-    The object returned is a struct with 2 fields `number` and `hash`, both hexadecimal encoded strings.
+    The object returned is a struct with 2 fields `number` (integer) and `hash` (hexadecimal string).
     """
     block_response = plan.request(
         recipe=get_block_recipe(block_number_hex),
         service_name=node_id,
     )
     return struct(
-        hex=block_response[extracted_field_name(BLOCK_HEX_FIELD)],
         number=block_response[extracted_field_name(BLOCK_NUMBER_FIELD)],
         hash=block_response[extracted_field_name(BLOCK_HASH_FIELD)],
     )
@@ -52,8 +51,7 @@ def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
 
 def get_block_recipe(block_number_hex):
     """
-    Returns the recipe to run to get the block information for block number `block_number_hex` (which should be a
-    hexadecimal string starting with `0x`, i.e. `0x2d`)
+    Returns the recipe to run to get the block information for block number `block_number_hex` (integer)
     """
     request_body = """{{
     "method": "eth_getBlockByNumber",
@@ -70,7 +68,6 @@ def get_block_recipe(block_number_hex):
         content_type="application/json",
         body=request_body,
         extract={
-            BLOCK_HEX_FIELD: ".result.number",
             BLOCK_NUMBER_FIELD: JQ_PAD_HEX_FILTER.format(".result.number"),
             BLOCK_HASH_FIELD: ".result.hash",
         },
