@@ -40,7 +40,7 @@ Starting the simple-api package
 > add_service service_name="kurtosis-simple-api" config=ServiceConfig(image="kurtosistech/kurtosis-simple-api", ports={"http": PortSpec(number=8080, transport_protocol="TCP", application_protocol="http")})
 Service 'kurtosis-simple-api' added with service UUID 'ddf04ab5ba64465d81de661a91aa7226'
 
-> wait recipe=GetHttpRequestRecipe(port_id="http", service_name="kurtosis-simple-api", endpoint="/health", extract="") field="code" assertion="IN" target_value=[200] timeout="30s"
+> wait recipe=GetHttpRequestRecipe(port_id="http", endpoint="/health", extract="") field="code" assertion="IN" target_value=[200] timeout="30s" service_name="kurtosis-simple-api"
 Wait took 3 tries (2.13371021s in total). Assertion passed with following:
 Request had response code '200' and body "{\"status\":\"healthy\"}"
 
