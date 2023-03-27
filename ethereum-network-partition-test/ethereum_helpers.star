@@ -1,16 +1,15 @@
 # Ethereum API allows us to input "block_number-latest" to return the latest block information. Very helpful!
 LATEST_BLOCK_NUMBER_GENERIC = "latest"
 
-# We have this complex jq filter to remove the `0x` prefix on the hex string returned by the Ethereum node
-# and pad the hexadecimal string to 20 characters (which should be a limit we hopefully never hit)
-# This is a hack to get the hexadecimal block numbers to be comparable between each other
-# We have the equivalent function in Starlark below (see `pad`)
-JQ_PAD_HEX_FILTER = """
-{} |
+# We have this complex jq filter to parse a hexadecimal string with `0x` returned by the Ethereum node into an integer value
+JQ_PARSE_HEX = """
+def parse_hex(i):
+i |
 ascii_upcase 
 split("") |
 map({{"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15}}[.]) |
-reduce .[] as $item (0; . * 16 + $item)
+reduce .[] as $item (0; . * 16 + $item);
+parse_hex({})
 """
 
 BLOCK_NUMBER_FIELD = "block-number"
@@ -68,7 +67,7 @@ def get_block_recipe(block_number_hex):
         content_type="application/json",
         body=request_body,
         extract={
-            BLOCK_NUMBER_FIELD: JQ_PAD_HEX_FILTER.format(".result.number"),
+            BLOCK_NUMBER_FIELD: JQ_PARSE_HEX.format(".result.number"),
             BLOCK_HASH_FIELD: ".result.hash",
         },
     )
