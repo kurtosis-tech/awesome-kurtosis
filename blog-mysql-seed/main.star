@@ -8,4 +8,4 @@ def run(plan, args):
         src = "github.com/kurtosis-tech/awesome-kurtosis/blog-mysql-seed/seed.sql",
     )
     db = mysql.create_database(plan, args.database, args.username, args.password, seed_script_artifact = setup_sql)
-    plan.print(mysql.run_sql(plan, db, seed_sql))
+    mysql.run_sql(plan, db, seed_sql)
