@@ -1,0 +1,12 @@
+CREATE TABLE User (
+    UserID INT NOT NULL,
+    FirstName VARCHAR(255) NOT NULL,
+    PRIMARY KEY (UserID)
+);
+CREATE TABLE Post (
+    PostID INT NOT NULL AUTO_INCREMENT,
+    Content VARCHAR(255) NOT NULL,
+    AuthorUserID INT NOT NULL,
+    PRIMARY KEY (PostID),
+    FOREIGN KEY (AuthorUserID) REFERENCES User(UserID)
+);
