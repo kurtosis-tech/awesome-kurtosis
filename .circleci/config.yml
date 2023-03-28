@@ -152,7 +152,7 @@ jobs:
       - <<: *install_and_start_kurtosis
 
       - run: |
-          kurtosis run ./blog-mysql-seed/. '{"username": "abc", "password": "123", "database": "bd"}'
+          kurtosis run ./blog-mysql-seed/ '{"username": "abc", "password": "123", "database": "bd"}'
 
   check_data_package:
     executor: ubuntu_vm
@@ -264,4 +264,9 @@ workflows:
           filters:
             branches:
               only:
+                - main
+      - check_blog_mysql_seed:
+          filters:
+            branches:
+              ignore:
                 - main
