@@ -48,8 +48,8 @@ jobs:
 
       # run the Starlark ethereum partioning test
       - run: 
-	  name: Ethereum Network Partitioning Starlark Test
-	  no_output_timeout: 30m
+    name: Ethereum Network Partitioning Starlark Test
+    no_output_timeout: 30m
           command: kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
 
       # run the Go Cassandra Network Partitioning Test
