@@ -1,9 +1,5 @@
 mysql = import_module("github.com/kurtosis-tech/mysql-package/mysql.star")
 
-SELECT_SQL_QUERY = """
-SELECT * FROM Post;
-"""
-
 def run(plan, args):
     setup_sql = plan.upload_files(
         src = "github.com/kurtosis-tech/awesome-kurtosis/blog-mysql-seed/setup.sql",
