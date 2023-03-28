@@ -48,5 +48,4 @@ def run_sql(plan, database, sql_query):
     return plan.exec(
         service_name = database.service.name,
         recipe = ExecRecipe(command = ["sh", "-c", "mysql {}".format(mysql_flags)]),
-        acceptable_codes = [0, 1, 126]
     )["output"]
