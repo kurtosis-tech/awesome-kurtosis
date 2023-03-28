@@ -1,7 +1,11 @@
 MYSQL_IMAGE = "mysql:8.0.32"
+ROOT_DEFAULT_PASSWORD = "root"
+MYSQL_DEFAULT_PORT = 3036
 
 def create_database(plan, database_name, database_user, database_password, seed_script_artifacts = []):
     files = {}
+    # We "rename" these files to 1.sql, 2.sql, etc. to guarantee the execution to match the one on the list
+    # Given that scripts on /docker-entrypoint-initdb.d/ are executed sorted by filename
     for index, artifact in enumerate(seed_script_artifacts):
         files["/docker-entrypoint-initdb.d/{}.sql".format(index)] = artifact
     service_name = "mysql-{}".format(database_name)
@@ -11,14 +15,14 @@ def create_database(plan, database_name, database_user, database_password, seed_
             image = MYSQL_IMAGE,
             ports = {
                 "db": PortSpec(
-                    number = 8080,
+                    number = MYSQL_DEFAULT_PORT,
                     transport_protocol = "TCP",
                     application_protocol = "http",
                 ),
             },
             files = files,
             env_vars = {
-                "MYSQL_ROOT_PASSWORD": "root",
+                "MYSQL_ROOT_PASSWORD": ROOT_DEFAULT_PASSWORD,
                 "MYSQL_DATABASE": database_name,
                 "MYSQL_USER": database_user,
                 "MYSQL_PASSWORD":  database_password,
@@ -26,10 +30,9 @@ def create_database(plan, database_name, database_user, database_password, seed_
         )
     )
     # Wait for MySQL to become available
-    mysql_flags = ["-u", database_user, "-p{}".format(database_password), database_name]
     plan.wait(
         service_name = service_name,
-        recipe = ExecRecipe(command = ["mysql"] + mysql_flags),
+        recipe = ExecRecipe(command = ["mysql", "-u", database_user, "-p{}".format(database_password), database_name]),
         field = "code",
         assertion = "==",
         target_value = 0,
@@ -44,8 +47,8 @@ def create_database(plan, database_name, database_user, database_password, seed_
 
 
 def run_sql(plan, database, sql_query):
-    mysql_flags = "-u {} -p{} -e '{}' {}".format(database.user, database.password, sql_query, database.name)
-    return plan.exec(
+    exec_result = plan.exec(
         service_name = database.service.name,
-        recipe = ExecRecipe(command = ["sh", "-c", "mysql {}".format(mysql_flags)]),
-    )["output"]
+        recipe = ExecRecipe(command = ["sh", "-c", "mysql -u {} -p{} -e '{}' {}".format(database.user, database.password, sql_query, database.name)]),
+    )
+    return exec_result["output"]
