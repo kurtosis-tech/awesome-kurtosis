@@ -1,3 +1,3 @@
-INSERT INTO User (UserID, FirstName) VALUES (1, "Peter");
-INSERT INTO User (UserID, FirstName) VALUES (2, "Jorge");
-INSERT INTO Post (PostID, Content, AuthorUserID) VALUES (0, "Lorem ipsum dolor sit amet", 2);
+INSERT INTO user (user_id, first_name) VALUES (1, "Peter");
+INSERT INTO User (user_id, first_name) VALUES (2, "Jorge");
+INSERT INTO Post (post_id, content, author_user_id) VALUES (0, "Lorem ipsum dolor sit amet", 2);
