@@ -13,7 +13,7 @@ def run(plan, args):
         service_name = "voting-app",
         config = ServiceConfig(
             ports = {
-                "http": PortSpec(number = 80, transport_protocol = "TCP")
+                "http": PortSpec(number = 80, transport_protocol = "TCP", application_protocol = "http")
             },
             image = VOTING_APP_IMAGE,
             env_vars = {
