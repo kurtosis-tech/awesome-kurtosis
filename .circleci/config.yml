@@ -177,7 +177,7 @@ jobs:
 
       # If this sub-repo hasn't changed, don't run the tests
       - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':data-package'; then
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':redis-voting-app'; then
             circleci-agent step halt
           fi
 
@@ -190,11 +190,13 @@ jobs:
     executor: ubuntu_vm
     steps:
       - checkout
+
       # If this sub-repo hasn't changed, don't run the build
       - run: |
           if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
             circleci-agent step halt
           fi
+
       - run: simple-api/scripts/build.sh
       - <<: *install_and_start_kurtosis
       - run: kurtosis run ./simple-api/kurtosis-package/
