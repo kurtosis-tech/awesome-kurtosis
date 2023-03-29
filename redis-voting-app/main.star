@@ -10,7 +10,7 @@ def run(plan, args):
     redis_hostname = redis_run_output["hostname"]
 
     plan.add_service(
-        service_name = "voting-app",
+        name = "voting-app",
         config = ServiceConfig(
             ports = {
                 "http": PortSpec(number = 80, transport_protocol = "TCP")
