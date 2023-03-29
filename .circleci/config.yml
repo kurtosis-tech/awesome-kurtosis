@@ -6,7 +6,7 @@ install_and_start_kurtosis: &install_and_start_kurtosis
   run: |
       echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
       sudo apt update
-      sudo apt install kurtosis-cli=0.70.0
+      sudo apt install kurtosis-cli=0.70.2
       kurtosis config init dont-send-metrics
       kurtosis cluster set docker
       kurtosis engine start
@@ -138,6 +138,22 @@ jobs:
       - run: |
           kurtosis run ./quickstart/ '{"nginx_count": 3}'
 
+  check_blog_mysql_seed:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':blog-mysql-seed'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
+      - run: |
+          kurtosis run ./blog-mysql-seed/ '{"username": "abc", "password": "123", "database": "bd"}'
+
   check_data_package:
     executor: ubuntu_vm
     steps:
@@ -248,4 +264,9 @@ workflows:
           filters:
             branches:
               only:
+                - main
+      - check_blog_mysql_seed:
+          filters:
+            branches:
+              ignore:
                 - main
