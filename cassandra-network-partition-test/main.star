@@ -47,7 +47,7 @@ def simulate_network_failure(plan, cassandra_run_output):
         command = ["/bin/sh", "-c", check_dn_nodes],
     )
 
-    result = plan.exec(service_name = main_cassandra_module.get_first_node_name(), recipe = check_dn_nodes_recipe)
+    result = plan.exec(check_dn_nodes_recipe, service_name = main_cassandra_module.get_first_node_name())
 
     plan.assert(result["output"], "==", "1")
 
