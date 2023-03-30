@@ -101,6 +101,7 @@ jobs:
 
   check_cassandra_network_partition_test:
     executor: ubuntu_vm
+    resource_class: xlarge
     steps:
       - checkout
 
