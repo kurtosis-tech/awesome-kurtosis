@@ -45,7 +45,7 @@ const (
 	noSerializedParams = ""
 	noDryRun           = false
 
-	updateServiceStarlarkTemplate = `plan.update_service(service_name = "%s", config = UpdateServiceConfig(subnetwork = "%s"))`
+	updateServiceStarlarkTemplate = `plan.update_service(name="%s", config = UpdateServiceConfig(subnetwork = "%s"))`
 	headerStarlarkTemplate        = `def run(plan):`
 )
 

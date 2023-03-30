@@ -3,7 +3,7 @@ module github.com/kurtosis-tech/awesome-kurtosis/cassandra-network-partitioniong
 go 1.18
 
 require (
-	github.com/kurtosis-tech/kurtosis/api/golang v0.70.0
+	github.com/kurtosis-tech/kurtosis/api/golang v0.71.1
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
@@ -16,6 +16,8 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230328194643-b4dea3081e25 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
