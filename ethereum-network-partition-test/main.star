@@ -18,17 +18,17 @@ def run(plan):
     network_topology = assign_nodes_subnetwork(plan)
     plan.print("Starting test with the following network topology: \n{0}".format(network_topology))
 
-    assert_all_nodes_synced_at_block(plan, int(CHECKPOINT_1_NODES_SYNCED, 16))
+    assert_all_nodes_synced_at_block(plan, CHECKPOINT_1_NODES_SYNCED)
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_1_NODES_SYNCED, get_blocks_for_all_nodes(plan, CHECKPOINT_1_NODES_SYNCED)))
 
     plan.set_connection((MAIN_NETWORK, ISOLATED_NETWORK), kurtosis.connection.BLOCKED)
     plan.print("Subnetwork '{0}' was disconnected from '{1}'".format(ISOLATED_NETWORK, MAIN_NETWORK))
 
-    assert_nodes_out_of_sync_at_block(plan, int(CHECKPOINT_2_NODES_OUT_OF_SYNC, 16))
+    assert_nodes_out_of_sync_at_block(plan, CHECKPOINT_2_NODES_OUT_OF_SYNC)
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_2_NODES_OUT_OF_SYNC, get_blocks_for_all_nodes(plan, CHECKPOINT_2_NODES_OUT_OF_SYNC)))
 
     plan.remove_connection((MAIN_NETWORK, ISOLATED_NETWORK))
-    assert_all_nodes_synced_at_block(plan, int(CHECKPOINT_3_NODES_SYNCED, 16))
+    assert_all_nodes_synced_at_block(plan, CHECKPOINT_3_NODES_SYNCED)
     plan.print("Block number '{0}' for all services: \n{1}".format(CHECKPOINT_3_NODES_SYNCED, get_blocks_for_all_nodes(plan, CHECKPOINT_3_NODES_SYNCED)))
 
 
@@ -67,14 +67,14 @@ def assign_nodes_subnetwork(plan):
     }
 
 
-def wait_all_nodes_at_block(plan, block_number_hex):
+def wait_all_nodes_at_block(plan, block_number_int):
     """
     This function blocks until all nodes are passed block number `block_number_hex`. The wait happens one node at a
     time, starting with the node #0.
     """
     for i in range(0, NUM_PARTICIPANTS):
         node_id = eth2.el_node_id(i)
-        ethereum_helpers.wait_until_node_reached_block(plan, node_id, block_number_hex)
+        ethereum_helpers.wait_until_node_reached_block(plan, node_id, block_number_int)
 
 
 def assert_all_nodes_synced_at_block(plan, block_number_hex):
@@ -84,7 +84,7 @@ def assert_all_nodes_synced_at_block(plan, block_number_hex):
 
     It throws an error if block hashes are different.
     """
-    wait_all_nodes_at_block(plan, block_number_hex)
+    wait_all_nodes_at_block(plan, int(block_number_hex, 16))
     block_hash_by_node = get_blocks_for_all_nodes(plan, block_number_hex)
 
     # check that node have all the same hash doing a 2-by-2 comparison
@@ -105,7 +105,7 @@ def assert_nodes_out_of_sync_at_block(plan, block_number_hex):
 
     It throws an error if first node and last node block hash were identical
     """
-    wait_all_nodes_at_block(plan, block_number_hex)
+    wait_all_nodes_at_block(plan, int(block_number_hex, 16))
     block_hash_by_node = get_blocks_for_all_nodes(plan, block_number_hex)
 
     # check that first and last node have diverged
