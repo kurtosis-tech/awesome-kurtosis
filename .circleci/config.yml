@@ -6,7 +6,7 @@ install_and_start_kurtosis: &install_and_start_kurtosis
   run: |
       echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
       sudo apt update
-      sudo apt install kurtosis-cli=0.71.1
+      sudo apt install kurtosis-cli=0.73.0
       kurtosis config init dont-send-metrics
       kurtosis cluster set docker
       kurtosis engine start
