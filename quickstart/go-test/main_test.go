@@ -95,7 +95,7 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.Nil(t, err)
 	response, err := http.Post(actorsEndPointAddress, contentType, bytes.NewReader(actorsAsBytes))
 	require.Nil(t, err)
-	require.Nil(t, response.StatusCode, http.StatusCreated)
+	require.Equal(t, response.StatusCode, http.StatusCreated)
 
 	// Run a GET request to confirm that data was recorded
 	response, err = http.Get(actorsEndPointAddress)
@@ -104,7 +104,8 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	var serializedResponse []Actor
 	body, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
-	err = json.Unmarshal(body, serializedResponse)
+	defer response.Body.Close()
+	err = json.Unmarshal(body, &serializedResponse)
 	require.Nil(t, err)
 	require.Len(t, serializedResponse, 2)
 	require.Contains(t, serializedResponse, kevinBacon)
