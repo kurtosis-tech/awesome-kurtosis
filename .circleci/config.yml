@@ -76,7 +76,7 @@ jobs:
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
       # get rid of containers so that things dont compete for resources
       - run: kurtosis clean -a
