@@ -115,9 +115,11 @@ jobs:
       # get rid of containers so that things dont compete for resources
       - run: kurtosis clean -a
 
-      # run the Starlark ethereum partioning test but only --dry-run it as it takes too long and runs nightly anyway
+      # run the Starlark ethereum partioning test
       - run: 
-          command: kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
+          name: Ethereum Network Partitioning Starlark Test
+          no_output_timeout: 30m
+          command: kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
 
   check_cassandra_network_partition_test:
     executor: ubuntu_vm
