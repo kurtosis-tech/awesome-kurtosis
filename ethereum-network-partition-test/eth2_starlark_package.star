@@ -26,10 +26,10 @@ def get_eth2_package_args(number_of_nodes):
     participants = []
     for _ in range(0, number_of_nodes):
         participants.append(PARTICIPANT_CONFIG)
-    return struct(
-        participants=participants,
-        launch_additional_services=False,  # no need for the additional services here
-    )
+    return {
+        "participants": participants,
+        "launch_additional_services": False,  # no need for the additional services here
+    }
 
 
 def el_node_id(id_int):
