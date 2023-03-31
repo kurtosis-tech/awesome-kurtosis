@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
-	"net/url"
 	"testing"
 	"time"
 )
@@ -79,8 +78,7 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.NotEmpty(t, apiServicePublicIpAddress)
 
 	urlAndIpAddressOfService := fmt.Sprintf("http://%v:%v", apiServicePublicIpAddress, apiServiceHttpPort)
-	actorsEndPointAddress, err := url.JoinPath(urlAndIpAddressOfService, "/actor")
-	require.Nil(t, err)
+	actorsEndPointAddress := urlAndIpAddressOfService + "/actor"
 
 	kevinBacon := Actor{Name: "Kevin", LastName: "Bacon"}
 	steveBuscemi := Actor{Name: "Steve", LastName: "Buscemi"}
