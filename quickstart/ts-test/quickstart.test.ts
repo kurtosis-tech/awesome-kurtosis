@@ -5,7 +5,6 @@ import {PortSpec} from "kurtosis-sdk/build/core/lib/services/port_spec";
 import {StarlarkRunResult} from "kurtosis-sdk/build/core/lib/enclaves/starlark_run_blocking";
 import {ServiceContext} from "kurtosis-sdk/build/core/lib/services/service_context";
 import fetch from "node-fetch";
-import {json} from "stream/consumers";
 import * as http from "http";
 
 const TEST_NAME = "quick-start-ts-example";
@@ -18,6 +17,9 @@ const QUICKSTART_PACKAGE = "github.com/kurtosis-tech/awesome-kurtosis/quickstart
 const API_SERVICE_NAME = "api"
 const CONTENT_TYPE = "application/json"
 const HTTP_PORT_ID = "http"
+
+const HTTP_CREATED = 201
+const HTTP_OK = 200
 
 jest.setTimeout(180000)
 
@@ -116,7 +118,7 @@ test("Test quickstart post and get", async () => {
                 body: JSON.stringify(actors)
             }
         )
-        expect(postResponse.status).toEqual(201)
+        expect(postResponse.status).toEqual(HTTP_CREATED)
 
 
         // send a get request
@@ -125,7 +127,7 @@ test("Test quickstart post and get", async () => {
                 method: "GET",
             }
         )
-        expect(getResponse.status).toEqual(200)
+        expect(getResponse.status).toEqual(HTTP_OK)
         const jsonResponseObjectList = await getResponse.json()
         const actorsList:Actor[] = jsonResponseObjectList.map(x => new Actor(x.first_name, x.last_name))
         expect(actorsList.length).toBeGreaterThan(3)
