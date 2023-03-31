@@ -29,8 +29,8 @@ def run(plan, args):
     )
 
     nginx_count = 1
-    if hasattr(args, "nginx_count"):
-        nginx_count = args.nginx_count
+    if "nginx_count"in args:
+        nginx_count = args["nginx_count"]
 
     for i in range(0, nginx_count):
         plan.add_service(
