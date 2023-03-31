@@ -14,11 +14,11 @@ This folder contains a typical setup for a smart contract developer looking to d
 - `test/` contains a simple test for our token contract
 - `hardhat.config.ts` configures our Hardhat setup. 
 It allows us to configure Hardhat 
-configure our environment to use a local Ethereum network created by the `eth-network-package`.
+configure to use a local Ethereum network created by the `eth-network-package`.
 
 ### Running the Example
 
-This assumes you have the following services installed.
+This assumes you have the following services installed:
 - [Kurtosis CLI](https://docs.kurtosis.com/cli/)
 - [`npx`](https://www.npmjs.com/package/npx)
 - Hardhat
@@ -27,7 +27,7 @@ This assumes you have the following services installed.
     ```
     kurtosis run github.com/kurtosis-tech/eth-network-package
     ```
-    The should output something like this
+    The out should look something like this
     ```
     ========================================== User Services ==========================================
     UUID           Name                                           Ports                                         Status
@@ -46,7 +46,7 @@ This assumes you have the following services installed.
     8828574730f6   prelaunch-data-generator-1680298734428736261   <none>                                        STOPPED
     a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
     ```
-    We see a single node with an geth EL client and lighthouse CL client running has been created. The network configuration is configurable via a json file. Read [here](https://github.com/kurtosis-tech/eth-network-package) to learn more.
+    We see a single node with a geth EL client and lighthouse CL client running has been created. The network configuration is configurable via a json file. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more.
 
 2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-` service. In this case, the port would be `64248`.
     ```
@@ -69,8 +69,8 @@ This assumes you have the following services installed.
    ```
    npx hardhat balances --network localnet
    ``` 
-   This verifies that network is working and detects the configured prefunded accounts on the network by the `eth-network-package`.
-   The output should look like this.
+   This verifies that network is working and detects the prefunded accounts on the network, created by the `eth-network-package`.
+   The output should look something like this
     ```
     0x878705ba3f8Bc32FCf7F4CAa1A35E72AF65CF766 has balance 10000000000000000000000000
     0x4E9A3d9D1cd2A2b2371b8b3F489aE72259886f1A has balance 10000000000000000000000000
@@ -79,12 +79,12 @@ This assumes you have the following services installed.
     0x375ae6107f8cC4cF34842B71C6F746a362Ad8EAc has balance 10000000000000000000000000
     0x1F6298457C5d76270325B724Da5d1953923a6B88 has balance 10000000000000000000000000
     ```
-4. Now, we can run dev/test workflows against our network! Let's deploy the `ChipToken` 
+4. Now, we can run dev/test workflows against our network! For example, let's deploy the `ChipToken` 
 contract to the local network by running
    ```
    npx hardhat run scripts/deploy.ts --network localnet
    ```
-   The output should look like this
+   The output should look something like this
    ```
    ChipToken deployed to: 0xAb2A01BC351770D09611Ac80f1DE076D56E0487d
    ```
