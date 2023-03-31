@@ -88,7 +88,7 @@ def run(plan, args):
 
     # Insert data
     if "actors" in data:
-        insert_data(plan, args)
+        insert_data(plan, args["actors"])
 
 def insert_data(plan, data):
     plan.request(
