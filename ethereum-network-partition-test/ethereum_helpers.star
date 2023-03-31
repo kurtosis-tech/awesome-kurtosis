@@ -45,7 +45,7 @@ def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
         field="extract." + BLOCK_NUMBER_FIELD,
         assertion=">=",
         target_value=target_block_number_hex,
-        timeout="20m",  # Ethereum nodes can take a while to get in good shapes, especially at the beginning
+        timeout="30m",  # Ethereum nodes can take a while to get in good shapes, especially at the beginning
         service_name=node_id,
     )
 
