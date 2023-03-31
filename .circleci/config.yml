@@ -93,9 +93,8 @@ jobs:
           # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
           template: basic_fail_1
 
-  check_ethereum_network_partition_test:
+  check_ethereum_network_partition_test_go:
     executor: ubuntu_vm
-    resource_class: xlarge
     steps:
       - checkout
 
@@ -111,9 +110,21 @@ jobs:
       - run: |
           cd ethereum-network-partition-test
           go test -timeout 15m  -v .
+  
+  check_ethereum_network_partition_test_starlark:
+    executor: ubuntu_vm
+    resource_class: xlarge
+    steps:
+      - checkout
 
-      # get rid of containers so that things dont compete for resources
-      - run: kurtosis clean -a
+      # If this sub-repo hasn't changed, don't run the tests
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':ethereum-network-partition-test'; then
+            circleci-agent step halt
+          fi
+
+      - <<: *install_and_start_kurtosis
+
 
       # run the Starlark ethereum partioning test
       - run: 
@@ -253,7 +264,12 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-      - check_ethereum_network_partition_test:
+      - check_ethereum_network_partition_test_starlark:
+          filters:
+            branches:
+              ignore:
+                - main      
+      - check_ethereum_network_partition_test_go:
           filters:
             branches:
               ignore:
