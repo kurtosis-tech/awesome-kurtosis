@@ -47,7 +47,6 @@ const (
 
 	participantParam      = `{"el_client_type":"geth","el_client_image":"ethereum/client-go:v1.10.25","cl_client_type":"lighthouse","cl_client_image":"sigp/lighthouse:v3.1.2"}`
 	packageParamsTemplate = `{
-	"launch_additional_services": false,
 	"participants": [
 		` + participantsPlaceholder + `
 	]
