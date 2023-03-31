@@ -129,9 +129,9 @@ test("Test quickstart post and get", async () => {
         const jsonResponseObjectList = await getResponse.json()
         const actorsList:Actor[] = jsonResponseObjectList.map(x => new Actor(x.first_name, x.last_name))
         expect(actorsList.length).toBeGreaterThan(3)
-        expect(actorsList).toContain(kevinActor)
-        expect(actorsList).toContain(steveBuscemiActor)
-        expect(actorsList).toContain(randomNewActor)
+        expect(actorsList).toContainEqual(kevinActor)
+        expect(actorsList).toContainEqual(steveBuscemiActor)
+        expect(actorsList).toContainEqual(randomNewActor)
     } finally {
         destroyEnclaveFunction()
     }
