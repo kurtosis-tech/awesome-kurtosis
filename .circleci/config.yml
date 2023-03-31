@@ -36,6 +36,10 @@ parameters:
 
 jobs:
   check_latest_version:
+    # strictly speaking we don't "need" this but we are continuously adding new examples
+    # TODO ideally all of this runs in a for loop with a kurtosis clean between so that resources don't add up #87
+    # this is a hot fix for release week
+    resource_class: xlarge
     executor: ubuntu_vm
     steps:
       - checkout
@@ -62,8 +66,9 @@ jobs:
           kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      # this can't run with the directory as this uses a sibling package
       - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart
 
       # run the simple-api
       - run: |
