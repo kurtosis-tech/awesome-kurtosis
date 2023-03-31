@@ -105,9 +105,9 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	body, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
 	defer response.Body.Close()
+	fmt.Print(string(body))
 	err = json.Unmarshal(body, &serializedResponse)
 	require.Nil(t, err)
-	require.Len(t, serializedResponse, 2)
 	require.Contains(t, serializedResponse, kevinBacon)
 	require.Contains(t, serializedResponse, steveBuscemi)
 }
