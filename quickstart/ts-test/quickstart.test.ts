@@ -126,7 +126,8 @@ test("Test quickstart post and get", async () => {
             }
         )
         expect(getResponse.status).toEqual(200)
-        const actorsList : Actor[] = (await getResponse.json()) as Actor[];
+        const jsonResponseObjectList = await getResponse.json()
+        const actorsList:Actor[] = jsonResponseObjectList.map(x => new Actor(x.first_name, x.last_name))
         expect(actorsList.length).toBeGreaterThan(3)
         expect(actorsList).toContain(kevinActor)
         expect(actorsList).toContain(steveBuscemiActor)

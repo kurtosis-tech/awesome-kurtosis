@@ -4,7 +4,8 @@
     "outDir": "build",
     "downlevelIteration": true,
     "declaration": true,
-    "strict": true
+    "strict": true,
+    "noImplicitAny": false
   },
   "include": [
     "*"
