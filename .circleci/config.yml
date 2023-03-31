@@ -136,7 +136,8 @@ jobs:
       - <<: *install_and_start_kurtosis
 
       - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+          # TODO change this when sibling packages are supported
+          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
   check_blog_mysql_seed:
     executor: ubuntu_vm
