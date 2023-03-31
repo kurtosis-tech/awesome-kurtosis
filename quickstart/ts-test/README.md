@@ -14,5 +14,6 @@ kurtosis engine restart
 
 ```bash
 yarn install
+yarn build
 yarn test
 ```

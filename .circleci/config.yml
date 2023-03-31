@@ -80,6 +80,7 @@ jobs:
           cd quickstart/ts-test
           npm install -g yarn
           yarn install
+          yarn build
           yarn test
 
       # run the simple-api
@@ -166,6 +167,7 @@ jobs:
           cd quickstart/ts-test
           npm install -g yarn
           yarn install
+          yarn build
           yarn test
 
   check_blog_mysql_seed:
