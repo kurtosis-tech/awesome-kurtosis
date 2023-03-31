@@ -107,7 +107,8 @@ test("Test quickstart post and get", async () => {
 
         const actors = Array.from([kevinActor, steveBuscemiActor, randomNewActor])
 
-        const response = await fetch(
+        // send a post request
+        const postResponse = await fetch(
             apiAddressWithActorEndpoint, {
                 method: "POST",
                 headers: {
@@ -116,9 +117,21 @@ test("Test quickstart post and get", async () => {
                 body: JSON.stringify(actors)
             }
         )
-        expect(response.status).toEqual(201)
+        expect(postResponse.status).toEqual(201)
 
 
+        // send a get request
+        const getResponse = await fetch(
+            apiAddressWithActorEndpoint, {
+                method: "GET",
+            }
+        )
+        expect(getResponse.status).toEqual(200)
+        const actorsList : Actor[] = (await getResponse.json()) as Actor[];
+        expect(actorsList.length).toBeGreaterThan(3)
+        expect(actorsList).toContain(kevinActor)
+        expect(actorsList).toContain(steveBuscemiActor)
+        expect(actorsList).toContain(randomNewActor)
     } finally {
         destroyEnclaveFunction()
     }
