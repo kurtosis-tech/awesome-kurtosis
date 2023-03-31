@@ -61,8 +61,8 @@ def run(plan, args):
         postgres.ports[POSTGRES_PORT_ID].number,
         POSTGRES_DB,
     )
-    postgrest = plan.add_service(
-        service_name = "postgrest",
+    api = plan.add_service(
+        name = "api",
         config = ServiceConfig(
             image = "postgrest/postgrest:v10.2.0.20230209",
             env_vars = {
@@ -75,7 +75,7 @@ def run(plan, args):
 
     # Wait for PostgREST to become available
     plan.wait(
-        service_name = "postgrest",
+        service_name = "api",
         recipe = GetHttpRequestRecipe(
             port_id = POSTGREST_PORT_ID,
             endpoint = "/actor?limit=5",
@@ -92,7 +92,7 @@ def run(plan, args):
 
 def insert_data(plan, data):
     plan.request(
-        service_name = "postgrest",
+        service_name = "api",
         recipe = PostHttpRequestRecipe(
             port_id = POSTGREST_PORT_ID,
             endpoint = "/actor",
