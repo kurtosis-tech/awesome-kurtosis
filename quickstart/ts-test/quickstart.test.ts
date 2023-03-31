@@ -4,6 +4,9 @@ import {err, ok, Result} from "neverthrow"
 import {PortSpec} from "kurtosis-sdk/build/core/lib/services/port_spec";
 import {StarlarkRunResult} from "kurtosis-sdk/build/core/lib/enclaves/starlark_run_blocking";
 import {ServiceContext} from "kurtosis-sdk/build/core/lib/services/service_context";
+import fetch from "node-fetch";
+import {json} from "stream/consumers";
+import * as http from "http";
 
 const TEST_NAME = "quick-start-ts-example";
 const MILLISECONDS_IN_SECOND = 1000;
@@ -18,6 +21,16 @@ const CONTENT_TYPE = "application/json"
 const HTTP_PORT_ID = "http"
 
 jest.setTimeout(180000)
+
+class Actor {
+    first_name: string;
+    last_name: string;
+
+    constructor(first_name: string, last_name: string) {
+        this.first_name = first_name
+        this.last_name = last_name
+    }
+}
 
 /*
 This example will:
@@ -36,7 +49,7 @@ test("Test quickstart post and get", async () => {
         throw createEnclaveResult.error
     }
 
-    const {enclaveContext, stopEnclaveFunction} = createEnclaveResult.value
+    const {enclaveContext, destroyEnclaveFunction} = createEnclaveResult.value
 
     try {
         // ------------------------------------- PACKAGE RUN ----------------------------------------------
@@ -70,19 +83,50 @@ test("Test quickstart post and get", async () => {
             throw new Error(`Expected to find API service port wih ID ${HTTP_PORT_ID} but it was not found`)
         }
 
-        const apiServiceHttpPortSpec: PortSpec = apiServicePublicPorts[HTTP_PORT_ID]
+        const apiServiceHttpPortSpec: PortSpec = apiServicePublicPorts.get(HTTP_PORT_ID)!
         const apiServiceHttpPort: number = apiServiceHttpPortSpec.number
         const apiServicePublicIpAddress: string = apiServiceContext.getMaybePublicIPAddress()
 
+        const apiAddress = `http://${apiServicePublicIpAddress}:${apiServiceHttpPort}`
+        const apiAddressWithActorEndpoint = apiAddress + "/actor"
+
+        const kevinActor: Actor = new Actor(
+            "Kevin",
+            "Bacon"
+        )
+
+        const steveBuscemiActor = new Actor(
+            "Steve",
+            "Buscemi",
+        )
+
+        const randomNewActor = new Actor(
+            "ThisFirstNameIsntInDB",
+            "ThisLastNameIsntInDB"
+        )
+
+        const actors = Array.from([kevinActor, steveBuscemiActor, randomNewActor])
+
+        const response = await fetch(
+            apiAddressWithActorEndpoint, {
+                method: "POST",
+                headers: {
+                    "content_type": CONTENT_TYPE,
+                },
+                body: JSON.stringify(actors)
+            }
+        )
+        expect(response.status).toEqual(201)
+
+
     } finally {
-        stopEnclaveFunction()
+        destroyEnclaveFunction()
     }
 })
 
 async function createEnclave(testName: string, isPartitioningEnabled: boolean):
     Promise<Result<{
         enclaveContext: EnclaveContext,
-        stopEnclaveFunction: () => void
         destroyEnclaveFunction: () => Promise<Result<null, Error>>,
     }, Error>> {
 
@@ -103,14 +147,6 @@ async function createEnclave(testName: string, isPartitioningEnabled: boolean):
 
     const enclaveContext = createEnclaveResult.value;
 
-    const stopEnclaveFunction = async (): Promise<void> => {
-        const stopEnclaveResult = await kurtosisContext.stopEnclave(enclaveName)
-        if (stopEnclaveResult.isErr()) {
-            log.error(`An error occurred stopping enclave ${enclaveName} that we created for this test: ${stopEnclaveResult.error.message}`)
-            log.error(`ACTION REQUIRED: You'll need to stop enclave ${enclaveName} manually!!!!`)
-        }
-    }
-
     const destroyEnclaveFunction = async (): Promise<Result<null, Error>> => {
         const destroyEnclaveResult = await kurtosisContext.destroyEnclave(enclaveName)
         if (destroyEnclaveResult.isErr()) {
@@ -122,6 +158,6 @@ async function createEnclave(testName: string, isPartitioningEnabled: boolean):
         return ok(null)
     }
 
-    return ok({enclaveContext, stopEnclaveFunction, destroyEnclaveFunction})
+    return ok({enclaveContext, destroyEnclaveFunction})
 }
 

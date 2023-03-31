@@ -16,6 +16,8 @@
     "utf8": "^3.0.0"
   },
   "dependencies": {
-    "kurtosis-sdk": "^0.73.0"
+    "@types/node-fetch": "2.x",
+    "kurtosis-sdk": "^0.73.0",
+    "node-fetch": "2.6.7"
   }
 }
