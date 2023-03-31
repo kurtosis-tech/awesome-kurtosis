@@ -75,6 +75,14 @@ jobs:
           cd quickstart/go-test
           go test -timeout 5m -v
 
+      # run the quickstart ts test
+      - run: |
+          cd quickstart/ts-test
+          npm install -g yarn
+          yarn install
+          yarn build
+          yarn test
+
       # run the simple-api
       - run: |
           ./simple-api/scripts/build.sh
@@ -149,9 +157,18 @@ jobs:
           # TODO change this when sibling packages are supported
           kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
+      # run the quickstart go test
       - run: |
           cd quickstart/go-test
-          go test -timeout 5m -v
+          go test -timeout 5m -v    
+
+      # run the quickstart ts test
+      - run: |
+          cd quickstart/ts-test
+          npm install -g yarn
+          yarn install
+          yarn build
+          yarn test
 
   check_blog_mysql_seed:
     executor: ubuntu_vm

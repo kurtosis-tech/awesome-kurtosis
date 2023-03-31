@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "build",
+    "downlevelIteration": true,
+    "declaration": true,
+    "strict": true,
+    // TODO remove this
+    "noImplicitAny": false
+  },
+  "include": [
+    "*"
+  ]
+}
