@@ -36,6 +36,7 @@ parameters:
 
 jobs:
   check_latest_version:
+    resource_class: xlarge
     executor: ubuntu_vm
     steps:
       - checkout
@@ -63,7 +64,7 @@ jobs:
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
       - run: |
-          kurtosis run ./quickstart/ '{"nginx_count": 3}'
+          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart
 
       # run the simple-api
       - run: |
