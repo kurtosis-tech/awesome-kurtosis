@@ -1,17 +1,9 @@
 # Ethereum API allows us to input "block_number-latest" to return the latest block information. Very helpful!
 LATEST_BLOCK_NUMBER_GENERIC = "latest"
 
-# We have this complex jq filter to remove the `0x` prefix on the hex string returned by the Ethereum node
-# and pad the hexadecimal string to 20 characters (which should be a limit we hopefully never hit)
-# This is a hack to get the hexadecimal block numbers to be comparable between each other
-# We have the equivalent function in Starlark below (see `pad`)
-JQ_PAD_HEX_FILTER = """
-{} |
-ascii_upcase 
-split("") |
-map({{"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15}}[.]) |
-reduce .[] as $item (0; . * 16 + $item)
-"""
+# We have this complex jq filter to convert the block number (which is by default returned as an
+# hexadecimal string) to an integer, all in JQ
+JQ_PAD_HEX_FILTER = """{} | ascii_upcase | split("") | map({{"x": 0, "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15}}[.]) | reduce .[] as $item (0; . * 16 + $item)"""
 
 BLOCK_NUMBER_FIELD = "block-number"
 BLOCK_HASH_FIELD = "block-hash"
@@ -34,9 +26,10 @@ def get_block(plan, node_id, block_number_hex):
     )
 
 
-def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
+def wait_until_node_reached_block(plan, node_id, target_block_number_int):
     """
-    This function blocks until the node `node_id` has reached block number `target_block_number_hex`.
+    This function blocks until the node `node_id` has reached block number `target_block_number_int` (which should
+    be an integer)
 
     If node has already produced this block, it returns immediately.
     """
@@ -44,14 +37,15 @@ def wait_until_node_reached_block(plan, node_id, target_block_number_hex):
         recipe=get_block_recipe(LATEST_BLOCK_NUMBER_GENERIC),
         field="extract." + BLOCK_NUMBER_FIELD,
         assertion=">=",
-        target_value=target_block_number_hex,
+        target_value=target_block_number_int,
         timeout="20m",  # Ethereum nodes can take a while to get in good shapes, especially at the beginning
         service_name=node_id,
     )
 
 def get_block_recipe(block_number_hex):
     """
-    Returns the recipe to run to get the block information for block number `block_number_hex` (integer)
+    Returns the recipe to run to get the block information for block number `block_number_hex` (which should be a 
+    hexadecimal string starting with `0x`, i.e. `0x2d`)
     """
     request_body = """{{
     "method": "eth_getBlockByNumber",
