@@ -107,7 +107,6 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	fetchAllActorsResponseBody, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
 	defer response.Body.Close()
-	fmt.Print(string(fetchAllActorsResponseBody))
 	err = json.Unmarshal(fetchAllActorsResponseBody, &allActorsResponse)
 	require.Nil(t, err)
 	require.Contains(t, allActorsResponse, kevinBacon)
