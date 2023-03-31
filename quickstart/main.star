@@ -16,7 +16,7 @@ def run(plan, args):
     # Add a Postgres server
     postgres = plan.add_service(
         name = "postgres",
-        ServiceConfig(
+        config = ServiceConfig(
             image = "postgres:15.2-alpine",
             ports = {
                 POSTGRES_PORT_ID: PortSpec(5432, application_protocol = "postgresql"),
@@ -87,7 +87,7 @@ def run(plan, args):
     )
 
     # Insert data
-    if "actors" in data:
+    if "actors" in args:
         insert_data(plan, args["actors"])
 
 def insert_data(plan, data):
