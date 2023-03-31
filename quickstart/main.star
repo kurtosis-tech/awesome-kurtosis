@@ -29,7 +29,7 @@ def run(plan, args):
     )
 
     nginx_count = 1
-    if "nginx_count"in args":
+    if "nginx_count"in args:
         nginx_count = args["nginx_count"]
 
     for i in range(0, nginx_count):
