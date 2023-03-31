@@ -13,8 +13,7 @@ This folder contains a typical setup for a smart contract developer looking to d
 - `scripts/` contains a script to deploy a token contract to our local Ethereum network
 - `test/` contains a simple test for our token contract
 - `hardhat.config.ts` configures our Hardhat setup. 
-It allows us to configure Hardhat 
-configure to use a local Ethereum network created by the `eth-network-package`.
+It allows us to configure Hardhat to use a local Ethereum network created by the `eth-network-package`.
 
 ### Running the Example
 
@@ -27,7 +26,7 @@ This assumes you have the following services installed:
     ```
     kurtosis run github.com/kurtosis-tech/eth-network-package
     ```
-    The out should look something like this
+    The output should look something like this
     ```
     ========================================== User Services ==========================================
     UUID           Name                                           Ports                                         Status
