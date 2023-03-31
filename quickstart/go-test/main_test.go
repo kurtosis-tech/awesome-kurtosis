@@ -84,10 +84,12 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 
 	kevinBacon := Actor{Name: "Kevin", LastName: "Bacon"}
 	steveBuscemi := Actor{Name: "Steve", LastName: "Buscemi"}
+	randomNewActor := Actor{Name: "ThisFirstNameIsntInDB", LastName: "ThisLastNameIsntInDB"}
 
 	actors := []Actor{
 		kevinBacon,
 		steveBuscemi,
+		randomNewActor,
 	}
 
 	// Post Some Content
@@ -110,4 +112,5 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.Nil(t, err)
 	require.Contains(t, allActorsResponse, kevinBacon)
 	require.Contains(t, allActorsResponse, steveBuscemi)
+	require.Contains(t, allActorsResponse, randomNewActor)
 }
