@@ -63,6 +63,7 @@ jobs:
           kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
 
       # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
+      # this can't run with the directory as this uses a sibling package
       - run: |
           kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart
 
