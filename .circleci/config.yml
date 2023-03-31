@@ -144,6 +144,10 @@ jobs:
           # TODO change this when sibling packages are supported
           kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
+      - run: |
+          cd go-test
+          go test -timeout 5m -v
+
   check_blog_mysql_seed:
     executor: ubuntu_vm
     steps:
