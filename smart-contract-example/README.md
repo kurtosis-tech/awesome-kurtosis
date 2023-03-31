@@ -1,4 +1,4 @@
-## Smart Contract Test Example
+## Smart Contract Workflow Example
 
 This example demonstrates how Kurtosis can be used for smart contract dapp development 
 by using the [`eth-network-package`](https://github.com/kurtosis-tech/eth-network-package) as a local Ethereum network. 
