@@ -5,6 +5,7 @@
     "downlevelIteration": true,
     "declaration": true,
     "strict": true,
+    // TODO remove this
     "noImplicitAny": false
   },
   "include": [

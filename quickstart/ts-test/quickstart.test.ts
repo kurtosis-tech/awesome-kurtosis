@@ -18,6 +18,7 @@ const API_SERVICE_NAME = "api"
 const CONTENT_TYPE = "application/json"
 const HTTP_PORT_ID = "http"
 
+// TODO use constants from a library maybe
 const HTTP_CREATED = 201
 const HTTP_OK = 200
 
@@ -44,6 +45,7 @@ server apps.
 test("Test quickstart post and get", async () => {
 
     // ------------------------------------- ENGINE SETUP ----------------------------------------------
+    log.info("Creating the enclave")
     const createEnclaveResult = await createEnclave(TEST_NAME, IS_PARTITIONING_ENABLED)
 
     if (createEnclaveResult.isErr()) {
@@ -109,6 +111,7 @@ test("Test quickstart post and get", async () => {
         const actors = Array.from([kevinActor, steveBuscemiActor, randomNewActor])
 
         // send a post request
+        log.info("Testing API by sending POST requests")
         const postResponse = await fetch(
             apiAddressWithActorEndpoint, {
                 method: "POST",
@@ -122,6 +125,7 @@ test("Test quickstart post and get", async () => {
 
 
         // send a get request
+        log.info("Testing API by sending GET requests")
         const getResponse = await fetch(
             apiAddressWithActorEndpoint, {
                 method: "GET",
@@ -129,11 +133,14 @@ test("Test quickstart post and get", async () => {
         )
         expect(getResponse.status).toEqual(HTTP_OK)
         const jsonResponseObjectList = await getResponse.json()
+        // TODO fix how we deserialize here with something less hacky
         const actorsList:Actor[] = jsonResponseObjectList.map(x => new Actor(x.first_name, x.last_name))
         expect(actorsList.length).toBeGreaterThan(3)
         expect(actorsList).toContainEqual(kevinActor)
         expect(actorsList).toContainEqual(steveBuscemiActor)
         expect(actorsList).toContainEqual(randomNewActor)
+
+        log.info("Test finished successfully")
     } finally {
         destroyEnclaveFunction()
     }
