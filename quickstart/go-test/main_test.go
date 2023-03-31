@@ -93,7 +93,6 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	// Post Some Content
 	actorsAsBytes, err := json.Marshal(actors)
 	require.Nil(t, err)
-	timeOfPost := time.Now()
 	response, err := http.Post(actorsEndPointAddress, contentType, bytes.NewReader(actorsAsBytes))
 	require.Nil(t, err)
 	require.Equal(t, response.StatusCode, http.StatusCreated)
@@ -103,11 +102,11 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, response.StatusCode, http.StatusOK)
 	var allActorsResponse []Actor
-	filteredSearchResponseBody, err := io.ReadAll(response.Body)
+	fetchAllActorsResponseBody, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
 	defer response.Body.Close()
-	fmt.Print(string(filteredSearchResponseBody))
-	err = json.Unmarshal(filteredSearchResponseBody, &allActorsResponse)
+	fmt.Print(string(fetchAllActorsResponseBody))
+	err = json.Unmarshal(fetchAllActorsResponseBody, &allActorsResponse)
 	require.Nil(t, err)
 	require.Contains(t, allActorsResponse, kevinBacon)
 	require.Contains(t, allActorsResponse, steveBuscemi)
