@@ -1,6 +1,6 @@
 # Typescript Test for Quickstart
 
-This is a Kurtosis test written using the [Kurtosis SDK in Golang](https://github.com/kurtosis-tech/kurtosis/tree/main/api/typescript)
+This is a Kurtosis test written using the [Kurtosis SDK in Typescript](https://github.com/kurtosis-tech/kurtosis/tree/main/api/typescript)
 
 You can find documentation [for the SDK here](https://docs.kurtosis.com/sdk)
 
