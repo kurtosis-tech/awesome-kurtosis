@@ -10,7 +10,7 @@ def run(plan):
     plan.print("Starting the " + PACKAGE_NAME + " package")
 
     kurtosis_api_service = plan.add_service(
-        service_name = KURTOSIS_API_SERVICE_NAME,
+        name = KURTOSIS_API_SERVICE_NAME,
         config = ServiceConfig(
             image = KURTOSIS_API_IMAGE_NAME,
             ports = {
