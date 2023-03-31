@@ -14,5 +14,8 @@
     "ts-jest": "^28.0.8",
     "typescript": "^4.5.2",
     "utf8": "^3.0.0"
+  },
+  "dependencies": {
+    "kurtosis-sdk": "^0.73.0"
   }
 }
