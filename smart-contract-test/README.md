@@ -20,15 +20,14 @@ configure our environment to use a local Ethereum network created by the `eth-ne
 
 This assumes you have the following services installed.
 - [Kurtosis CLI](https://docs.kurtosis.com/cli/)
-- [`yarn`](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable) and [`npx`](https://www.npmjs.com/package/npx)
-- Typescript
+- [`npx`](https://www.npmjs.com/package/npx)
 - Hardhat
 
 1. Run 
     ```
     kurtosis run github.com/kurtosis-tech/eth-network-package
     ```
-    This should output something like this
+    The should output something like this
     ```
     ========================================== User Services ==========================================
     UUID           Name                                           Ports                                         Status
@@ -47,7 +46,7 @@ This assumes you have the following services installed.
     8828574730f6   prelaunch-data-generator-1680298734428736261   <none>                                        STOPPED
     a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
     ```
-    We can see that we now have a single node with an geth EL client and lighthouse CL client running. The network comes with The network configuration is configurable via a json file. Read [here](https://github.com/kurtosis-tech/eth-network-package) to learn more.
+    We see a single node with an geth EL client and lighthouse CL client running has been created. The network configuration is configurable via a json file. Read [here](https://github.com/kurtosis-tech/eth-network-package) to learn more.
 
 2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-` service. In this case, the port would be `64248`.
     ```
@@ -70,7 +69,7 @@ This assumes you have the following services installed.
    ```
    npx hardhat balances --network localnet
    ``` 
-   to check that the network is working and detects the configured prefunded accounts on the network by the `eth-network-package`.
+   This verifies that network is working and detects the configured prefunded accounts on the network by the `eth-network-package`.
    The output should look like this.
     ```
     0x878705ba3f8Bc32FCf7F4CAa1A35E72AF65CF766 has balance 10000000000000000000000000
@@ -80,7 +79,7 @@ This assumes you have the following services installed.
     0x375ae6107f8cC4cF34842B71C6F746a362Ad8EAc has balance 10000000000000000000000000
     0x1F6298457C5d76270325B724Da5d1953923a6B88 has balance 10000000000000000000000000
     ```
-4. Now, we can run some development workflows against our network! Let's deploy the `ChipToken` 
+4. Now, we can run dev/test workflows against our network! Let's deploy the `ChipToken` 
 contract to the local network by running
    ```
    npx hardhat run scripts/deploy.ts --network localnet
