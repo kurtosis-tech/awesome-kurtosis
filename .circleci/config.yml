@@ -36,6 +36,9 @@ parameters:
 
 jobs:
   check_latest_version:
+    # strictly speaking we don't "need" this but we are continuously adding new examples
+    # TODO ideally all of this runs in a for loop with a kurtosis clean between so that resources don't add up #87
+    # this is a hot fix for release week
     resource_class: xlarge
     executor: ubuntu_vm
     steps:
