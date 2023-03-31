@@ -13,7 +13,7 @@ kurtosis engine restart
 # Run Instructions
 
 ```bash
-1. git clone git@github.com:kurtosis-tech/awesome-kurtosis.git
-2. cd quickstart/go-test
-3. go test -v
+git clone git@github.com:kurtosis-tech/awesome-kurtosis.git
+cd quickstart/go-test
+go test -v
 ```
