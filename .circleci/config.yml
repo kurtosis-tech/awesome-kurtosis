@@ -137,7 +137,7 @@ jobs:
 
       - run: |
           # TODO change this when sibling packages are supported
-          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@{CIRCLE_BRANCH}
+          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
   check_blog_mysql_seed:
     executor: ubuntu_vm
