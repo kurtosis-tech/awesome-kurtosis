@@ -70,6 +70,11 @@ jobs:
       - run: |
           kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart
 
+      # run the quickstart golang test
+      - run: |
+          cd quickstart/go-test
+          go test -timeout 5m -v
+
       # run the simple-api
       - run: |
           ./simple-api/scripts/build.sh
@@ -145,7 +150,7 @@ jobs:
           kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
 
       - run: |
-          cd go-test
+          cd quickstart/go-test
           go test -timeout 5m -v
 
   check_blog_mysql_seed:
