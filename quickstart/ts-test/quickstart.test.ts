@@ -11,7 +11,6 @@ import * as http from "http";
 const TEST_NAME = "quick-start-ts-example";
 const MILLISECONDS_IN_SECOND = 1000;
 const IS_PARTITIONING_ENABLED = false;
-const DEFAULT_PARALLELISM = 4
 const EMPTY_PACKAGE_PARAMS = "{}"
 const IS_NOT_DRY_RUN = false
 
@@ -112,7 +111,7 @@ test("Test quickstart post and get", async () => {
             apiAddressWithActorEndpoint, {
                 method: "POST",
                 headers: {
-                    "content_type": CONTENT_TYPE,
+                    "content-type": CONTENT_TYPE,
                 },
                 body: JSON.stringify(actors)
             }
