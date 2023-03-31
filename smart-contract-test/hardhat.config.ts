@@ -31,8 +31,10 @@ export default {
   },
   networks: {
     localnet: {
-      url: 'http://127.0.0.1:63904',//TODO: REPLACE THIS
+      url: 'http://127.0.0.1:<PORT>',//TODO: REPLACE <PORT> WITH THE PORT OF A NODE URI PRODUCED BY THE ETH NETWORK KURTOSIS PACKAGE
       gasPrice: 225000000000,
+      // These are private keys associated with prefunded test accounts created by the eth-network-package
+      // https://github.com/kurtosis-tech/eth-network-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
       accounts: [
         "ef5177cd0b6b21c87db5a0bf35d4084a8a57a9d6a064f86d51ac85f2b873a4e2",
         "48fcc39ae27a0e8bf0274021ae6ebd8fe4a0e12623d61464c498900b28feb567",
@@ -42,6 +44,7 @@ export default {
         "7da08f856b5956d40a72968f93396f6acff17193f013e8053f6fbb6c08c194d6",
       ],
     },
-    // mainnet config... testnet config...
+    // mainnet config...
+    // testnet config...
   }
 };
