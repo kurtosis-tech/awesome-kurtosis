@@ -18,6 +18,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.10.1
+  kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.4
 
 executors:
   ubuntu_vm:
@@ -262,6 +263,7 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
+      - kurtosis-docs-checker/check-docs
       - check_ethereum_network_partition_test:
           filters:
             branches:
