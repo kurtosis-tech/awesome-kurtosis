@@ -263,7 +263,8 @@ workflows:
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
-      - kurtosis-docs-checker/check-docs
+      - kurtosis-docs-checker/check-docs:
+          should-check-changelog: false
       - check_ethereum_network_partition_test:
           filters:
             branches:
