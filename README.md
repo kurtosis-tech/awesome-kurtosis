@@ -4,7 +4,7 @@
 
 > A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/concepts-reference/starlark)
 
-These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/packages) provide a starting point for understanding how to setup, test, and manage different types of environments using [Starlark](https://docs.kurtosis.com/explanations/starlark) and the [Kurtosis CLI](https://docs.kurtosis.com/install).
+These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/packages) provide a starting point for understanding how to setup, test, and manage different types of environments using [Starlark](https://docs.kurtosis.com/concepts-reference/starlark) and the [Kurtosis CLI](https://docs.kurtosis.com/install).
 
 > **Note**
 > Feel free to use Kurtosis however you want, as long as you’re not directly re-selling “Kurtosis-as-a-service” to customers.
