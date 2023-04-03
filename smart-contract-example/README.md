@@ -53,7 +53,7 @@ This assumes you have the following services installed:
     ```
     localnet: {
     url: 'http://127.0.0.1:<PORT>',//TODO: REPLACE PORT WITH THE PORT OF A NODE URI PRODUCED BY THE ETH NETWORK KURTOSIS PACKAGE
-    gasPrice: 225000000000,
+    gasPrice: 225000000000, # Default gasPrice, in wei, from Hardhat
     // These are private keys associated with prefunded test accounts created by the eth-network-package
     // https://github.com/kurtosis-tech/eth-network-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
     accounts: [
