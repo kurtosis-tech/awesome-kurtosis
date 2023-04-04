@@ -50,7 +50,7 @@ This assumes you have the following services installed:
       a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
       ```
       We see a single node with a geth EL client and lighthouse CL client running has been created. The CL and EL client pair can be configured using a `.json` file. Currently, the Ethereum package supports lighthouse, nimbus, lodestar, teku, and prysm CL clients as well as the erigon, nethermind, besu, and geth EL clients. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more. 
-      Each EL and CL client require data that differs per client, so we leverage the `prelaunch-data-generator` to create that data, built off this [Docker image](https://github.com/ethpandaops/ethereum-genesis-generator).
+      Each EL and CL client require data that differs per client, so we leverage the `prelaunch-data-generator` to create the necessary genesis files and secrets each client needs. The `prelaunch-data-generator` service is built off this [Docker image](https://github.com/ethpandaops/ethereum-genesis-generator).
 
 2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-<num>` service. In this case, the port would be `64248`.
     ```
