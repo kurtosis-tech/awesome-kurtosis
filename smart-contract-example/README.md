@@ -26,6 +26,7 @@ This assumes you have the following services installed:
 - Hardhat
 
 
+
   1. Run 
       ```
       kurtosis run github.com/kurtosis-tech/eth-network-package
