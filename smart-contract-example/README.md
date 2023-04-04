@@ -1,11 +1,11 @@
 ## Ethereum dApp and Smart Contract Development Example
 
-This example demonstrates how Kurtosis can be used for local dApp and Smart Contract development.
+This example demonstrates how Kurtosis can be used for local dApp and Smart Contract development
 by using the [`eth-network-package`](https://github.com/kurtosis-tech/eth-network-package) as a local Ethereum network. 
-The `eth-network package` can be used as a low overhead, configurable, and composable alternative to services like
+The `eth-network package` can be used as a low overhead, configurable, and composable alternative to frameworks like
 `hardhat-network`, `ganache` and `anvil`. Kurtosis provides the developer more control and flexibility over the testnet they are using - a large reason why the [Ethereum Foundation used Kurtosis to test the Merge](https://www.kurtosis.com/blog/testing-the-ethereum-merge), and why they continue to use Kurtosis for various tests for upcoming upgrades to the network.
 
-While this example covers only the Ethereum blockchain, Kurtosis can be used to locally configure and instantiate other blockchains (e.g. [NEAR](https://docs.near.org/develop/testing/kurtosis-localnet), [Avalanche](https://medium.com/avalancheavax/introducing-kurtosis-a-complete-testing-platform-to-accelerate-development-on-avalanche-6ad7e1147791) and allows you to connect it to any containerized service you wish.
+While this example covers only the Ethereum blockchain, Kurtosis can be used to locally configure and instantiate other blockchains (e.g. [NEAR](https://docs.near.org/develop/testing/kurtosis-localnet), [Avalanche](https://medium.com/avalancheavax/introducing-kurtosis-a-complete-testing-platform-to-accelerate-development-on-avalanche-6ad7e1147791) and allows you to connect your local testnet with any containerized service you wish.
 
 ### Setup
 
@@ -49,7 +49,7 @@ This assumes you have the following services installed:
       8828574730f6   prelaunch-data-generator-1680298734428736261   <none>                                        STOPPED
       a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
       ```
-      We see a single node with a geth EL client and lighthouse CL client running has been created. The CL and EL client pair can be configured using a json file. Currently, the Ethereum package supports lighthouse, nimbus, lodestar, teku, and prysm CL clients as well as the erigon, nethermind, besu, and geth EL clients. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more. 
+      We see a single node with a geth EL client and lighthouse CL client running has been created. The CL and EL client pair can be configured using a `.json` file. Currently, the Ethereum package supports lighthouse, nimbus, lodestar, teku, and prysm CL clients as well as the erigon, nethermind, besu, and geth EL clients. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more. 
       Each EL and CL client require data that differs per client, so we leverage the `prelaunch-data-generator` to create it, built off this [Docker image](https://github.com/ethpandaops/ethereum-genesis-generator).
 
 2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-<num>` service. In this case, the port would be `64248`.
@@ -82,7 +82,7 @@ This assumes you have the following services installed:
     0x375ae6107f8cC4cF34842B71C6F746a362Ad8EAc has balance 10000000000000000000000000
     0x1F6298457C5d76270325B724Da5d1953923a6B88 has balance 10000000000000000000000000
     ```
-4. Now, we can run dev/test workflows against our network! For example, let's compile and deploy the `ChipToken` 
+4. Now, we can run dev/test workflows against our network! For example, let's compile and deploy the `ChipToken` so we can iterate and test how things work locally:
 contract to the local network by running
    ```
    npx hardhat compile
