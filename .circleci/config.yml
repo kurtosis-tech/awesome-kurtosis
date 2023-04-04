@@ -149,7 +149,7 @@ jobs:
 
       # run the Starlark Cassandra partioning test
       - run: |
-          kurtosis run ./sibling/ --with-subnetworks
+          kurtosis run ./sibling-package/ --with-subnetworks
 
   check_quickstart:
     executor: ubuntu_vm
