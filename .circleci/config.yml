@@ -139,7 +139,17 @@ jobs:
       - run: |
           cd cassandra-network-partition-test
           go test -timeout 5m -v
-  
+
+  check_sibling_test:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      - <<: *install_and_start_kurtosis
+
+      # run the Starlark Cassandra partioning test
+      - run: |
+          kurtosis run ./sibling/ --with-subnetworks
 
   check_quickstart:
     executor: ubuntu_vm
