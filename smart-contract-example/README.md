@@ -25,32 +25,33 @@ This assumes you have the following services installed:
 - [`npx`](https://www.npmjs.com/package/npx)
 - Hardhat
 
-1. Run 
-    ```
-    kurtosis run github.com/kurtosis-tech/eth-network-package
-    ```
-    The output should look something like this
-    ```
-    ========================================== User Services ==========================================
-    UUID           Name                                           Ports                                         Status
-    bbccb71bf6db   cl-client-0-beacon                             http: 4000/tcp -> http://127.0.0.1:64256      RUNNING
-                                                                  metrics: 5054/tcp -> http://127.0.0.1:64257   
-                                                                  tcp-discovery: 9000/tcp -> 127.0.0.1:64258    
-                                                                  udp-discovery: 9000/udp -> 127.0.0.1:59023    
-    a4429f19d246   cl-client-0-validator                          http: 5042/tcp -> 127.0.0.1:64262             RUNNING
-                                                                  metrics: 5064/tcp -> http://127.0.0.1:64263   
-    77c853ab371b   el-client-0                                    engine-rpc: 8551/tcp -> 127.0.0.1:64246       RUNNING
-                                                                  rpc: 8545/tcp -> 127.0.0.1:64248              
-                                                                  tcp-discovery: 30303/tcp -> 127.0.0.1:64247   
-                                                                  udp-discovery: 30303/udp -> 127.0.0.1:58705   
-                                                                  ws: 8546/tcp -> 127.0.0.1:64249               
-    0d8469f528c9   prelaunch-data-generator-1680298734419927594   <none>                                        STOPPED
-    8828574730f6   prelaunch-data-generator-1680298734428736261   <none>                                        STOPPED
-    a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
-    ```
-    We see a single node with a geth EL client and lighthouse CL client running has been created. The CL and EL client pair can be configured using a json file. Currently, the Ethereum package supports lighthouse, nimbus, lodestar, teku, and prysm CL clients as well as the erigon, nethermind, besu, and geth EL clients. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more.
+  1. Run 
+      ```
+      kurtosis run github.com/kurtosis-tech/eth-network-package
+      ```
+      The output should look something like this
+      ```
+      ========================================== User Services ==========================================
+      UUID           Name                                           Ports                                         Status
+      bbccb71bf6db   cl-client-0-beacon                             http: 4000/tcp -> http://127.0.0.1:64256      RUNNING
+                                                                    metrics: 5054/tcp -> http://127.0.0.1:64257   
+                                                                    tcp-discovery: 9000/tcp -> 127.0.0.1:64258    
+                                                                    udp-discovery: 9000/udp -> 127.0.0.1:59023    
+      a4429f19d246   cl-client-0-validator                          http: 5042/tcp -> 127.0.0.1:64262             RUNNING
+                                                                    metrics: 5064/tcp -> http://127.0.0.1:64263   
+      77c853ab371b   el-client-0                                    engine-rpc: 8551/tcp -> 127.0.0.1:64246       RUNNING
+                                                                    rpc: 8545/tcp -> 127.0.0.1:64248              
+                                                                    tcp-discovery: 30303/tcp -> 127.0.0.1:64247   
+                                                                    udp-discovery: 30303/udp -> 127.0.0.1:58705   
+                                                                    ws: 8546/tcp -> 127.0.0.1:64249               
+      0d8469f528c9   prelaunch-data-generator-1680298734419927594   <none>                                        STOPPED
+      8828574730f6   prelaunch-data-generator-1680298734428736261   <none>                                        STOPPED
+      a9ad4e4cc65c   prelaunch-data-generator-1680298734439099469   <none>                                        STOPPED
+      ```
+      We see a single node with a geth EL client and lighthouse CL client running has been created. The CL and EL client pair can be configured using a json file. Currently, the Ethereum package supports lighthouse, nimbus, lodestar, teku, and prysm CL clients as well as the erigon, nethermind, besu, and geth EL clients. Read [here](https://github.com/kurtosis-tech/eth-network-package#configuring-the-network) to learn more. 
+      Each EL and CL client require data that differs per client, so we leverage the `prelaunch-data-generator` to create it, built off this [Docker image](https://github.com/ethpandaops/ethereum-genesis-generator).
 
-2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-` service. In this case, the port would be `64248`.
+2. Replace `<PORT>` in `hardhat.config.ts` with the port of the rpc uri output from any `el-client-<num>` service. In this case, the port would be `64248`.
     ```
     localnet: {
     url: 'http://127.0.0.1:<PORT>',//TODO: REPLACE PORT WITH THE PORT OF A NODE URI PRODUCED BY THE ETH NETWORK KURTOSIS PACKAGE
