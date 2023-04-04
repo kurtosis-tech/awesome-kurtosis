@@ -25,6 +25,7 @@ This assumes you have the following services installed:
 - [`npx`](https://www.npmjs.com/package/npx)
 - Hardhat
 
+
   1. Run 
       ```
       kurtosis run github.com/kurtosis-tech/eth-network-package
