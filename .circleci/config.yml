@@ -140,7 +140,7 @@ jobs:
           cd cassandra-network-partition-test
           go test -timeout 5m -v
 
-  check_sibling_test:
+  check_sibling:
     executor: ubuntu_vm
     steps:
       - checkout
@@ -281,6 +281,11 @@ workflows:
               ignore:
                 - main
       - check_cassandra_network_partition_test:
+          filters:
+            branches:
+              ignore:
+                - main
+      - check_sibling:
           filters:
             branches:
               ignore:
