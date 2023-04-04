@@ -20,6 +20,7 @@ It allows us to configure Hardhat to use a local Ethereum network created by the
 ### Running the Example
 
 This assumes you have the following services installed:
+- [Docker](https://docs.kurtosis.com/install#i-install--start-docker) with the Docker daemon running
 - [Kurtosis CLI](https://docs.kurtosis.com/cli/)
 - [`npx`](https://www.npmjs.com/package/npx)
 - Hardhat
