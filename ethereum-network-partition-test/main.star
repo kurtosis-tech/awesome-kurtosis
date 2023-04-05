@@ -1,4 +1,4 @@
-eth2 = import_module("github.com/kurtosis-tech/awesome-kurtosis/ethereum-network-partition-test/eth2_starlark_package.star")
+eth = import_module("github.com/kurtosis-tech/awesome-kurtosis/ethereum-network-partition-test/eth_starlark_package.star")
 ethereum_helpers = import_module("github.com/kurtosis-tech/awesome-kurtosis/ethereum-network-partition-test/ethereum_helpers.star")
 
 NUM_PARTICIPANTS = 4
@@ -13,7 +13,7 @@ CHECKPOINT_3_NODES_SYNCED = "0x16" # block number 22
 
 def run(plan):
     plan.print("Spinning up an Ethereum network with '{0}' nodes".format(NUM_PARTICIPANTS))
-    eth2.run_eth2_package(plan, NUM_PARTICIPANTS)
+    eth.run_eth_package(plan, NUM_PARTICIPANTS)
 
     network_topology = assign_nodes_subnetwork(plan)
     plan.print("Starting test with the following network topology: \n{0}".format(network_topology))
@@ -43,9 +43,9 @@ def assign_nodes_subnetwork(plan):
         # each ETH node is composed of a tuple (EL, CL_VALIDATOR, CL_BEACON)
         # We need to update the three of them
         all_nodes.append((
-            eth2.el_node_id(i),
-            eth2.cl_beacon_node_id(i),
-            eth2.cl_validator_node_id(i),
+            eth.el_node_id(i),
+            eth.cl_beacon_node_id(i),
+            eth.cl_validator_node_id(i),
         ))
     main_nodes = all_nodes[:len(all_nodes)//2]
     isolated_nodes = all_nodes[len(all_nodes)//2:]
@@ -73,7 +73,7 @@ def wait_all_nodes_at_block(plan, block_number_int):
     time, starting with the node #0.
     """
     for i in range(0, NUM_PARTICIPANTS):
-        node_id = eth2.el_node_id(i)
+        node_id = eth.el_node_id(i)
         ethereum_helpers.wait_until_node_reached_block(plan, node_id, block_number_int)
 
 
@@ -89,8 +89,8 @@ def assert_all_nodes_synced_at_block(plan, block_number_hex):
 
     # check that node have all the same hash doing a 2-by-2 comparison
     for i in range(0, NUM_PARTICIPANTS-1):
-        node_id = eth2.el_node_id(i)
-        next_node_id = eth2.el_node_id(i + 1)
+        node_id = eth.el_node_id(i)
+        next_node_id = eth.el_node_id(i + 1)
         plan.assert(
             value=block_hash_by_node[node_id],
             assertion="==",
@@ -109,8 +109,8 @@ def assert_nodes_out_of_sync_at_block(plan, block_number_hex):
     block_hash_by_node = get_blocks_for_all_nodes(plan, block_number_hex)
 
     # check that first and last node have diverged
-    first_node = eth2.el_node_id(0)
-    last_node = eth2.el_node_id(NUM_PARTICIPANTS-1)
+    first_node = eth.el_node_id(0)
+    last_node = eth.el_node_id(NUM_PARTICIPANTS-1)
     plan.assert(
         value=block_hash_by_node[first_node],
         assertion="!=",
@@ -124,7 +124,7 @@ def get_blocks_for_all_nodes(plan, block_number_hex):
     """
     block_hash_by_node = {}
     for i in range(0, NUM_PARTICIPANTS):
-        node_id = eth2.el_node_id(i)
+        node_id = eth.el_node_id(i)
         block = ethereum_helpers.get_block(plan, node_id, block_number_hex)
         block_hash_by_node[node_id] = block.hash
     return block_hash_by_node
