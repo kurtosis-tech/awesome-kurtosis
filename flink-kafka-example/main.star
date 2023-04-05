@@ -51,4 +51,3 @@ def run(plan, args):
 
     # simulate_network_failure(plan, cassandra_run_output)
     # heal_and_verify(plan, cassandra_run_output)
-
