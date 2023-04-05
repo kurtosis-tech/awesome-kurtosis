@@ -80,7 +80,7 @@ This assumes you have the following services installed:
     npx hardhat balances --network localnet
     ``` 
     This verifies that network is working and detects the prefunded accounts on the network, created by the `eth-network-package`.
-    The output should look something like this
+    The output should look something like this:
     ```
     0x878705ba3f8Bc32FCf7F4CAa1A35E72AF65CF766 has balance 10000000000000000000000000
     0x4E9A3d9D1cd2A2b2371b8b3F489aE72259886f1A has balance 10000000000000000000000000
