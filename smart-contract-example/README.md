@@ -84,7 +84,6 @@ This assumes you have the following services installed:
     0x1F6298457C5d76270325B724Da5d1953923a6B88 has balance 10000000000000000000000000
     ```
 4. Now, we can run dev/test workflows against our network! For example, let's compile and deploy the `ChipToken` so we can iterate and test how things work locally:
-contract to the local network by running
    ```
    npx hardhat compile
    npx hardhat run scripts/deploy.ts --network localnet
