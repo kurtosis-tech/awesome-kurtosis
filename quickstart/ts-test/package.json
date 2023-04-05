@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --maxWorkers 2 ./build"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^16.11.11",
+    "@types/utf8": "^3.0.0",
+    "axios": "^0.24.0",
+    "jest": "^27.3.1",
+    "loglevel": "^1.8.0",
+    "neverthrow": "^4.3.1",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.5.2",
+    "utf8": "^3.0.0"
+  },
+  "dependencies": {
+    "@types/node-fetch": "2.x",
+    "kurtosis-sdk": "^0.73.0",
+    "node-fetch": "2.6.7"
+  }
+}
