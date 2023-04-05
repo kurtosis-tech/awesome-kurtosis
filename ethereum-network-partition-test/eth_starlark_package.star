@@ -1,4 +1,4 @@
-eth2_package = import_module("github.com/kurtosis-tech/eth2-package/main.star")
+eth_package = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
 
 PARTICIPANT_CONFIG = {
     "el_client_type": "geth",
@@ -7,30 +7,28 @@ PARTICIPANT_CONFIG = {
     "cl_client_image": "sigp/lighthouse:v3.1.2",
 }
 
-# This is hardcoded in the eth2_package.
+# This is hardcoded in the eth-package.
 # TODO: Maybe rework the object this package returned to get those node ids dynamically
 EL_NODE_ID_PATTERN = "el-client-{0}"
 CL_BEACON_NODE_ID_PATTERN = "cl-client-{0}-beacon"
 CL_VALIDATOR_NODE_ID_PATTERN = "cl-client-{0}-validator"
 
 
-def run_eth2_package(plan, number_of_nodes):
+def run_eth_package(plan, number_of_nodes):
     """
-    Runs the starlark eth2_package that spins un an Ethereum network
+    Runs the starlark eth_package that spins up an Ethereum network
     """
-    eth2_package_args = get_eth2_package_args(number_of_nodes)
-    eth2_package.run(plan, eth2_package_args)
+    eth_package_args = get_eth_package_args(number_of_nodes)
+    eth_package.run(plan, eth_package_args)
 
 
-def get_eth2_package_args(number_of_nodes):
+def get_eth_package_args(number_of_nodes):
     participants = []
     for _ in range(0, number_of_nodes):
         participants.append(PARTICIPANT_CONFIG)
     return {
-        "participants": participants,
-        "launch_additional_services": False,  # no need for the additional services here
+        "participants": participants
     }
-
 
 def el_node_id(id_int):
     return EL_NODE_ID_PATTERN.format(id_int)
