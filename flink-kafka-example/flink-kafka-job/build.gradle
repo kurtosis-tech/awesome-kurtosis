@@ -22,7 +22,7 @@ if (flinkVersionNew) {
 } else {
     mainClassName = 'kurtosis.com.StreamingJob'
 }
-description = """Flink Quickstart Job"""
+description = """Kurtosis Flink Kafka Example"""
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
