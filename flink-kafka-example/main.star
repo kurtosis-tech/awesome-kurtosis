@@ -50,6 +50,7 @@ def run(plan, args):
             "KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
             #            "KAFKA_CFG_BROKER_ID": "1",
             "ALLOW_PLAINTEXT_LISTENER": "yes",
+            "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "false",
         },
         # TODO Only for development, remove before final PR:
         public_ports={
