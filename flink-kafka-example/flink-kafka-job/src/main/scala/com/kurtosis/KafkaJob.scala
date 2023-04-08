@@ -53,5 +53,4 @@ object KafkaJob {
 
   }
 
-
 }
