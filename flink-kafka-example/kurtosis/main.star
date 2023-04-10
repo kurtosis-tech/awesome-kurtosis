@@ -1,9 +1,6 @@
 
-# TODO: CHange to 1.17.0:
-main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
-# Maybe strimzi for k8s?
-KAFKA_IMAGE = "bitnami/kafka:latest"  #3.2.3"
-ZOOKEEPER_IMAGE = "bitnami/zookeeper:latest"  #3.8.1"
+KAFKA_IMAGE = "bitnami/kafka:3.4.0"
+ZOOKEEPER_IMAGE = "bitnami/zookeeper:3.8.1"
 ZOOKEEPER_SERVICE_NAME = "zookeeper"
 ZOOKEEPER_PORT_NUMBER = 2181
 KAFKA_SERVICE_NAME = "kafka"

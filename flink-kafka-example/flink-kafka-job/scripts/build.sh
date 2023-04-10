@@ -18,8 +18,6 @@ JAR_BUILD_FILE_NAME="run.jar"
 # =============================================================================
 #                                 Main Code
 # =============================================================================
-# Checks if dockerignore file is in the root path
-
 if [ ! -d "${root_dirpath}" ]; then
     echo "Error: Project root directory not set: '${root_dirpath}'" >&2
     exit 1
