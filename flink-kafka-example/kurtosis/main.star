@@ -78,17 +78,17 @@ def run(plan, args):
     )
 
     ### Add the input and output topics
-    createTopic(KAFKA_INPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
-    createTopic(KAFKA_OUTPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
+    create_topic(KAFKA_INPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
+    create_topic(KAFKA_OUTPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
 
     ### Publish data into the input topic:
     words = wordsInAString.split()
     for word in words:
-        publishWordToTopic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
+        publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
 
     return
 
-def createTopic(topic, plan, kafka_bootstrap_server_host_port):
+def create_topic(topic, plan, kafka_bootstrap_server_host_port):
     exec_add_input_topic = ExecRecipe(
         command=[
             "/bin/sh",
@@ -101,7 +101,7 @@ def createTopic(topic, plan, kafka_bootstrap_server_host_port):
     return result
 
 
-def publishWordToTopic(word, plan, kafka_bootstrap_server_host_port, kafka_input_topic):
+def publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, kafka_input_topic):
     exec_add_data = ExecRecipe(
         command=[
             "/bin/sh",
