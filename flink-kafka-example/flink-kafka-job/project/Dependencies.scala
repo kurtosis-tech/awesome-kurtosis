@@ -10,8 +10,8 @@ object Dependencies {
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
     "org.apache.flink" % "flink-clients" % flinkVersion % "provided",
     "org.apache.flink" % "flink-connector-kafka" % flinkVersion % "provided",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion % "provided",
+    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion % "provided",
   )
 
 }
