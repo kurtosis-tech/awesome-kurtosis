@@ -16,8 +16,8 @@ wordsInAString = "Kurtosis is a composable build system for multi-container test
 
 def run(plan, args):
     plan.print("Spinning up the Flink Package")
+    uploaded_files = upload_files_to_apic(plan)
     flink_run_output = main_flink_module.run(plan, args)
-
     zookeeper_config = ServiceConfig(
         image=ZOOKEEPER_IMAGE,
         ports={
@@ -115,3 +115,29 @@ def publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, kafka_in
         recipe=exec_add_data,
     )
     return result
+
+
+def upload_files_to_apic(plan):
+
+    files = [
+        "flink-clients-1.17.0.jar",
+        "flink-connector-kafka-1.17.0.jar",
+        "flink-scala_2.12-1.17.0.jar",
+        "flink-streaming-scala_2.12-1.17.0.jar",
+        "jackson-core-2.14.2.jar",
+        "jackson-databind-2.14.2.jar",
+    ]
+
+    base_path="https://github.com/kurtosis-tech/awesome-kurtosis/tree/anders/flink-kafka-example/flink-kafka-example/flink-kafka-job/lib/"
+    lib_directory_path_in_flink_image = "/opt/flink/lib"
+
+    artifacts_dictionary = {}
+    for file in files:
+        artifact_reference = plan.upload_files(
+            src = "%/%" (base_path,file),
+            name = file,
+        )
+        file_path = "%/%" (lib_directory_path_in_flink_image,file)
+        artifacts_dictionary.update({file_path,artifact_reference})
+
+    return artifacts_dictionary
