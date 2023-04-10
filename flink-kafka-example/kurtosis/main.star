@@ -1,4 +1,6 @@
-# main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
+
+# TODO: CHange to 1.17.0:
+main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
 # Maybe strimzi for k8s?
 KAFKA_IMAGE = "bitnami/kafka:latest"  #3.2.3"
 ZOOKEEPER_IMAGE = "bitnami/zookeeper:latest"  #3.8.1"
@@ -17,8 +19,8 @@ wordsInAString = "Kurtosis is a composable build system for multi-container test
 
 def run(plan, args):
     plan.print("Spinning up the Flink Package")
-    # flink_run_output = main_flink_module.run(plan, args)
-    #
+    flink_run_output = main_flink_module.run(plan, args)
+
     zookeeper_config = ServiceConfig(
         image=ZOOKEEPER_IMAGE,
         ports={
