@@ -1,3 +1,5 @@
+main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
+FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
 
 KAFKA_IMAGE = "bitnami/kafka:3.4.0"
 ZOOKEEPER_IMAGE = "bitnami/zookeeper:3.8.1"
@@ -116,28 +118,13 @@ def publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, kafka_in
     )
     return result
 
+def upload_files(plan):
 
-def upload_files_to_apic(plan):
+    base_path="github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/stuff/lib"
 
-    files = [
-        "flink-clients-1.17.0.jar",
-        "flink-connector-kafka-1.17.0.jar",
-        "flink-scala_2.12-1.17.0.jar",
-        "flink-streaming-scala_2.12-1.17.0.jar",
-        "jackson-core-2.14.2.jar",
-        "jackson-databind-2.14.2.jar",
-    ]
+    artifact_reference = plan.upload_files(
+        src = base_path,
+        name = "flink-lib-extra-jars",
+    )
 
-    base_path="https://github.com/kurtosis-tech/awesome-kurtosis/tree/anders/flink-kafka-example/flink-kafka-example/flink-kafka-job/lib/"
-    lib_directory_path_in_flink_image = "/opt/flink/lib"
-
-    artifacts_dictionary = {}
-    for file in files:
-        artifact_reference = plan.upload_files(
-            src = "%/%" (base_path,file),
-            name = file,
-        )
-        file_path = "%/%" (lib_directory_path_in_flink_image,file)
-        artifacts_dictionary.update({file_path,artifact_reference})
-
-    return artifacts_dictionary
+    return artifact_reference
