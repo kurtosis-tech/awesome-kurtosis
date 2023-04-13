@@ -52,8 +52,8 @@ jobs:
           command: |
               skip_dirs=(".circleci .github data-pacakge")
               for directory in */ ; do
-                if ! echo "$skip_dirs" | grep -q "$dir"; then
-                  echo "./${directory}/scripts/run.sh"
+                if echo "$skip_dirs" | grep -q "$directory"; then
+                  "./${directory}/scripts/run.sh"
                   kurtosis clean -a 
                 fi            
               done
