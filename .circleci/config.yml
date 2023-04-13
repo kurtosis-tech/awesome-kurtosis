@@ -50,6 +50,7 @@ jobs:
           name: Run the ./scripts/run.sh in each subdirectory
           no_output_timeout: 30m
           command: |
+            set -euo pipefail
             skip_dirs=(".circleci .github data-pacakge")
             for directory in */ ; do
               if ! echo "$skip_dirs" | grep -q "$directory"; then
