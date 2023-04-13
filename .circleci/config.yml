@@ -46,6 +46,11 @@ jobs:
       - checkout
       - <<: *install_and_start_kurtosis
 
+      - name: Run main.star in every directory 
+        run: |
+          dirs_without_a_main-star=(".circleci .github")
+
+
       # run the Go ethereum partioning test
       - run: |
           cd ethereum-network-partition-test
