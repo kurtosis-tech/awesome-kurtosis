@@ -46,48 +46,15 @@ jobs:
       - checkout
       - <<: *install_and_start_kurtosis
 
-      - name: Run main.star in every directory 
-        run: |
-          dirs_without_a_main-star=(".circleci .github")
-
-
-      # run the Go ethereum partioning test
-      - run: |
-          cd ethereum-network-partition-test
-          go test -timeout 15m  -v
-
-      # run the Starlark ethereum partioning test
-      - run: 
-          name: Ethereum Network Partitioning Starlark Test
+      - run:
+          name: Run the ./scripts/run.sh in each subdirectory
           no_output_timeout: 30m
-          command: kurtosis run ./ethereum-network-partition-test/ --with-subnetworks
-
-      # run the Go Cassandra Network Partitioning Test
-      - run: |
-          cd cassandra-network-partition-test
-          go test -timeout 5m -v
-
-      # run the Starlark Cassandra partioning test
-      - run: |
-          kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
-
-      # run the quickstart Startosis script which should validate the result of the Kurtosis quickstart guide published on: https://docs.kurtosis.com/quickstart/
-      # this can't run with the directory as this uses a sibling package
-      - run: |
-          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart
-
-      # run the quickstart golang test
-      - run: |
-          cd quickstart/go-test
-          go test -timeout 5m -v
-
-      # run the quickstart ts test
-      - run: |
-          cd quickstart/ts-test
-          npm install -g yarn
-          yarn install
-          yarn build
-          yarn test
+          command: |
+              dirs_without_a_main-star=(".circleci .github data-pacakge")
+              for directory in */ ; do
+                echo "${d}/scripts/run.sh"
+                kurtosis clean -a 
+              done
 
       # run the simple-api
       - run: |
