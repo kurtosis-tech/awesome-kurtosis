@@ -50,14 +50,13 @@ jobs:
           name: Run the ./scripts/run.sh in each subdirectory
           no_output_timeout: 30m
           command: |
-              skip_dirs=(".circleci .github data-pacakge")
-              for directory in */ ; do
-                echo $directory
-                if echo "$skip_dirs" | grep -q "$directory"; then
-                  "./${directory}/scripts/run.sh"
-                  kurtosis clean -a 
-                fi            
-              done
+            skip_dirs=(".circleci .github data-pacakge")
+            for directory in */ ; do
+              if ! echo "$skip_dirs" | grep -q "$directory"; then
+                "./${directory}scripts/run.sh"
+                kurtosis clean -a 
+              fi
+            done
 
   check_ethereum_network_partition_test:
     executor: ubuntu_vm
