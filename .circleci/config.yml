@@ -56,11 +56,6 @@ jobs:
                 kurtosis clean -a 
               done
 
-      # run the simple-api
-      - run: |
-          ./simple-api/scripts/build.sh
-          kurtosis run ./simple-api/kurtosis-package/
-
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
           channel: engineering
