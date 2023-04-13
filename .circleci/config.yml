@@ -36,7 +36,7 @@ parameters:
     default: true
 
 jobs:
-  check_latest_version:
+  check_all:
     # strictly speaking we don't "need" this but we are continuously adding new examples
     # TODO ideally all of this runs in a for loop with a kurtosis clean between so that resources don't add up #87
     # this is a hot fix for release week
@@ -237,39 +237,7 @@ workflows:
             branches:
               ignore:
                 - main
-      - check_cassandra_network_partition_test:
-          filters:
-            branches:
-              ignore:
-                - main
-      - check_quickstart:
-          filters:
-            branches:
-              ignore:
-                - main
-      - check_data_package:
-          filters:
-            branches:
-              ignore:
-                - main
-      - check_redis_voting_app:
-          filters:
-            branches:
-              ignore:
-                - main
-      - build_simple_api:
-          filters:
-            branches:
-              ignore:
-                - main
-      - publish_simple_api:
-          context:
-            - docker-user
-          filters:
-            branches:
-              only:
-                - main
-      - check_blog_mysql_seed:
+      - check_all:
           filters:
             branches:
               ignore:
