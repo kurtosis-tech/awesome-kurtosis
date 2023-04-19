@@ -49,7 +49,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-pacakge/")
+            skip_dirs=(".circleci/ .github/ data-package/")
             for directory in */ ; do
               if ! echo "$skip_dirs" | grep -q "$directory"; then
                 "./${directory}scripts/run.sh"
@@ -70,7 +70,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-pacakge/")
+            skip_dirs=(".circleci/ .github/ data-package/")
             for directory in */ ; do
               if ! echo "$skip_dirs" | grep -q "$directory"; then
                 "./${directory}scripts/run.sh"
