@@ -10,7 +10,7 @@ kurtosis run github.com/kurtosis-tech/eth-network-package --enclave hardhat-encl
 
 PORT=$(kurtosis enclave inspect hardhat-enclave | grep el-client-0 | grep rpc | grep -oh "127.0.0.1\:\d*" | cut -d':' -f2)
 
-sed -i 's/<PORT>/${PORT}' hardhat.config.ts
+sed -i 's/<PORT>/${PORT}/' hardhat.config.ts
 
 npx hardhat balances --network localnet
 
