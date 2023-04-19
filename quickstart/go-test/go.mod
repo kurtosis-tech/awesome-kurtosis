@@ -1,4 +1,4 @@
-module github.com/kurtosis-tech/awesome-kurtosis/quickstart/go-test
+cmodule github.com/kurtosis-tech/awesome-kurtosis/quickstart/go-test
 
 go 1.19
 

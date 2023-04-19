@@ -57,6 +57,34 @@ jobs:
               fi
             done
 
+  check_all_nightly:
+    # strictly speaking we don't "need" this(xlarge) but we are continuously adding new examples
+    resource_class: xlarge
+    executor: ubuntu_vm
+    steps:
+      - checkout
+      - <<: *install_and_start_kurtosis
+
+      - run:
+          name: Run the ./scripts/run.sh in each subdirectory
+          no_output_timeout: 30m
+          command: |
+            set -euo pipefail
+            skip_dirs=(".circleci .github data-pacakge")
+            for directory in */ ; do
+              if ! echo "$skip_dirs" | grep -q "$directory"; then
+                "./${directory}scripts/run.sh"
+                kurtosis clean -a 
+              fi
+            done
+
+      # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
+      - slack/notify:
+          channel: engineering
+          event: fail
+          # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
+          template: basic_fail_1
+
 
   publish_simple_api:
     executor: ubuntu_vm
@@ -78,6 +106,12 @@ jobs:
           docker push "${image_name_with_git_ref_version}"
 
 workflows:
+  check_latest_version:
+    when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
+    jobs:
+      - check_all_nightly:
+          context:
+            - slack-secrets
   build:
     when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
