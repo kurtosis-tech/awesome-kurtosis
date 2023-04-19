@@ -37,9 +37,7 @@ parameters:
 
 jobs:
   check_all:
-    # strictly speaking we don't "need" this but we are continuously adding new examples
-    # TODO ideally all of this runs in a for loop with a kurtosis clean between so that resources don't add up #87
-    # this is a hot fix for release week
+    # strictly speaking we don't "need" this(xlarge) but we are continuously adding new examples
     resource_class: xlarge
     executor: ubuntu_vm
     steps:
@@ -59,143 +57,6 @@ jobs:
               fi
             done
 
-  check_ethereum_network_partition_test:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':ethereum-network-partition-test'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      # run the Go ethereum partioning test
-      - run: |
-          cd ethereum-network-partition-test
-          go test -timeout 15m  -v .
-
-      # run the Starlark ethereum partioning test in dry-run mode since it takes up to 15 minutes in reality
-      - run: |
-          kurtosis run ./ethereum-network-partition-test/ --with-subnetworks --dry-run
-
-  check_cassandra_network_partition_test:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':cassandra-network-partition-test'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      # run the Starlark Cassandra partioning test
-      - run: |
-          kurtosis run ./cassandra-network-partition-test/ --with-subnetworks
-
-      # run the Go Cassandra Network Partitioning Test
-      - run: |
-          cd cassandra-network-partition-test
-          go test -timeout 5m -v
-  
-
-  check_quickstart:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':quickstart'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      - run: |
-          # TODO change this when sibling packages are supported
-          kurtosis run github.com/kurtosis-tech/awesome-kurtosis/quickstart@"${CIRCLE_BRANCH}"
-
-      # run the quickstart go test
-      - run: |
-          cd quickstart/go-test
-          go test -timeout 5m -v    
-
-      # run the quickstart ts test
-      - run: |
-          cd quickstart/ts-test
-          npm install -g yarn
-          yarn install
-          yarn build
-          yarn test
-
-  check_blog_mysql_seed:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':blog-mysql-seed'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./blog-mysql-seed/ '{"username": "abc", "password": "123", "database": "bd"}'
-
-  check_data_package:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':data-package'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./data-package
-
-  check_redis_voting_app:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the tests
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':redis-voting-app'; then
-            circleci-agent step halt
-          fi
-
-      - <<: *install_and_start_kurtosis
-
-      - run: |
-          kurtosis run ./redis-voting-app
-
-  build_simple_api:
-    executor: ubuntu_vm
-    steps:
-      - checkout
-
-      # If this sub-repo hasn't changed, don't run the build
-      - run: |
-          if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ':simple-api'; then
-            circleci-agent step halt
-          fi
-
-      - run: simple-api/scripts/build.sh
-      - <<: *install_and_start_kurtosis
-      - run: kurtosis run ./simple-api/kurtosis-package/
 
   publish_simple_api:
     executor: ubuntu_vm
@@ -222,13 +83,15 @@ workflows:
     jobs:
       - kurtosis-docs-checker/check-docs:
           should-check-changelog: false
-      - check_ethereum_network_partition_test:
-          filters:
-            branches:
-              ignore:
-                - main
       - check_all:
           filters:
             branches:
               ignore:
+                - main
+      - publish_simple_api:
+          context:
+            - docker-user
+          filters:
+            branches:
+              only:
                 - main
