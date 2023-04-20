@@ -25,7 +25,6 @@ These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/p
 
 - [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
 - [NEAR Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local NEAR testnet with a local RPC endpoint, a NEAR explorer, an indexer for the explorer, and a NEAR wallet.
-- [Chainlink Node Package](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/chainlink-node) - A Kurtosis Starlark package that instantiates a Chainlink node locally for development and testing of dApps and external adapters that utilize Decentralized Oracle Networks (DONs).
 
 ## Tests and other examples
 
