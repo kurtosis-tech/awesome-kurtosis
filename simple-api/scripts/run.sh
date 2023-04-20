@@ -7,4 +7,4 @@ package_path="$(dirname "${script_dirpath}")/kurtosis-package"
 
 cd "$package_path"
 
-kurtosis run main.star
+kurtosis run .
