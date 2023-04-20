@@ -1,6 +1,6 @@
 # Awesome Kurtosis [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 
-<img src="./logo.png" width="500">
+<img src="./logo.png" width="1200">
 
 > A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/concepts-reference/starlark)
 
