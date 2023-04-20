@@ -52,6 +52,8 @@ github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230328194643-b4dea3
 github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230328194643-b4dea3081e25/go.mod h1:YjVghnKmmELgH8DmIKBFxwArWbtLUYqwnol9DAWnBM8=
 github.com/kurtosis-tech/kurtosis/api/golang v0.73.0 h1:LkCdz6ozijWz4gTfbuTiNmr0iWODb5tIcOYIa+SMdag=
 github.com/kurtosis-tech/kurtosis/api/golang v0.73.0/go.mod h1:DaSWyoW2cN0o7swmKv0MOG8SlJUnmIifB+/pEqRZekg=
+github.com/kurtosis-tech/kurtosis/api/golang v0.75.4 h1:dz5mdgD0m/4N5D+C2AhB5w2T5lsXq+b8dbD7Ja5bJiQ=
+github.com/kurtosis-tech/kurtosis/api/golang v0.75.4/go.mod h1:DaSWyoW2cN0o7swmKv0MOG8SlJUnmIifB+/pEqRZekg=
 github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 h1:YQTATifMUwZEtZYb0LVA7DK2pj8s71iY8rzweuUQ5+g=
 github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409/go.mod h1:y5weVs5d9wXXHcDA1awRxkIhhHC1xxYJN8a7aXnE6S8=
 github.com/mholt/archiver v3.1.1+incompatible h1:1dCVxuqs0dJseYEhi5pl7MYPH9zDa1wBi7mF09cbNkU=
