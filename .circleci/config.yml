@@ -11,20 +11,6 @@ install_and_start_kurtosis: &install_and_start_kurtosis
       kurtosis cluster set docker
       kurtosis engine start
 
-run_all_tests: &run_all_tests
-  run:
-      name: Run the ./scripts/run.sh in each subdirectory
-      no_output_timeout: 30m
-      command: |
-        set -euo pipefail
-        skip_dirs=(".circleci/ .github/ data-package/")
-        for directory in */ ; do
-          if ! echo "$skip_dirs" | grep -q "$directory"; then
-            "./${directory}scripts/run.sh"
-            kurtosis clean -a
-          fi
-        done
-
 ##############
 # CircleCI
 ##############
@@ -58,7 +44,21 @@ jobs:
       - checkout
       - <<: *install_and_start_kurtosis
 
-      - <<: *run_all_tests
+      - run:
+          name: Run the ./scripts/run.sh in each subdirectory
+          no_output_timeout: 30m
+          command: |
+            set -euo pipefail
+            skip_dirs=(".circleci/ .github/ data-package/")
+            for directory in */ ; do
+              if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ":${directory%/}"; then
+                continue
+              fi            
+              if ! echo "$skip_dirs" | grep -q "$directory"; then
+                "./${directory}scripts/run.sh"
+                kurtosis clean -a
+              fi
+            done
 
   check_all_nightly:
     # strictly speaking we don't "need" this(xlarge) but we are continuously adding new examples
@@ -68,7 +68,18 @@ jobs:
       - checkout
       - <<: *install_and_start_kurtosis
 
-      - <<: *run_all_tests
+      - run:
+          name: Run the ./scripts/run.sh in each subdirectory
+          no_output_timeout: 30m
+          command: |
+            set -euo pipefail
+            skip_dirs=(".circleci/ .github/ data-package/")
+            for directory in */ ; do
+              if ! echo "$skip_dirs" | grep -q "$directory"; then
+                "./${directory}scripts/run.sh"
+                kurtosis clean -a
+              fi
+            done
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:
