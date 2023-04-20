@@ -1,7 +1,7 @@
 Chainlink node
 ==============
 
-This package starts a Chainlink nodes. It follows the steps from the official Chainlink documentation (here)[https://docs.chain.link/chainlink-nodes/v1/running-a-chainlink-node]
+This package starts a Chainlink nodes. It follows the steps from the official Chainlink documentation [here](https://docs.chain.link/chainlink-nodes/v1/running-a-chainlink-node)
 
 #### Prerequisite
 If you're running on a Mac, since Chainlink doesn't publish Docker images for mac, you will have to force docker to download the image for a different architecture by running:
