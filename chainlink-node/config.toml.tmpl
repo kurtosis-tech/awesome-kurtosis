@@ -1,0 +1,17 @@
+[Log]
+Level = 'warn'
+
+[WebServer]
+AllowOrigins = '\*'
+SecureCookies = false
+
+[WebServer.TLS]
+HTTPSPort = 0
+
+[[EVM]]
+ChainID = '{{.CHAIN_ID}}'
+
+[[EVM.Nodes]]
+Name = '{{.NAME}}'
+WSURL = '{{.WSS_URL}}'
+HTTPURL = '{{.HTTP_URL}}'
