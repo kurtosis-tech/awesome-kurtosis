@@ -7,4 +7,4 @@ cd $package_path
 echo "WARNING - This currently run in dry-run mode because we need a set of API keys to connect to Sepolia"
 echo "This will be fixed once we plug the chainlink node to a local ethereum network spun up by Kurtosis"
 
-kurtosis run . --dry-run "$(cat args.json)"
+kurtosis run . "$(cat args.json)"
