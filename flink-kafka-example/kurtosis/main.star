@@ -1,4 +1,4 @@
-# main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
+main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
 # main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
 # FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
 
@@ -13,7 +13,7 @@ KAFKA_SERVICE_PORT_EXTERNAL_NUMBER = 9093
 KAFKA_INPUT_TOPIC = "words"
 KAFKA_OUTPUT_TOPIC = "words-counted"
 
-wordsInAString = "kurtosis runs in kurtosis running in kurtosis"
+wordsInAString = "kurtosis kurtosis kurtosis"
 
 FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
 
@@ -25,7 +25,7 @@ def run(plan, args):
     # args.update({FLINK_LIB_JARS_EXTRA_ARG_NAME:uploaded_files})
     # plan.print(args)
 
-    # flink_run_output = main_flink_module.run(plan, args)
+    flink_run_output = main_flink_module.run(plan, args)
     # flink_upload_output = upload_flink_job(plan, FLINK_JOB_JAR_PATH)
 
     zookeeper_config = ServiceConfig(
@@ -47,9 +47,10 @@ def run(plan, args):
         image=KAFKA_IMAGE,
         ports={
             "bootstrap-server-internal": PortSpec(number=KAFKA_SERVICE_PORT_INTERNAL_NUMBER),
-            # "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
+            "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
         },
         env_vars={
+            "KAFKA_ENABLE_KRAFT": "no",
             "KAFKA_CFG_ZOOKEEPER_CONNECT": "zookeeper:2181",
             "KAFKA_CFG_LISTENERS": "INTERNAL://kafka:9092,EXTERNAL://0.0.0.0:9093",
             "KAFKA_CFG_ADVERTISED_LISTENERS": "INTERNAL://kafka:9092,EXTERNAL://localhost:9093",
@@ -60,42 +61,50 @@ def run(plan, args):
             "ALLOW_PLAINTEXT_LISTENER": "yes",
             "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "false",
         },
-        # # TODO Only for development, remove before final PR:
-        # public_ports={
-        #     "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
-        # }
+        # TODO Only for development, remove before final PR:
+        public_ports={
+            "bootstrap-server-internal": PortSpec(number=KAFKA_SERVICE_PORT_INTERNAL_NUMBER),
+            "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
+        }
     )
     kafka_service = plan.add_service(name=KAFKA_SERVICE_NAME, config=kafka_config)
     plan.print("Created kafka service: " + str(kafka_service.hostname))
 
-    # kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
-    # ### Check that the Kafka Cluster is ready:
-    # exec_check_kafka_cluster = ExecRecipe(
-    #     command=[
-    #         "/bin/sh",
-    #         "-c",
-    #         "/opt/bitnami/kafka/bin/kafka-features.sh --bootstrap-server %s describe" % kafka_bootstrap_server_host_port
-    #     ],
-    # )
-    # plan.wait(
-    #     service_name=KAFKA_SERVICE_NAME,
-    #     recipe=exec_check_kafka_cluster,
-    #     field="code",
-    #     assertion="==",
-    #     target_value=0,
-    #     timeout="30s",
-    # )
-    #
-    # ### Add the input and output topics
-    # create_topic(KAFKA_INPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
-    # create_topic(KAFKA_OUTPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
-    #
-    # ### Publish data into the input topic:
-    # words = wordsInAString.split()
-    # for word in words:
-    #     publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
-    #
-    # verify_counts("kurtosis", plan, kafka_bootstrap_server_host_port, KAFKA_OUTPUT_TOPIC, KAFKA_SERVICE_NAME)
+    kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
+    ### Check that the Kafka Cluster is ready:
+    exec_check_kafka_cluster = ExecRecipe(
+        command=[
+            "/bin/sh",
+            "-c",
+            "/opt/bitnami/kafka/bin/kafka-features.sh --bootstrap-server %s describe" % kafka_bootstrap_server_host_port
+        ],
+    )
+    plan.wait(
+        service_name=KAFKA_SERVICE_NAME,
+        recipe=exec_check_kafka_cluster,
+        field="code",
+        assertion="==",
+        target_value=0,
+        timeout="30s",
+    )
+
+    ### Add the input and output topics
+    create_topic(KAFKA_INPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
+    create_topic(KAFKA_OUTPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
+
+    ### Publish data into the input topic:
+    words = wordsInAString.split()
+    for word in words:
+        publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
+
+    ### START FLINK JOB: MANUAL STEP
+    plan.exec(
+        service_name=KAFKA_SERVICE_NAME,
+        recipe=ExecRecipe(
+            command=["sleep", "15"],
+        ))
+
+    verify_counts("kurtosis", plan, kafka_bootstrap_server_host_port, KAFKA_OUTPUT_TOPIC, KAFKA_SERVICE_NAME)
 
     return
 
@@ -119,7 +128,7 @@ def publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, kafka_in
             "/bin/sh",
             "-c",
             "echo '%s' | ./opt/bitnami/kafka/bin/kafka-console-producer.sh --bootstrap-server %s --topic %s" % (
-            word, kafka_bootstrap_server_host_port, kafka_input_topic),
+                word, kafka_bootstrap_server_host_port, kafka_input_topic),
         ]
     )
     result = plan.exec(
@@ -135,19 +144,19 @@ def verify_counts(word, plan, kafka_bootstrap_server_host_port, kafka_output_top
         command=[
             "/bin/sh",
             "-c",
-            "./opt/bitnami/kafka/bin/kafka-console-consumer.sh --bootstrap-server %s --topic %s --group cli-test" % (
-            kafka_bootstrap_server_host_port, kafka_output_topic),
+            "./opt/bitnami/kafka/bin/kafka-console-consumer.sh --bootstrap-server %s --topic %s --max-messages 1 --group cli-test --from-beginning 2>/dev/null" % (kafka_bootstrap_server_host_port, kafka_output_topic),
         ],
         extract={
-            "word-count": 'select(.word == %s)' % word
-        }
+            "word-count": 'fromjson | .word == "kurtosis" and .count == 3'
+        },
     )
     plan.wait(
         service_name=service_name,
         recipe=exec_check_data,
         field="extract.word-count",
         assertion="==",
-        target_value="3",
+        target_value=True,
+        timeout="15s",
     )
 
     return
