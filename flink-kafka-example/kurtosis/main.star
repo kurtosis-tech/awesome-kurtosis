@@ -183,14 +183,3 @@ def upload_files(plan):
 #         },
 #     )
 #     return recipe
-
-# def upload_flink_job(plan, kafka_bootstrap_server_host_port, kafka_topic):
-#     exec_upload_jar = ExecRecipe(
-#         command=[
-#             "/bin/sh",
-#             "-c",
-#             "./opt/bitnami/kafka/bin/kafka-console-consumer.sh --bootstrap-server %s --topic %s --partition 0" % (kafka_bootstrap_server_host_port, kafka_topic),
-#             ]
-#     )
-#     plan.print("Checking kafka topic")
-#     return
