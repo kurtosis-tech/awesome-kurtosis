@@ -14,6 +14,9 @@ Once this finishes, the image will be cached in the local Docker engine.
 The WSS and HTTP url of the chain to follow can be input filling the `args.json` file with your own values, and then running:
 ```
 cd ./chainlink-node/
+```
+
+```
 kurtosis run . "$(cat args.json)"
 ```
 
