@@ -12,10 +12,12 @@ Once this finishes, the image will be cached in the local Docker engine.
 
 #### Running a Chainlink node
 The WSS and HTTP url of the chain to follow can be input filling the `args.json` file with your own values, and then running:
-```
+`
 cd ./chainlink-node/
+`
+`
 kurtosis run . "$(cat args.json)"
-```
+`
 
 Once this has successfully run, you can go to the landing page of Chainlink by getting the port of the `chainlink` user service inside the enclave and opening the browser on `localhost:<PORT_NUMBER>`
 
