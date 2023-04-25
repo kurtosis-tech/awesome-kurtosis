@@ -34,8 +34,8 @@ started from scratch.
 Note that Chainlink nodes can only connect to an Ethereum chain when the chain exposes encrypted endpoint. Because of this, the package also spins up an NGINX container with pre-loaded certificates and configured to proxy queries 
 to one of the ethereum node.
 
-Note: for now the certificates are self-signed certificates checked into  the repo unser `./nginx/ssl/`. They have been generated with the following command on MacOS:
+Note: for now the certificates are self-signed certificates checked into  the repo under `./nginx/ssl/`. They have been generated with the following command on MacOS:
 ```
 openssl req -x509 -nodes -addext "subjectAltName = DNS:nginx" -days 1461 -newkey rsa:2048 -keyout ./nginx/ssl/nginx.key -out ./nginx/ssl/nginx.crt
 ```
-It's important to keep `nginx` as the DNS here as it's the hostname of the nginx container spun up inside the enclave. On the longer term, the certificates should be generated with an openssl container and not be checked inside the repo.
+It's important to keep `nginx` as the DNS here as it's the hostname of the nginx container spun up inside the enclave. In the long term, the certificates should be generated with an openssl container and not be checked inside the repo.
