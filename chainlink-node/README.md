@@ -31,8 +31,7 @@ password: 16charlengthp4SsW0rD1!@#_
 #### Running a local Ethereum network
 WARNING: This currently does not work with the `smartcontract/chainlink:1.13.1` docker image as this image prevents us from using `update-ca-certificates` inside the container to trust the self-signed certificate we use in NGINX in front of the ETH network. We had to build our own image at `gbouv/chainlink:1.13.1` which is strictly identical, but uses the root user by default so `update-ca-certificates` can be run and the Chainlink node can connect to the local ETH network through NGINX.
 
-The package can spin up a local Ethereum network and plug the Chainlink node onto it. To do that, the default `args.json` file provided can be use as it is. Without `wss_url` and `http_url` values, a local Ethereum chain will be
-started from scratch.
+The package can spin up a local Ethereum network and plug the Chainlink node onto it. To do that, the default `args.json` file provided can be use as it is. Simply leave the `wss_url` and `http_url` values empty and leave the `ChainID` as is to spin up the Chainlink node connected to a local Ethereum network. Do not alter the ChainID as this is required to connect to the local [eth-network-package](https://github.com/kurtosis-tech/eth-network-package).
 
 Note that Chainlink nodes can only connect to an Ethereum chain when the chain exposes encrypted endpoint. Because of this, the package also spins up an NGINX container with pre-loaded certificates and configured to proxy queries 
 to one of the ethereum node.
