@@ -19,59 +19,21 @@ FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
 
 
 def run(plan, args):
+    ## We can upload lib to flink by first uploading the files into the enclave and then mounting them into the Flink image
     # uploaded_files = upload_files(plan)
     # plan.print(uploaded_files)
-
     # args.update({FLINK_LIB_JARS_EXTRA_ARG_NAME:uploaded_files})
     # plan.print(args)
 
+    ### Start Flink cluster
     flink_run_output = main_flink_module.run(plan, args)
-    # flink_upload_output = upload_flink_job(plan, FLINK_JOB_JAR_PATH)
 
-    zookeeper_config = ServiceConfig(
-        image=ZOOKEEPER_IMAGE,
-        ports={
-            "zookeeper": PortSpec(
-                number=ZOOKEEPER_PORT_NUMBER,
-            ),
-        },
-        env_vars={
-            "ALLOW_ANONYMOUS_LOGIN": "yes",
-        }
+    ### Start the Kafka cluster: first Zookeeper then Kafka itself
+    create_service_zookeeper(plan, ZOOKEEPER_SERVICE_NAME, ZOOKEEPER_IMAGE, ZOOKEEPER_PORT_NUMBER)
+    create_service_kafka(plan, KAFKA_SERVICE_NAME, ZOOKEEPER_SERVICE_NAME, KAFKA_SERVICE_PORT_INTERNAL_NUMBER, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
 
-    )
-    zookeeper_service = plan.add_service(name=ZOOKEEPER_SERVICE_NAME, config=zookeeper_config)
-    plan.print("Created zookeeper service: " + str(zookeeper_service.hostname))
-
-    kafka_config = ServiceConfig(
-        image=KAFKA_IMAGE,
-        ports={
-            "bootstrap-server-internal": PortSpec(number=KAFKA_SERVICE_PORT_INTERNAL_NUMBER),
-            "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
-        },
-        env_vars={
-            "KAFKA_ENABLE_KRAFT": "no",
-            "KAFKA_CFG_ZOOKEEPER_CONNECT": "zookeeper:2181",
-            "KAFKA_CFG_LISTENERS": "INTERNAL://kafka:9092,EXTERNAL://0.0.0.0:9093",
-            "KAFKA_CFG_ADVERTISED_LISTENERS": "INTERNAL://kafka:9092,EXTERNAL://localhost:9093",
-            "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP": "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT",
-            "KAFKA_CFG_INTER_BROKER_LISTENER_NAME": "INTERNAL",
-            "KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
-            # "KAFKA_CFG_BROKER_ID": "1",
-            "ALLOW_PLAINTEXT_LISTENER": "yes",
-            "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "false",
-        },
-        # TODO Only for development, remove before final PR:
-        public_ports={
-            "bootstrap-server-internal": PortSpec(number=KAFKA_SERVICE_PORT_INTERNAL_NUMBER),
-            "bootstrap-server-external": PortSpec(number=KAFKA_SERVICE_PORT_EXTERNAL_NUMBER),
-        }
-    )
-    kafka_service = plan.add_service(name=KAFKA_SERVICE_NAME, config=kafka_config)
-    plan.print("Created kafka service: " + str(kafka_service.hostname))
-
-    kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
     ### Check that the Kafka Cluster is ready:
+    kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
     exec_check_kafka_cluster = ExecRecipe(
         command=[
             "/bin/sh",
@@ -98,6 +60,7 @@ def run(plan, args):
         publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
 
     ### START FLINK JOB: MANUAL STEP
+    # flink_upload_output = upload_flink_job(plan, FLINK_JOB_JAR_PATH)
     plan.exec(
         service_name=KAFKA_SERVICE_NAME,
         recipe=ExecRecipe(
@@ -108,6 +71,50 @@ def run(plan, args):
 
     return
 
+
+def create_service_zookeeper(plan, zookeeper_service_name, zookeeper_image, zookeeper_port_number):
+    zookeeper_config = ServiceConfig(
+        image=zookeeper_image,
+        ports={
+            "zookeeper": PortSpec(
+                number=zookeeper_port_number,
+            ),
+        },
+        env_vars={
+            "ALLOW_ANONYMOUS_LOGIN": "yes",
+        }
+    )
+    zookeeper_service = plan.add_service(name=zookeeper_service_name, config=zookeeper_config)
+    plan.print("Created Zookeeper service: " + str(zookeeper_service.hostname))
+    return zookeeper_service
+
+def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka_service_port_internal_number, kafka_service_port_external_number):
+    kafka_config = ServiceConfig(
+        image=KAFKA_IMAGE,
+        ports={
+            "bootstrap-server-internal": PortSpec(number=kafka_service_port_internal_number),
+            "bootstrap-server-external": PortSpec(number=kafka_service_port_external_number),
+        },
+        env_vars={
+            "KAFKA_ENABLE_KRAFT": "no",
+            "KAFKA_CFG_ZOOKEEPER_CONNECT": "%s:2181" % zookeeper_service_name,
+            "KAFKA_CFG_LISTENERS": "INTERNAL://%s:%d,EXTERNAL://0.0.0.0:%d" % (kafka_service_name, kafka_service_port_internal_number, kafka_service_port_external_number),
+            "KAFKA_CFG_ADVERTISED_LISTENERS": "INTERNAL://%s:%d,EXTERNAL://localhost:%d" % (kafka_service_name, kafka_service_port_internal_number, kafka_service_port_external_number),
+            "KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP": "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT",
+            "KAFKA_CFG_INTER_BROKER_LISTENER_NAME": "INTERNAL",
+            "KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+            "ALLOW_PLAINTEXT_LISTENER": "yes",
+            "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "false",
+        },
+        # TODO Only for development, remove before final PR:
+        public_ports={
+            "bootstrap-server-internal": PortSpec(number=kafka_service_port_internal_number),
+            "bootstrap-server-external": PortSpec(number=kafka_service_port_external_number),
+        }
+    )
+    kafka_service = plan.add_service(name=kafka_service_name, config=kafka_config)
+    plan.print("Created kafka service: " + str(kafka_service.hostname))
+    return kafka_service
 
 def create_topic(topic, plan, kafka_bootstrap_server_host_port):
     exec_add_input_topic = ExecRecipe(
