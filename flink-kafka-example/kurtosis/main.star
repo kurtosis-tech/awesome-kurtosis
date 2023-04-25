@@ -1,6 +1,8 @@
 main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
 # main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
+
 # FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
+FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
 
 KAFKA_IMAGE = "bitnami/kafka:3.4.0"
 ZOOKEEPER_IMAGE = "bitnami/zookeeper:3.8.1"
@@ -15,7 +17,7 @@ KAFKA_OUTPUT_TOPIC = "words-counted"
 
 wordsInAString = "kurtosis kurtosis kurtosis"
 
-FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
+KAFKA_HELPER_SCRIPTS_PATH = ""
 
 
 def run(plan, args):
@@ -30,25 +32,12 @@ def run(plan, args):
 
     ### Start the Kafka cluster: first Zookeeper then Kafka itself
     create_service_zookeeper(plan, ZOOKEEPER_SERVICE_NAME, ZOOKEEPER_IMAGE, ZOOKEEPER_PORT_NUMBER)
-    create_service_kafka(plan, KAFKA_SERVICE_NAME, ZOOKEEPER_SERVICE_NAME, KAFKA_SERVICE_PORT_INTERNAL_NUMBER, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
+    create_service_kafka(plan, KAFKA_SERVICE_NAME, ZOOKEEPER_SERVICE_NAME, KAFKA_SERVICE_PORT_INTERNAL_NUMBER,
+                         KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
 
     ### Check that the Kafka Cluster is ready:
     kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
-    exec_check_kafka_cluster = ExecRecipe(
-        command=[
-            "/bin/sh",
-            "-c",
-            "/opt/bitnami/kafka/bin/kafka-features.sh --bootstrap-server %s describe" % kafka_bootstrap_server_host_port
-        ],
-    )
-    plan.wait(
-        service_name=KAFKA_SERVICE_NAME,
-        recipe=exec_check_kafka_cluster,
-        field="code",
-        assertion="==",
-        target_value=0,
-        timeout="30s",
-    )
+    check_kafka_is_ready(plan, KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
 
     ### Add the input and output topics
     create_topic(KAFKA_INPUT_TOPIC, plan, kafka_bootstrap_server_host_port)
@@ -56,8 +45,7 @@ def run(plan, args):
 
     ### Publish data into the input topic:
     words = wordsInAString.split()
-    for word in words:
-        publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
+    for word in words: publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
 
     ### START FLINK JOB: MANUAL STEP
     # flink_upload_output = upload_flink_job(plan, FLINK_JOB_JAR_PATH)
@@ -88,7 +76,9 @@ def create_service_zookeeper(plan, zookeeper_service_name, zookeeper_image, zook
     plan.print("Created Zookeeper service: " + str(zookeeper_service.hostname))
     return zookeeper_service
 
-def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka_service_port_internal_number, kafka_service_port_external_number):
+
+def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka_service_port_internal_number,
+                         kafka_service_port_external_number):
     kafka_config = ServiceConfig(
         image=KAFKA_IMAGE,
         ports={
@@ -115,6 +105,27 @@ def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka
     kafka_service = plan.add_service(name=kafka_service_name, config=kafka_config)
     plan.print("Created kafka service: " + str(kafka_service.hostname))
     return kafka_service
+
+
+def check_kafka_is_ready(plan, kafka_service_name, kafka_service_port_external_number):
+    kafka_bootstrap_server_host_port = "%s:%d" % (kafka_service_name, kafka_service_port_external_number)
+    exec_check_kafka_cluster = ExecRecipe(
+        command=[
+            "/bin/sh",
+            "-c",
+            "/opt/bitnami/kafka/bin/kafka-features.sh --bootstrap-server %s describe" % kafka_bootstrap_server_host_port
+        ],
+    )
+    plan.wait(
+        service_name=kafka_service_name,
+        recipe=exec_check_kafka_cluster,
+        field="code",
+        assertion="==",
+        target_value=0,
+        timeout="30s",
+    )
+    return
+
 
 def create_topic(topic, plan, kafka_bootstrap_server_host_port):
     exec_add_input_topic = ExecRecipe(
@@ -170,7 +181,7 @@ def verify_counts(word, plan, kafka_bootstrap_server_host_port, kafka_output_top
 
 
 def upload_files(plan):
-    base_path = "github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/stuff/lib"
+    base_path = "github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/lib"
 
     artifact_reference = plan.upload_files(
         src=base_path,
