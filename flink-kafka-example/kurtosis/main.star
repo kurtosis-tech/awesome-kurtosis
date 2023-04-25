@@ -1,7 +1,7 @@
-main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
-# main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
+# main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
+main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
 
-# FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
+FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
 FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
 
 KAFKA_IMAGE = "bitnami/kafka:3.4.0"
@@ -22,18 +22,17 @@ KAFKA_HELPER_SCRIPTS_PATH = ""
 
 def run(plan, args):
     ## We can upload lib to flink by first uploading the files into the enclave and then mounting them into the Flink image
-    # uploaded_files = upload_files(plan)
-    # plan.print(uploaded_files)
-    # args.update({FLINK_LIB_JARS_EXTRA_ARG_NAME:uploaded_files})
-    # plan.print(args)
+    uploaded_files = upload_files(plan, FLINK_LIB_JARS_EXTRA_ARG_NAME)
+    plan.print(uploaded_files)
+    args.update({FLINK_LIB_JARS_EXTRA_ARG_NAME:uploaded_files})
+    plan.print(args)
 
     ### Start Flink cluster
     flink_run_output = main_flink_module.run(plan, args)
 
     ### Start the Kafka cluster: first Zookeeper then Kafka itself
     create_service_zookeeper(plan, ZOOKEEPER_SERVICE_NAME, ZOOKEEPER_IMAGE, ZOOKEEPER_PORT_NUMBER)
-    create_service_kafka(plan, KAFKA_SERVICE_NAME, ZOOKEEPER_SERVICE_NAME, KAFKA_SERVICE_PORT_INTERNAL_NUMBER,
-                         KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
+    create_service_kafka(plan, KAFKA_SERVICE_NAME, ZOOKEEPER_SERVICE_NAME, KAFKA_SERVICE_PORT_INTERNAL_NUMBER, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
 
     ### Check that the Kafka Cluster is ready:
     kafka_bootstrap_server_host_port = "%s:%d" % (KAFKA_SERVICE_NAME, KAFKA_SERVICE_PORT_EXTERNAL_NUMBER)
@@ -47,18 +46,28 @@ def run(plan, args):
     words = wordsInAString.split()
     for word in words: publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, KAFKA_INPUT_TOPIC)
 
-    ### START FLINK JOB: MANUAL STEP
-    # flink_upload_output = upload_flink_job(plan, FLINK_JOB_JAR_PATH)
-    plan.exec(
-        service_name=KAFKA_SERVICE_NAME,
-        recipe=ExecRecipe(
-            command=["sleep", "15"],
-        ))
+    upload_and_run_job(plan, "jobmanager")
 
     verify_counts("kurtosis", plan, kafka_bootstrap_server_host_port, KAFKA_OUTPUT_TOPIC, KAFKA_SERVICE_NAME)
 
     return
 
+
+def upload_and_run_job(plan, service_name):
+    plan.wait(
+        service_name=service_name,
+        recipe=ExecRecipe(
+            command=[
+                "/bin/sh",
+                "/opt/flink/lib/extras/upload_run.sh"
+            ],
+        ),
+        field="code",
+        assertion="==",
+        target_value=0,
+        timeout="60s",
+    )
+    return
 
 def create_service_zookeeper(plan, zookeeper_service_name, zookeeper_image, zookeeper_port_number):
     zookeeper_config = ServiceConfig(
@@ -155,7 +164,6 @@ def publish_word_to_topic(word, plan, kafka_bootstrap_server_host_port, kafka_in
     )
     return result
 
-
 def verify_counts(word, plan, kafka_bootstrap_server_host_port, kafka_output_topic, service_name):
     plan.print("Checking kafka topic for kurtosis count")
     exec_check_data = ExecRecipe(
@@ -179,25 +187,12 @@ def verify_counts(word, plan, kafka_bootstrap_server_host_port, kafka_output_top
 
     return
 
-
-def upload_files(plan):
-    base_path = "github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/lib"
+def upload_files(plan, flink_lib_jars_extra_arg_name):
+    base_path = "github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/scripts/"
 
     artifact_reference = plan.upload_files(
         src=base_path,
-        name="flink-lib-extra-jars",
+        name=flink_lib_jars_extra_arg_name,
     )
 
     return artifact_reference
-
-# def upload_flink_job(plan, flink_job_jar_path, flink_port_id):
-#     recipe = PostHttpRequestRecipe(
-#         port_id = flink_portid,
-#         endpoint = "/jars/upload",
-#         content_type = "application/x-java-archive",
-#         body = "{\"data\": \"this is sample body for POST\"}",
-#         extract = {
-#             "extractfield" : ".name.id",
-#         },
-#     )
-#     return recipe
