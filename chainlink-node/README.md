@@ -1,7 +1,7 @@
 Chainlink node
 ==============
 
-This package starts a Chainlink node, linked into a local multi-client Ethereum testnet. Modifying `args.json` on startup allows end-users to optionally link their Chainlink node into any other network.
+This package starts a Chainlink node, a local multi-client Ethereum testnet, and connects the two. Modifying `args.json` on startup allows end-users to optionally link their Chainlink node into any other network (e.g. Goerli, Sepolia via a node provider like Alchemy)
 
 This package was written by automating the setup steps from the official Chainlink documentation [here](https://docs.chain.link/chainlink-nodes/v1/running-a-chainlink-node) via Kurtosis.
 
