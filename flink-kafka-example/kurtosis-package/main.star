@@ -1,5 +1,5 @@
-# main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
-main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
+main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
+# main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
 
 FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
 FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
