@@ -21,7 +21,7 @@ KAFKA_SERVICE_PORT_EXTERNAL_NUMBER = 9093
 
 KAFKA_INPUT_TOPIC = "words"
 KAFKA_OUTPUT_TOPIC = "words-counted"
-WORD = "Kurtosis"
+WORD = "kurtosis"
 WORDS = [WORD, WORD, WORD]
 
 def run(plan, args):
