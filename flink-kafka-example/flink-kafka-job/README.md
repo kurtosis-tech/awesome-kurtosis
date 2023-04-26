@@ -23,6 +23,9 @@ bash scripts/docker_build_flink_job_loader.sh
 
 ## Building the FLink Job Loader
 
+The Flink Job loader is a helper program that helps upload a jar to a Flink cluster and can be built as follows.
+Note, that there's no need to build this image locally as it's [available on dockerhub](https://hub.docker.com/repository/docker/kurtosistech/flink-kafka-example-job-loader/general). 
+
 ```shell
 bash docker_build_flink_job_loader.sh
 ```
