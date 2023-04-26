@@ -14,7 +14,7 @@ covering these common end-to-end testing related tasks:
 
 ## Running the Example
 
-To run the example, first ensure you have Kurtosis CLI installed (by completing [the installation guide](https://docs.kurtosis.com/quickstart#setup)) and then running:
+To run the example, first ensure you have the latest Kurtosis CLI installed (by completing [the installation guide](https://docs.kurtosis.com/quickstart#setup)) and then running:
 
 ```shell
 kurtosis run kurtosis-package/.
