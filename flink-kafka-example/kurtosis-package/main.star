@@ -98,11 +98,6 @@ def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka
             "ALLOW_PLAINTEXT_LISTENER": "yes",
             "KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE": "false",
         },
-        # TODO Only for development, remove before final PR:
-        public_ports={
-            "bootstrap-server-internal": PortSpec(number=kafka_service_port_internal_number),
-            "bootstrap-server-external": PortSpec(number=kafka_service_port_external_number),
-        }
     )
     kafka_service = plan.add_service(name=kafka_service_name, config=kafka_config)
     plan.print("Created kafka service: " + str(kafka_service.hostname))
