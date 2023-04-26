@@ -25,12 +25,6 @@ WORD = "Kurtosis"
 WORDS = [WORD, WORD, WORD]
 
 def run(plan, args):
-    # ## We can upload lib to flink by first uploading the files into the enclave and then mounting them into the Flink image
-    # uploaded_files = upload_files(plan, FLINK_LIB_JARS_EXTRA_ARG_NAME)
-    # plan.print(uploaded_files)
-    # args.update({FLINK_LIB_JARS_EXTRA_ARG_NAME:uploaded_files})
-    # plan.print(args)
-
     ### Start Flink cluster
     flink_run_output = main_flink_module.run(plan, args)
 
@@ -186,13 +180,3 @@ def verify_counts(plan, kafka_bootstrap_server_host_port, kafka_output_topic, se
     )
 
     return
-
-def upload_files(plan, flink_lib_jars_extra_arg_name):
-    base_path = "github.com/kurtosis-tech/awesome-kurtosis/flink-kafka-example/scripts/"
-
-    artifact_reference = plan.upload_files(
-        src=base_path,
-        name=flink_lib_jars_extra_arg_name,
-    )
-
-    return artifact_reference
