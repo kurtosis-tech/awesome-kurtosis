@@ -14,5 +14,5 @@ Before building the project you'll need the following installed (recommended ver
 Once installed you can build the jar using this command:
 
 ```shell
-bash scripts/docker_build.sh
+bash scripts/docker_build_flink_job_loader.sh
 ```

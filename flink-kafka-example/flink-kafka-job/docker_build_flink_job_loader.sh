@@ -3,7 +3,6 @@
 
 set -euo pipefail   # Bash "strict mode"
 script_dirpath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-root_dirpath="$(dirname "${script_dirpath}")"
 
 # ==================================================================================================
 #                                             Constants
@@ -18,7 +17,7 @@ APPLICATION_NAME="flink_job_loader"
 # ==================================================================================================
 #                                             Main Logic
 # ==================================================================================================
-bash "${root_dirpath}/scripts/build.sh"
-cp "${root_dirpath}/build/run.jar" "${root_dirpath}/${APPLICATION_NAME}/run.jar"
+bash "${script_dirpath}/scripts/build.sh"
+#cp "${script_dirpath}/build/run.jar" "${script_dirpath}/${APPLICATION_NAME}/run.jar"
 
-docker build "${root_dirpath}/${APPLICATION_NAME}/." --tag "$IMAGE"
+docker build -f "${script_dirpath}/${APPLICATION_NAME}/." --tag "$IMAGE" .
