@@ -18,6 +18,5 @@ APPLICATION_NAME="flink_job_loader"
 #                                             Main Logic
 # ==================================================================================================
 bash "${script_dirpath}/scripts/build.sh"
-#cp "${script_dirpath}/build/run.jar" "${script_dirpath}/${APPLICATION_NAME}/run.jar"
 
 docker build -f "${script_dirpath}/${APPLICATION_NAME}/." --tag "$IMAGE" .

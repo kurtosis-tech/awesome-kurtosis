@@ -51,7 +51,7 @@ making it suitable to run in a build pipeline setting or for local regression an
 
 ### Test Design
 
-The test ([Starlark script](kurtosis/main.star)) creates two topics in the Kafka cluster:
+The test ([Starlark script](kurtosis-package/main.star)) creates two topics in the Kafka cluster:
 
 * `words`, where free text words are published
 * `words-counted`, where a running count of the number of times a given word has been seen on the topic `words`
