@@ -26,7 +26,7 @@ WORDS = [WORD, WORD, WORD]
 
 def run(plan, args):
     ### Start Flink cluster
-    flink_run_output = main_flink_module.run(plan, args)
+    main_flink_module.run(plan, args)
 
     ### Start the Kafka cluster: first Zookeeper then Kafka itself
     create_service_zookeeper(plan, ZOOKEEPER_SERVICE_NAME, ZOOKEEPER_IMAGE, ZOOKEEPER_PORT_NUMBER)
