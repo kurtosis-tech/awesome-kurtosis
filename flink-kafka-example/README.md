@@ -12,6 +12,28 @@ covering these common end-to-end testing related tasks:
 * package composition using a Starlark package inside another package
 * using a docker helper image to execute a job
 
+## Running the Example
+
+To run the example, first ensure you have Kurtosis CLI installed (by completing [the installation guide](https://docs.kurtosis.com/quickstart#setup)) and then running:
+
+```shell
+kurtosis run kurtosis-package/.
+```
+
+this will create an enclave with a generated name and the services. Alternately, 
+you can assign the enclave a specific name by running:
+
+```shell
+kurtosis run kurtosis-package/. --enclave flink-kafka
+```
+
+Note, if you already have an enclave running with the name `flink-kafka` you first need to remove it 
+or provide the enclave with an ephemeral name by removing the `--enclave` switch.
+
+```shell
+kurtosis enclave rm -f flink-kafka
+```
+
 ## Overview
 
 The high level steps of the test are as follows:
@@ -29,7 +51,7 @@ making it suitable to run in a build pipeline setting or for local regression an
 
 ### Test Design
 
-The test ([Starlark script](main.star)) creates two topics in the Kafka cluster:
+The test ([Starlark script](kurtosis/main.star)) creates two topics in the Kafka cluster:
 
 * `words`, where free text words are published
 * `words-counted`, where a running count of the number of times a given word has been seen on the topic `words`
