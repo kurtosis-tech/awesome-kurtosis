@@ -38,7 +38,7 @@ const (
 
 	nodeInfoPrefix = "NODES STATUS -- |"
 
-	eth2StarlarkPackage = "github.com/kurtosis-tech/eth2-package"
+	ethStarlarkPackage = "github.com/kurtosis-tech/eth-network-package"
 
 	// must be something greater than 4 to have at least 2 nodes in each partition
 	numParticipants = 4
@@ -47,7 +47,6 @@ const (
 
 	participantParam      = `{"el_client_type":"geth","el_client_image":"ethereum/client-go:v1.10.25","cl_client_type":"lighthouse","cl_client_image":"sigp/lighthouse:v3.1.2"}`
 	packageParamsTemplate = `{
-	"launch_additional_services": false,
 	"participants": [
 		` + participantsPlaceholder + `
 	]
@@ -121,7 +120,7 @@ func TestNetworkPartitioning(t *testing.T) {
 	defer kurtosisCtx.StopEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING PACKAGE ---------------")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, eth2StarlarkPackage, packageParams, false, defaultParallelism)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, ethStarlarkPackage, packageParams, false, defaultParallelism)
 	require.NoError(t, err, "An error executing loading the ETH package")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)

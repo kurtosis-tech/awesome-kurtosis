@@ -1,6 +1,6 @@
 # Awesome Kurtosis [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 
-<img src="./logo.png" width="500">
+<img src="./logo.png" width="1200">
 
 > A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/concepts-reference/starlark)
 
@@ -20,10 +20,11 @@ These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/p
 - [Cassandra Package](https://github.com/kurtosis-tech/cassandra-package) - A Kurtosis Starlark Package that spins up an n node Cassandra cluster and verifies that the cluster that was spun up was healthy
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
 - [Redis Package](https://github.com/kurtosis-tech/redis-package) - A Kurtosis Starlark Package that spins up a Redis instance
+- [Etcd Package](https://github.com/kurtosis-tech/etcd-package) - A Kurtosis Starlark Package that spins up a Etcd instance - authored by [@laurentluce](https://github.com/laurentluce)
 
 ## Kurtosis Starlark Web3 Examples
 
-- [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark Package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
+- [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
 - [NEAR Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local NEAR testnet with a local RPC endpoint, a NEAR explorer, an indexer for the explorer, and a NEAR wallet.
 
 ## Tests and other examples
