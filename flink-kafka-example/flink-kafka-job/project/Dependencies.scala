@@ -6,12 +6,12 @@ object Dependencies {
   val jacksonVersion = "2.14.2"
 
   val flinkDependencies: Seq[ModuleID] = Seq(
-    "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
-    "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
-    "org.apache.flink" % "flink-clients" % flinkVersion % "provided",
-    "org.apache.flink" % "flink-connector-kafka" % flinkVersion % "provided",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion % "provided",
-    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion % "provided",
+    "org.apache.flink" %% "flink-scala" % flinkVersion,
+    "org.apache.flink" %% "flink-streaming-scala" % flinkVersion,
+    "org.apache.flink" % "flink-clients" % flinkVersion,
+    "org.apache.flink" % "flink-connector-kafka" % flinkVersion,
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
+    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
   )
 
 }
