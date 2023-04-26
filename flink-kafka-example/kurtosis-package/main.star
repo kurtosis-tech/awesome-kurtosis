@@ -1,12 +1,11 @@
-# main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
-main_flink_module = import_module("github.com/adschwartz/flink-package/main.star")
+main_flink_module = import_module("github.com/kurtosis-tech/flink-package/main.star")
 
 FLINK_LIB_JARS_EXTRA_ARG_NAME = "flink-lib-jars-extra"
 FLINK_JOB_JAR_PATH = "../flink-kafka-job/build/run.jar"
 FLINK_JOB_MANAGER_SERVICE_NAME = "jobmanager"
 FLINK_JOB_MANAGER_API_PORT = 8081
 
-FLINK_JOB_LOADER_IMAGE = "kurtosistech/flink-kafka-example"
+FLINK_JOB_LOADER_IMAGE = "kurtosistech/flink-kafka-example-job-loader"
 FLINK_JOB_LOADER_SERVICE_NAME = "flink-job-loader"
 FLINK_JOB_LOADER_RUN_JAR = "run.jar"
 
