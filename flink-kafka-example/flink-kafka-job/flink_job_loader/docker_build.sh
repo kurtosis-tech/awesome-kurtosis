@@ -3,38 +3,22 @@
 
 set -euo pipefail   # Bash "strict mode"
 script_dirpath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root_dirpath="$(dirname "${script_dirpath}")"
 
 # ==================================================================================================
 #                                             Constants
 # ==================================================================================================
-
+IMAGE="kurtosistech/flink-kafka-example"
+APPLICATION_NAME="flink_job_loader"
 
 # ==================================================================================================
 #                                       Arg Parsing & Validation
 # ==================================================================================================
 
-
-
 # ==================================================================================================
 #                                             Main Logic
 # ==================================================================================================
+bash "${root_dirpath}/scripts/build.sh"
+cp "${root_dirpath}/build/run.jar" "${root_dirpath}/${APPLICATION_NAME}/run.jar"
 
-docker build . --tag "kurtosis-tech/flink-kafka-example"
-
-## Argument processing
-##if "${push_to_registry_container}"; then
-##  buildx_platform_arg='linux/arm64/v8,linux/amd64'
-##  push_flag='--push'
-##else
-#  buildx_platform_arg='linux/arm64' # TODO: infer the local arch if that's reasonable
-#  push_flag='--load'
-##fi
-##echo "Building docker image for architecture '${buildx_platform_arg}' with flag '${push_flag}'"
-#
-#docker_buildx_cmd="docker buildx build ${push_flag} --platform ${buildx_platform_arg} ${image_tags_concatenated} -f ${dockerfile_filepath} ${dockerfile_dirpath}"
-#echo "Running the following docker buildx command:"
-#echo "${docker_buildx_cmd}"
-#if ! eval "${docker_buildx_cmd}"; then
-#  echo "Error: Docker build failed" >&2
-#  exit 1
-#fi
+docker build "${root_dirpath}/${APPLICATION_NAME}/." --tag "$IMAGE"
