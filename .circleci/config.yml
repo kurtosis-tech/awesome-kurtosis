@@ -23,7 +23,7 @@ orbs:
 executors:
   ubuntu_vm:
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2004:2023.04.2
 
 parameters:
   # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/awesome-kurtosis/triggers
@@ -49,7 +49,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
+            skip_dirs=(".circleci/ .github/ data-package/ ethereum-network-partition-test/")
             for directory in */ ; do
               if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ":${directory%/}"; then
                 continue
@@ -73,7 +73,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
+            skip_dirs=(".circleci/ .github/ data-package/ ethereum-network-partition-test/")
             for directory in */ ; do
               if ! echo "$skip_dirs" | grep -q "$directory"; then
                 "./${directory}scripts/run.sh"

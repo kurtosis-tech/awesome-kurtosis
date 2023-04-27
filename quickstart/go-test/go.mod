@@ -3,7 +3,7 @@ module github.com/kurtosis-tech/awesome-kurtosis/quickstart/go-test
 go 1.19
 
 require (
-	github.com/kurtosis-tech/kurtosis/api/golang v0.75.4
+	github.com/kurtosis-tech/kurtosis/api/golang v0.76.3
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 )
@@ -17,6 +17,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kurtosis-tech/kurtosis-portal/api/golang v0.0.0-20230328194643-b4dea3081e25 // indirect
+	github.com/kurtosis-tech/kurtosis/grpc-file-transfer/golang v0.0.0-20230427135111-ee2492059d06 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
@@ -28,7 +29,7 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
-	google.golang.org/grpc v1.38.0 // indirect
+	google.golang.org/grpc v1.41.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
