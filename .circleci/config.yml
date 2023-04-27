@@ -49,7 +49,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
+            skip_dirs=(".circleci/ .github/ data-package/ ethereum-network-partition-test/")
             for directory in */ ; do
               if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ":${directory%/}"; then
                 continue
@@ -73,7 +73,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
+            skip_dirs=(".circleci/ .github/ data-package/ ethereum-network-partition-test/")
             for directory in */ ; do
               if ! echo "$skip_dirs" | grep -q "$directory"; then
                 "./${directory}scripts/run.sh"
