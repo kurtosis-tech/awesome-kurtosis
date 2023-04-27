@@ -22,6 +22,7 @@ These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/p
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
 - [Redis Package](https://github.com/kurtosis-tech/redis-package) - A Kurtosis Starlark Package that spins up a Redis instance
 - [Etcd Package](https://github.com/kurtosis-tech/etcd-package) - A Kurtosis Starlark Package that spins up a Etcd instance - authored by [@laurentluce](https://github.com/laurentluce)
+- [RabbitMq Package](https://github.com/kurtosis-tech/rabbitmq-package) - A Kurtosis Starlark Package that spins up a RabbitMQ instance - authored by [@laurentluce](https://github.com/laurentluce)
 
 ## Kurtosis Starlark Web3 Examples
 
