@@ -23,7 +23,7 @@ orbs:
 executors:
   ubuntu_vm:
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2004:2023.04.2
 
 parameters:
   # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/awesome-kurtosis/triggers
