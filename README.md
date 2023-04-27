@@ -17,14 +17,19 @@ These example [Kurtosis packages](https://docs.kurtosis.com/concepts-reference/p
 
 ## Kurtosis Starlark Web2 Examples
 
+- [Auto-GPT Package](https://github.com/kurtosis-tech/autogpt-package) - A Kurtosis Starlark package that installs and starts AutoGPT locally with just 2 commands and with the memory backend of your choice. It's like AutoGPT got `brew install`. Built to simplify the install instructions of the popular open-source attempt to make GPT-4 fully autonomous: [Auto-GPT](https://github.com/Significant-Gravitas/Auto-GPT) by [Significant Gravitas](https://github.com/Significant-Gravitas).
 - [Cassandra Package](https://github.com/kurtosis-tech/cassandra-package) - A Kurtosis Starlark Package that spins up an n node Cassandra cluster and verifies that the cluster that was spun up was healthy
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
 - [Redis Package](https://github.com/kurtosis-tech/redis-package) - A Kurtosis Starlark Package that spins up a Redis instance
+- [Etcd Package](https://github.com/kurtosis-tech/etcd-package) - A Kurtosis Starlark Package that spins up a Etcd instance - authored by [@laurentluce](https://github.com/laurentluce)
+- [RabbitMq Package](https://github.com/kurtosis-tech/rabbitmq-package) - A Kurtosis Starlark Package that spins up a RabbitMQ instance - authored by [@laurentluce](https://github.com/laurentluce)
 
 ## Kurtosis Starlark Web3 Examples
 
 - [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
+- [Avalanche Node Package](https://github.com/kurtosis-tech/avalanche-package) - A Kurtosis Starlark package that spins up a local, non-staking [Avalanche Go](https://github.com/ava-labs/avalanchego) node for local development and testing. This package can also be used to connect to other containerized services that make up your distributed system, like an instance of a wallet, indexer, explorer, or your dApp.
 - [NEAR Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local NEAR testnet with a local RPC endpoint, a NEAR explorer, an indexer for the explorer, and a NEAR wallet.
+- [Chainlink Node Package](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/chainlink-node#chainlink-node) - A Kurtosis Starlark package for instantiating a local Chainlink node for development and prototyping against Decentralized Oracle Networks (DONs). Includes the ability to optionally connect to a local multi-client Ethereum testnet, based off of the Ethereum Foundation's [Ethereum Package](https://github.com/kurtosis-tech/eth2-package). Inspiration comes from the original [Chainlink Node docs](https://docs.chain.link/chainlink-nodes/v1/running-a-chainlink-node).
 
 ## Tests and other examples
 
