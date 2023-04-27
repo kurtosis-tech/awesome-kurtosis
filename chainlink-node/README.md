@@ -50,10 +50,10 @@ Simply override the `args.json` file with the following data:
 ```json
 {
     "chain_name": "Local Avalanche Chain",
-    "chain_id": "43113", # Chain ID for Fuji testnet
+    "chain_id": "43113",
     "wss_url": "wss://api.avax-test.network/ext/bc/C/ws", 
     "http_url": "https://api.avax-test.network/"
 }
 ```
 
-The URLs are from the [official Avalanche Public API Server docs](https://docs.avax.network/apis/avalanchego/public-api-server#using-the-public-api-nodes).
+The `chain_id` and URLs are from the [official Avalanche Public API Server docs](https://docs.avax.network/apis/avalanchego/public-api-server#using-the-public-api-nodes).
