@@ -1,4 +1,4 @@
-eth_package = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
+eth_package = import_module("github.com/leoporoli/eth-network-package/main.star")
 
 PARTICIPANT_CONFIG = {
     "el_client_type": "geth",
