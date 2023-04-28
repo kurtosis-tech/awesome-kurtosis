@@ -29,6 +29,7 @@ Contents
 - [RabbitMq Package](https://github.com/kurtosis-tech/rabbitmq-package) - A Kurtosis Starlark Package that spins up a RabbitMQ instance - authored by [@laurentluce](https://github.com/laurentluce)
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
 - [MongoDB](https://github.com/kurtosis-tech/mongodb-package/) - A Kurtosis Starlark Package that spins up a MongoDB database
+- [Postgres](https://github.com/kurtosis-tech/postgres-package) - A Kurtosis Starlark Package that spins up a local Postgres database
  
 ### Kurtosis Web3 Examples
 
