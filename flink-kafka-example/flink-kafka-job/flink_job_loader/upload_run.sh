@@ -2,7 +2,6 @@
 # 2021-07-08 WATERMARK, DO NOT REMOVE - This script was generated from the Kurtosis Bash script template
 
 set -euo pipefail   # Bash "strict mode"
-script_dirpath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==================================================================================================
 #                                             Constants
