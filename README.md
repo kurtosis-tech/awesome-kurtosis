@@ -16,8 +16,8 @@ kurtosis run github.com/kurtosis-tech/awesome-kurtosis/redis-voting-app
 Contents
 --------
 
-- [Kurtosis Starlark Packages in the Web2 Space](#kurtosis-starlark-web2-examples)
-- [Kurtosis Starlark Packages in the Web3 Space](#kurtosis-starlark-web3-examples)
+- [Kurtosis Starlark Packages in the Web2 Space](#kurtosis-web2-examples)
+- [Kurtosis Starlark Packages in the Web3 Space](#kurtosis-web3-examples)
 - [Tests and other examples](#tests-and-other-examples)
 
 ### Kurtosis Web2 Examples
