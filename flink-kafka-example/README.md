@@ -14,13 +14,13 @@ covering these common end-to-end testing related tasks:
 
 ## Running the Example
 
-To run the example, first ensure you have the latest Kurtosis CLI installed (by completing [the installation guide](https://docs.kurtosis.com/quickstart#setup)) and then running:
+To run the example, first ensure you have the latest Kurtosis CLI installed (by completing [the installation guide](https://docs.kurtosis.com/quickstart#setup) and then running:
 
 ```shell
 kurtosis run kurtosis-package/.
 ```
 
-this will create an enclave with a generated name and the services. Alternately, 
+This command will create an enclave with a generated name and the services. Alternately, 
 you can assign the enclave a specific name by running:
 
 ```shell
@@ -71,5 +71,5 @@ The word counting job will emit three events with the following data on to the `
 {"word":"kurtosis","count":3}
 ```
 
-In the Starlark script we check the the the `words-counted` topic eventually contains `{"word":"kurtosis","count":3}` 
+In the Starlark script we check the `words-counted` topic eventually contains `{"word":"kurtosis","count":3}` 
 using the built in ExecRecipe and the `jq` extractor support.
