@@ -15,6 +15,7 @@ APPLICATION_NAME="flink_job_loader"
 # ==================================================================================================
 bash "${script_dirpath}/scripts/build.sh"
 
+# The below is adopted from: https://github.com/kurtosis-tech/kurtosis/blob/2c1ca7a1ad90668108ccf3dfd3aa71708164163e/scripts/docker-image-builder.sh#L60
 buildx_platform_arg="linux/arm64,linux/amd64"
 kurtosis_docker_builder="kurtosis-docker-builder"
 docker_buildx_context='kurtosis-docker-builder-context'
