@@ -97,7 +97,7 @@ def init_chain_connection(plan, args):
         return False, chain_name, chain_id, args["wss_url"], args["http_url"], None
     
     plan.print("Spinning up a local ETH chain and connecting to it")
-    eth_network_participants = eth_network_module.run(plan, args)
+    eth_network_participants, cl_genesis_timestamp = eth_network_module.run(plan, args)
     # Chainlink needs to connect to a single EL client member of the chain.
     # Here we pick the first one randomly, we could have picked any
     random_eth_node = eth_network_participants[0]
