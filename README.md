@@ -30,11 +30,13 @@ Contents
 - [Datastore Army Package](https://github.com/kurtosis-tech/datastore-army-package) - A Kurtosis Starlark Package that spins up an n node Datastore server cluster
 - [MongoDB](https://github.com/kurtosis-tech/mongodb-package/) - A Kurtosis Starlark Package that spins up a MongoDB database
 - [Postgres](https://github.com/kurtosis-tech/postgres-package) - A Kurtosis Starlark Package that spins up a local Postgres database
+- [Keycloak](https://github.com/kurtosis-tech/keycloak-package) - A Kurtosis Starlark package that starts a local Keycloak server with a preconfigured application.
  
 ### Kurtosis Web3 Examples
 
 - [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - A Kurtosis Starlark package that spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
 - [Avalanche Node Package](https://github.com/kurtosis-tech/avalanche-package) - A Kurtosis Starlark package that spins up a local, non-staking [Avalanche Go](https://github.com/ava-labs/avalanchego) node for local development and testing. This package can also be used to connect to other containerized services that make up your distributed system, like an instance of a wallet, indexer, explorer, or your dApp.
+- [Aptos Validator Node](https://github.com/kurtosis-tech/aptos-package/tree/main/testnet-validator-example) - A Starlark package that sets up a local Aptos validator node and a testnet faucet for use in local development and testing workflows on the Aptos protocol.
 - [NEAR Package](https://github.com/kurtosis-tech/near-package) - A Kurtosis Starlark package that spins up a local NEAR testnet with a local RPC endpoint, a NEAR explorer, an indexer for the explorer, and a NEAR wallet.
 - [Chainlink Node Package](https://github.com/kurtosis-tech/awesome-kurtosis/tree/main/chainlink-node#chainlink-node) - A Kurtosis Starlark package for instantiating a local Chainlink node for development and prototyping against Decentralized Oracle Networks (DONs). Includes the ability to optionally connect to a local multi-client Ethereum testnet, based off of the Ethereum Foundation's [Ethereum Package](https://github.com/kurtosis-tech/eth2-package). Inspiration comes from the original [Chainlink Node docs](https://docs.chain.link/chainlink-nodes/v1/running-a-chainlink-node).
 
