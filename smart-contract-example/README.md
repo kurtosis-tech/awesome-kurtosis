@@ -3,7 +3,7 @@
 This example demonstrates how Kurtosis can be used for local dApp and Smart Contract development
 by using the [`eth-network-package`](https://github.com/kurtosis-tech/eth-network-package) as a local Ethereum network. 
 The `eth-network package` can be used as a low overhead, configurable, and composable alternative to frameworks like
-`hardhat-network`, `ganache` and `anvil`. Kurtosis provides the developer more control and flexibility over the testnet they are using - a large reason why the [Ethereum Foundation used Kurtosis to test the Merge](https://www.kurtosis.com/blog/testing-the-ethereum-merge), and why they continue to use Kurtosis for various tests for upcoming upgrades to the network.
+`hardhat-network`, `ganache` and `anvil`. Kurtosis provides the developer more control and flexibility over the testnet they are using - a large reason why the [Ethereum Foundation used Kurtosis to test the Merge](https://www.kurtosistech.com/blog/testing-the-ethereum-merge), and why they continue to use Kurtosis for various tests for upcoming upgrades to the network.
 
 While this example covers only the Ethereum blockchain, Kurtosis can be used to locally configure and instantiate other blockchains (e.g. [NEAR](https://docs.near.org/develop/testing/kurtosis-localnet), [Avalanche](https://medium.com/avalancheavax/introducing-kurtosis-a-complete-testing-platform-to-accelerate-development-on-avalanche-6ad7e1147791) and allows you to connect your local testnet with any containerized service you wish.
 
@@ -20,8 +20,8 @@ It allows us to configure Hardhat to use a local Ethereum network created by the
 ### Running the Example
 
 This assumes you have the following services installed:
-- [Docker](https://docs.kurtosis.com/install#i-install--start-docker) with the Docker daemon running
-- [Kurtosis CLI](https://docs.kurtosis.com/cli/)
+- [Docker](https://docs.kurtosistech.com/install#i-install--start-docker) with the Docker daemon running
+- [Kurtosis CLI](https://docs.kurtosistech.com/cli/)
 - [Node.js](https://nodejs.org/en), [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable), and [npx](https://www.npmjs.com/package/npx) (for our dApp environment)
 
 
