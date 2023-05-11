@@ -89,7 +89,7 @@ def run(plan):
 
     env_vars = {"CACHE_URL": readyset_output.url}
     # services that depend on readyset can be added here like follows
-    # for more information go to our documentation here:
+    # for more information go to our documentation here: https://readyset.io/
     plan.add_service(..., ServiceConfig(..., env_vars=env_vars))
 
 ```
