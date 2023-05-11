@@ -3,15 +3,17 @@ Readyset Example
 
 ## Overview
 
-This example demonstrates the Kurtosis Readyset package in action. The package provides a seamless way for users to run Readyset locally and/or in the cloud. We have automated the quickstart documentation and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
+This example demonstrates the [Kurtosis Readyset package](https://github.com/kurtosis-tech/readyset-package) in action. We have automated the readyset's [quickstart](https://docs.readyset.io/guides/intro/quickstart/) and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
 
-In this example, we use Kurtosis to set up a repeatable and isolated environment that contains three services: Postgres, Readyset, and Benchmark. The package does the following:
+In this example, we use Kurtosis to set up isolated and repeatable environment that contains three services: Postgres, Readyset, and Benchmark. The package does the following:
 
 1. It first spins up a Postgres database with initial seed data, which can be found in the `seed` folder.
 2. It then spins up a Readyset service and waits until it finishes snapshotting all the tables found in the Postgres database.
 3. It spins up a Benchmark service, installs necessary dependencies, and executes the Python script available in the Quickstart documentation against the Postgres database.
 4. We create a cached query in Readyset and execute the Python script again.
 5. Finally, we return the performance benchmark output for Postgres and Readyset.
+
+Environments defined in your GitHub repository, such as this one, can run on your local laptop or CI, or in the cloud ephemerally using Kurtosis. If you're interested in our cloud offering and want to learn how to deploy and run ReadySet on the cloud, please reach out to us or fill out the [form](https://mp2k8nqxxgj.typeform.com/to/U1HcXT1H).
 
 ## Running Kurtosis Package
 
@@ -83,7 +85,7 @@ The following snippet provides a brief introduction on how different modular pac
 readyset = import_module("github.com/kurtosis-tech/readyset-package")
 
 def run(plan):
-    readyset_output = readyset.run(plan, {"upstrea_db_url": ""})
+    readyset_output = readyset.run(plan, {"upstrea_db_url": "postgresql://postgres:readyset@hostname/test"})
 
     env_vars = {"CACHE_URL": readyset_output.url}
     # services that depend on readyset can be added here like follows
@@ -92,12 +94,30 @@ def run(plan):
 
 ```
 
-To see it in action, run the following command. We have added support for connecting to a remote database. If you want to connect to a remote database, set upstream_db_url. If not set, it will default to the behaviour seen above.
+To see it in action, run the following command. We have added support for connecting to a remote database. If you want to connect to a remote database, set upstream_db_url or it will default to the behaviour seen above.
 
 ```shell
-kurtosis run --enclave readyset-remote github.com/kurtosis-tech/awesome-kurtosis/readyset-example '{"upstream_db_url": ""}'
+kurtosis run --enclave readyset-remote github.com/kurtosis-tech/awesome-kurtosis/readyset-example '{"upstream_db_url": "postgresql://postgres:readyset@hostname/test"}'
 ```
 
-## Connecting Readyset with MySQL database
+After running Kurtosis package, you should an output similar to the one shown below:
+```
+INFO[2023-05-11T02:28:43-04:00] ==================================================== 
+INFO[2023-05-11T02:28:43-04:00] ||          Created enclave: quiet-trail          || 
+INFO[2023-05-11T02:28:43-04:00] ==================================================== 
+...
+...
+...
+========================================== User Services ==========================================
+UUID           Name        Ports                                                      Status
+1bdd453c8181   readyset    ready_set_port: 5433/tcp -> postgresql://127.0.0.1:50326   RUNNING
+```
 
-In this example, MySQL can be used through parameterization. Although we have not yet added support for it, we encourage you to give it a try. We have a mysql package and an example on how to seed and run a mysql database located here. To learn more about how to integrate Readyset with MySQL, please see this link. We have also included some comments in the code to help guide you..
+You can use the above information to connect to readyset service via psql (or mysql if readyset is running against it) as shown below:
+```
+PGPASSWORD=readyset psql --host=127.0.0.1 --port=50326 --username=postgres --dbname=test
+```
+
+## Running Readyset with MySQL database
+
+In this example, you can add a MySQL database through composability and parameterization. You can use the Kurtosis MySQL package available here and integrate it into the example in a similar way to the Postgres package. Although we have not yet added support for it, we encourage you to give it a try. We have also included some comments in the code to help guide you.
