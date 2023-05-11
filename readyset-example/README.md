@@ -85,7 +85,7 @@ The following snippet provides a brief introduction on how different modular pac
 readyset = import_module("github.com/kurtosis-tech/readyset-package")
 
 def run(plan):
-    readyset_output = readyset.run(plan, {"upstrea_db_url": "postgresql://postgres:readyset@hostname/test"})
+    readyset_output = readyset.run(plan, {"upstream_db_url": "postgresql://postgres:readyset@hostname/test"})
 
     env_vars = {"CACHE_URL": readyset_output.url}
     # services that depend on readyset can be added here like follows
