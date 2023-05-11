@@ -120,4 +120,4 @@ PGPASSWORD=readyset psql --host=127.0.0.1 --port=50326 --username=postgres --dbn
 
 ## Running Readyset with MySQL database
 
-In this example, you can add a MySQL database through composability and parameterization. You can use the Kurtosis MySQL package available here and integrate it into the example in a similar way to the Postgres package. Although we have not yet added support for it, we encourage you to give it a try. We have also included some comments in the code to help guide you.
+In this example, you can add a MySQL database through composability and parameterization. You can use the [Kurtosis MySQL package available here](https://github.com/kurtosis-tech/mysql-package) and integrate it into the example in a similar way to the [Postgres package](https://github.com/kurtosis-tech/postgres-package). Although we have not yet added support for it, we encourage you to give it a try. We have also included some comments in the code to help guide you.
