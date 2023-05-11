@@ -1,11 +1,13 @@
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 readyset = import_module("github.com/kurtosis-tech/readyset-package/main.star")
 
-password = "readyset"
+PASSWORD = "readyset"
 database = "test"
+username = "postgres"
 
-#TODO: in next pr will paramtarize this a little, add comments and will update the readme so that I can share in relevant channels hopefully by EOD
-def run_local_postgres_and_readyset(plan):
+QUERY_TO_CACHE = "CREATE CACHE FROM SELECT count(*) FROM title_ratings JOIN title_basics ON title_ratings.tconst = title_basics.tconst WHERE title_basics.startyear = 2000 AND title_ratings.averagerating > 5;"
+
+def run_local_postgres(plan):
     seed_file_artifact = plan.upload_files(
         src="github.com/kurtosis-tech/awesome-kurtosis/readyset-example/seed/postgres_long.sql",
         name="postgres_seed_file"
@@ -14,8 +16,9 @@ def run_local_postgres_and_readyset(plan):
     postgres_args = { 
         "postgres_config": ["wal_level=logical"],
         "seed_file_artifact": "postgres_seed_file",
-        "password": password,
+        "password": PASSWORD,
         "database": database,
+        "user": username,
     }
 
     postgres_data = postgres.run( plan, postgres_args)
@@ -25,46 +28,48 @@ def run_performance_service(plan, readyset_data, postgres_data):
     # this checks whether readyset is ready to cache queries
     # the timeout used is dependent upon the size of the data being snapshotted 
     # through trial and error 1min seems to be reasonable timeout for the seed data thats being used
+    readyset_conn_url = "PGPASSWORD={0} psql --host={1} --port={2} --username={3} --dbname={4}".format(PASSWORD, readyset_data.service.hostname, readyset_data.service.ports["ready_set_port"].number, username, database)
+    plan.print(readyset_conn_url)
+
     snapshot_check_recipe = ExecRecipe(
-        command=["sh", "-c", "PGPASSWORD=readyset psql --host=readyset --port=5433 --username=postgres --dbname=readyset -c \"SHOW READYSET TABLES\" | grep Snapshotted | wc -l | awk '{ printf \"%s\", $0 }'"]
+        command=["sh", "-c", readyset_conn_url + " -c \"SHOW READYSET TABLES\" | grep Snapshotted | wc -l |" + " awk '{ printf \"%s\", $0 }'"]
     )
    
     plan.wait(service_name="postgres",recipe=snapshot_check_recipe, field="output", assertion="==", target_value="2", timeout="1m")
-
     python_test_file = plan.upload_files(
         src = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/app.py",
         name="app"
     )
     
     plan.add_service(
-        name = "python-service", 
+        name = "benchmark", 
         config= ServiceConfig(image="python:3.8-slim-buster", files={"/src": "app"})
     )
 
     # install relevant dependencies
     plan.exec(
-        service_name="python-service", 
+        service_name="benchmark", 
         recipe=ExecRecipe(
-            command=["sh", "-c", "apt-get update && apt-get -y install libpq-dev gcc curl && pip3 install psycopg2 numpy urllib3 tabulate > /dev/null 2>&1"]
+            command=["sh", "-c", "apt-get update && apt-get -y install libpq-dev gcc curl && pip3 install psycopg2 numpy urllib3 tabulate"]
         )
     )
 
     service_executable = "python3 /src/app.py --url {0}"
     postgres_output = plan.exec(
-        service_name="python-service",
+        service_name="benchmark",
         recipe=ExecRecipe(
             command=["sh", "-c", service_executable.format(postgres_data.url)]
         )
     )
 
     cache_recipe = ExecRecipe(
-        command=["sh", "-c", "PGPASSWORD=readyset psql --host=readyset --port=5433 --username=postgres --dbname=readyset -c \"CREATE CACHE FROM SELECT count(*) FROM title_ratings JOIN title_basics ON title_ratings.tconst = title_basics.tconst WHERE title_basics.startyear = 2000 AND title_ratings.averagerating > 5;\""]
+        command=["sh", "-c", "{0} -c \"{1}\" ".format(readyset_conn_url, QUERY_TO_CACHE)]
     )
 
-    plan.exec(service_name="postgres", recipe=cache_recipe)
+    plan.wait(service_name="postgres", recipe=cache_recipe, field="code", assertion="==", target_value=0, timeout="30s")
 
     readyset_output = plan.exec(
-        service_name="python-service",
+        service_name="benchmark",
         recipe=ExecRecipe(
             command=["sh", "-c", service_executable.format(readyset_data.url)]
         )
@@ -74,6 +79,15 @@ def run_performance_service(plan, readyset_data, postgres_data):
         postgres_output=postgres_output["output"], 
         readyset_output=readyset_output["output"]
     )
+
+
+def run_local_mysql(plan):
+    ### Implement Me for Mysql
+    ### This is link to mysql package: https://github.com/kurtosis-tech/mysql-package
+    ### A simple mysql example with seed data: https://github.com/kurtosis-tech/awesome-kurtosis/blob/main/blog-mysql-seed/main.star  
+
+    ## you may need to do some post processing so that this method returns url mysql connection string with following schema: `[postgresql|mysql]://<user>:<password>@<hostname>[:<port>]/<database[?<extra_options>]`  
+    fail(output="Not Implemented - but we encourage you to give it a try! We already have kurtosis mysql package and you can import the package attach readyset to mysql")
 
 def run(plan, args): 
     # this allows you to hook readyset directly with your cloud database
@@ -86,18 +100,23 @@ def run(plan, args):
         })
 
         ### ADD YOUR CODE
-        ### You can add your services here that can use readyset instead of cloud database via readyset connection string which
-        ### can be accssed by doing readyset_data["url"]
+        ### You can add your services here that can use readyset with the remote database via readyset connection string which
+        ### can be accssed by doing readyset_data.url
         return struct(readyset_data=readyset_data)
     
 
     if args.get("db_type") == "mysql":
-        return struct(output="Not Implemented - but we encourage you to give it a try! We already have kurtosis mysql package and you can import the package attach readyset to mysql")
+        mysql_data = run_local_mysql(plan)
+        # UNCOMMENT LINES 111 TO 114 ONCE run_local_mysql is implemented
+        # readyset_data = readyset.run(plan, {
+        #      "upstream_db_url": mysql_data.url
+        # })
+        # return struct(readyset=readyset_data, mysql=mysql_data)
     
     # This is default behaviour to show how kurtosis can simpilfy creating isolated and consistent enviornments with same initial state
     # We can run same set of services under same condition multiple times either locally or on cloud. If you are interested in learning more
     # about cloud offering, please reach out to us. 
-    postgres_data = run_local_postgres_and_readyset(plan)
+    postgres_data = run_local_postgres(plan)
     readyset_data = readyset.run(plan, { 
         "upstream_db_url": postgres_data.url
     })
