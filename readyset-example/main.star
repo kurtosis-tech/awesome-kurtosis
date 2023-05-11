@@ -9,6 +9,7 @@ DB_TYPE = "db_type"
 PYTHON_SERVICE_NAME="benchmark"
 UPSTREAM_DB_URL_KEY = "upstream_db_url"
 
+MYSQL_DATABASE_TYPE = "mysql"
 BENCHMARK_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/benchmark.py"
 POSTGRES_SEED_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/seed/postgres_long.sql"
 QUERY_TO_CACHE = "CREATE CACHE FROM SELECT count(*) FROM title_ratings JOIN title_basics ON title_ratings.tconst = title_basics.tconst WHERE title_basics.startyear = 2000 AND title_ratings.averagerating > 5;"
@@ -93,7 +94,7 @@ def run_local_mysql(plan):
     ### A simple mysql example with seed data: https://github.com/kurtosis-tech/awesome-kurtosis/blob/main/blog-mysql-seed/main.star  
 
     ## you may need to do some post processing so that this method returns url mysql connection string with following schema: `[postgresql|mysql]://<user>:<password>@<hostname>[:<port>]/<database[?<extra_options>]`  
-    fail(output="Not Implemented - but we encourage you to give it a try! We already have kurtosis mysql package and you can import the package attach readyset to mysql")
+    fail("Not Implemented - but we encourage you to give it a try! We already have kurtosis mysql package and you can import the package attach readyset to mysql")
 
 def run(plan, args): 
     # this allows you to hook readyset directly with your cloud database
@@ -110,7 +111,7 @@ def run(plan, args):
         ### can be accssed by doing readyset_data.url
         return struct(readyset_data=readyset_data)
     
-    if args.get(DB_TYPE) == "mysql":
+    if args.get(DB_TYPE) == MYSQL_DATABASE_TYPE:
         mysql_data = run_local_mysql(plan)
         # UNCOMMENT LINES 111 TO 114 ONCE run_local_mysql is implemented
         # readyset_data = readyset.run(plan, {
