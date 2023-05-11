@@ -3,7 +3,7 @@ Readyset Example
 
 ## Overview
 
-This example demonstrates the [Kurtosis Readyset package](https://github.com/kurtosis-tech/readyset-package) in action. We have automated the readyset's [quickstart](https://docs.readyset.io/guides/intro/quickstart/) and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
+This example demonstrates the [Kurtosis Readyset package](https://github.com/kurtosis-tech/readyset-package) in action. We have automated the Readyset's [quickstart](https://docs.readyset.io/guides/intro/quickstart/) and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
 
 In this example, we use Kurtosis to set up isolated and repeatable environment that contains three services: Postgres, Readyset, and Benchmark. The package does the following:
 
@@ -13,7 +13,7 @@ In this example, we use Kurtosis to set up isolated and repeatable environment t
 4. We create a cached query in Readyset and execute the Python script again.
 5. Finally, we return the performance benchmark output for Postgres and Readyset.
 
-Environments defined in your GitHub repository, such as this one, can run on your local laptop or CI, or in the cloud ephemerally using Kurtosis. If you're interested in our cloud offering and want to learn how to deploy and run ReadySet on the cloud, please reach out to us or fill out the [form](https://mp2k8nqxxgj.typeform.com/to/U1HcXT1H).
+Environments defined in your GitHub repository, such as this one, can run on your local laptop or CI, or in the cloud ephemerally using Kurtosis. If you're interested in our cloud offering and want to learn how to deploy and run services with ReadySet on the cloud, please reach out to us or fill out the [form](https://mp2k8nqxxgj.typeform.com/to/U1HcXT1H).
 
 ## Running Kurtosis Package
 

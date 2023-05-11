@@ -2,14 +2,20 @@ postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 readyset = import_module("github.com/kurtosis-tech/readyset-package/main.star")
 
 PASSWORD = "readyset"
-database = "test"
-username = "postgres"
+DATABASE = "test"
+USERNAME = "postgres"
 
+DB_TYPE = "db_type"
+PYTHON_SERVICE_NAME="benchmark"
+UPSTREAM_DB_URL_KEY = "upstream_db_url"
+
+BENCHMARK_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/benchmark.py"
+POSTGRES_SEED_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/seed/postgres_long.sql"
 QUERY_TO_CACHE = "CREATE CACHE FROM SELECT count(*) FROM title_ratings JOIN title_basics ON title_ratings.tconst = title_basics.tconst WHERE title_basics.startyear = 2000 AND title_ratings.averagerating > 5;"
 
 def run_local_postgres(plan):
     seed_file_artifact = plan.upload_files(
-        src="github.com/kurtosis-tech/awesome-kurtosis/readyset-example/seed/postgres_long.sql",
+        src=POSTGRES_SEED_FILE_LOCATION,
         name="postgres_seed_file"
     )
 
@@ -17,8 +23,8 @@ def run_local_postgres(plan):
         "postgres_config": ["wal_level=logical"],
         "seed_file_artifact": "postgres_seed_file",
         "password": PASSWORD,
-        "database": database,
-        "user": username,
+        "database": DATABASE,
+        "user": USERNAME,
     }
 
     postgres_data = postgres.run( plan, postgres_args)
@@ -28,7 +34,7 @@ def run_performance_service(plan, readyset_data, postgres_data):
     # this checks whether readyset is ready to cache queries
     # the timeout used is dependent upon the size of the data being snapshotted 
     # through trial and error 1min seems to be reasonable timeout for the seed data thats being used
-    readyset_conn_url = "PGPASSWORD={0} psql --host={1} --port={2} --username={3} --dbname={4}".format(PASSWORD, readyset_data.service.hostname, readyset_data.service.ports["ready_set_port"].number, username, database)
+    readyset_conn_url = "PGPASSWORD={0} psql --host={1} --port={2} --username={3} --dbname={4}".format(PASSWORD, readyset_data.service.hostname, readyset_data.service.ports["ready_set_port"].number, USERNAME, DATABASE)
     plan.print(readyset_conn_url)
 
     snapshot_check_recipe = ExecRecipe(
@@ -37,26 +43,26 @@ def run_performance_service(plan, readyset_data, postgres_data):
    
     plan.wait(service_name="postgres",recipe=snapshot_check_recipe, field="output", assertion="==", target_value="2", timeout="1m")
     python_test_file = plan.upload_files(
-        src = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/app.py",
-        name="app"
+        src = BENCHMARK_FILE_LOCATION,
+        name="benchmark"
     )
     
     plan.add_service(
-        name = "benchmark", 
-        config= ServiceConfig(image="python:3.8-slim-buster", files={"/src": "app"})
+        name = PYTHON_SERVICE_NAME, 
+        config= ServiceConfig(image="python:3.8-slim-buster", files={"/src": "benchmark"})
     )
 
     # install relevant dependencies
     plan.exec(
-        service_name="benchmark", 
+        service_name=PYTHON_SERVICE_NAME, 
         recipe=ExecRecipe(
             command=["sh", "-c", "apt-get update && apt-get -y install libpq-dev gcc curl && pip3 install psycopg2 numpy urllib3 tabulate"]
         )
     )
 
-    service_executable = "python3 /src/app.py --url {0}"
+    service_executable = "python3 /src/benchmark.py --url {0}"
     postgres_output = plan.exec(
-        service_name="benchmark",
+        service_name=PYTHON_SERVICE_NAME,
         recipe=ExecRecipe(
             command=["sh", "-c", service_executable.format(postgres_data.url)]
         )
@@ -69,7 +75,7 @@ def run_performance_service(plan, readyset_data, postgres_data):
     plan.wait(service_name="postgres", recipe=cache_recipe, field="code", assertion="==", target_value=0, timeout="30s")
 
     readyset_output = plan.exec(
-        service_name="benchmark",
+        service_name=PYTHON_SERVICE_NAME,
         recipe=ExecRecipe(
             command=["sh", "-c", service_executable.format(readyset_data.url)]
         )
@@ -92,11 +98,11 @@ def run_local_mysql(plan):
 def run(plan, args): 
     # this allows you to hook readyset directly with your cloud database
     
-    if args.get("upstream_db_url") != None:
+    if args.get(UPSTREAM_DB_URL_KEY) != None:
         # readyset package automatically parses the creds from the connection string
         # and connects to the relevant database and snapshots the tables.
         readyset_data = readyset.run(plan, { 
-            "upstream_db_url": args["upstream_db_url"]
+            "upstream_db_url": args[UPSTREAM_DB_URL_KEY]
         })
 
         ### ADD YOUR CODE
@@ -104,8 +110,7 @@ def run(plan, args):
         ### can be accssed by doing readyset_data.url
         return struct(readyset_data=readyset_data)
     
-
-    if args.get("db_type") == "mysql":
+    if args.get(DB_TYPE) == "mysql":
         mysql_data = run_local_mysql(plan)
         # UNCOMMENT LINES 111 TO 114 ONCE run_local_mysql is implemented
         # readyset_data = readyset.run(plan, {
@@ -117,7 +122,7 @@ def run(plan, args):
     # We can run same set of services under same condition multiple times either locally or on cloud. If you are interested in learning more
     # about cloud offering, please reach out to us. 
     postgres_data = run_local_postgres(plan)
-    readyset_data = readyset.run(plan, { 
+    readyset_data = readyset.run( plan, { 
         "upstream_db_url": postgres_data.url
     })
     
