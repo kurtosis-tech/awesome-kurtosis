@@ -55,9 +55,9 @@ Latency percentiles (in milliseconds):
 "
 }
 INFO[2023-05-11T02:28:43-04:00] ==================================================== 
-INFO[2023-05-11T02:28:43-04:00] ||          Created enclave: quiet-trail          || 
+INFO[2023-05-11T02:28:43-04:00] ||          Created enclave: readyset-perf          || 
 INFO[2023-05-11T02:28:43-04:00] ==================================================== 
-Name:            quiet-trail
+Name:            readyset-perf
 UUID:            0b38c17bd505
 Status:          RUNNING
 Creation Time:   Thu, 11 May 2023 02:26:38 EDT
@@ -103,7 +103,7 @@ kurtosis run --enclave readyset-remote github.com/kurtosis-tech/awesome-kurtosis
 After running Kurtosis package, you should an output similar to the one shown below:
 ```
 INFO[2023-05-11T02:28:43-04:00] ==================================================== 
-INFO[2023-05-11T02:28:43-04:00] ||          Created enclave: quiet-trail          || 
+INFO[2023-05-11T02:28:43-04:00] ||          Created enclave: readyset-perf          || 
 INFO[2023-05-11T02:28:43-04:00] ==================================================== 
 ...
 ...
