@@ -17,7 +17,7 @@ Environments defined in your GitHub repository, such as this one, can run on you
 
 ## Running Kurtosis Package
 
-To run the example, first, ensure that you have the latest version of the Kurtosis CLI installed. You can do this by [following the installation guide](https://docs.kurtosistech.com/install) and then running the command:
+To run the example, first, ensure that you have the latest version of the Kurtosis CLI installed. You can do this by [following the installation guide](https://docs.kurtosis.com/install) and then running the command:
 
 ```shell
 kurtosis run --enclave readyset-perf github.com/kurtosis-tech/awesome-kurtosis/readyset-example

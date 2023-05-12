@@ -22,9 +22,9 @@
   "version": "1.0.0",
   "description": "",
   "repository": "https://github.com/kurtosis-tech/awesome-kurtosis",
-  "author": "Tedi Mitiku <tedi.mitiku@kurtosistech.com>",
+  "author": "Tedi Mitiku <tedi.mitiku@kurtosis.com>",
   "contributors": [
-    "Derek Lee <derek.lee@kurtosistech.com>"
+    "Derek Lee <derek.lee@kurtosis.com>"
   ],
   "dependencies": {
     "typescript": "^4.5.4"
