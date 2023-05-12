@@ -49,7 +49,7 @@ It's important to keep `nginx` as the DNS here as it's the hostname of the nginx
 Simply override the `args.json` file with the following data:
 ```json
 {
-    "chain_name": "Local Avalanche Chain",
+    "chain_name": "Avalanche C-Chain on Fuji Testnet",
     "chain_id": "43113",
     "wss_url": "wss://api.avax-test.network/ext/bc/C/ws", 
     "http_url": "https://api.avax-test.network/"
