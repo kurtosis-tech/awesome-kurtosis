@@ -24,7 +24,7 @@
   "repository": "https://github.com/kurtosis-tech/awesome-kurtosis",
   "author": "Tedi Mitiku <tedi.mitiku@kurtosis.com>",
   "contributors": [
-    "Derek Lee <derek.lee@kurtosis.com>"
+    "Derek Lee <derek.lee@kurtosistech.com>"
   ],
   "dependencies": {
     "typescript": "^4.5.4"
