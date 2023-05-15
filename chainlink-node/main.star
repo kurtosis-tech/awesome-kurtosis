@@ -1,6 +1,6 @@
 eth_network_module = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
 
-postgres_helpers = import_module("github.com/kurtosis-tech/chainlink-starlark/postgres/postgres.star")
+postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 nginx_helpers = import_module("github.com/kurtosis-tech/chainlink-starlark/nginx/nginx.star")
 
 CHAINLINK_SERVICE_NAME = "chainlink"
@@ -15,6 +15,15 @@ CHAINLINK_SERVICE_NAME = "chainlink"
 CHAINLINK_IMAGE = "smartcontract/chainlink:1.13.1"
 CHAINLINK_CUSTOM_IMAGE = "gbouv/chainlink:1.13.1"
 CHAINLINK_PORT = 6688
+CHAINLINK_PORT_WAIT = "30s"
+
+# Postgres info
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "secretdatabasepassword"
+POSTGRES_DATABASE = "chainlink_test"
+POSTGRES_SERVICE_NAME = "postgres"
+POSTGRES_URL_MAIN_SEPARATOR = "@"
+POSTGRES_URL_HOSTNAME_DBNAME_SEPARATOR = "/"
 
 
 def run(plan, args):
@@ -22,16 +31,25 @@ def run(plan, args):
     is_local_chain, chain_name, chain_id, wss_url, http_url, custom_certificate_maybe = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
-    postgres_database = postgres_helpers.spin_up_database(plan)
+    postgres_args = {
+        "password": POSTGRES_PASSWORD,
+        "database": POSTGRES_DATABASE,
+        "user": POSTGRES_USER,
+        "name": POSTGRES_SERVICE_NAME,
+    }
+
+    postgres_db = postgres.run(plan, postgres_args)
+
+    postgres_db_hostname = get_postgres_hostname_from_service(postgres_db)
 
     # Render the config.toml and secret.toml file necessary to start the Chainlink node
-    chainlink_config_files = render_chainlink_config(plan, postgres_database.ip_address, chain_name, chain_id, wss_url, http_url)
+    chainlink_config_files = render_chainlink_config(plan, postgres_db_hostname, postgres_db.port.number, chain_name, chain_id, wss_url, http_url)
 
     # Seed the database by creating a user programatically
     # In the normal workflow, the user is being created by the user running the
     # container everytime the container starts on a fresh database. Here, we
     # programatically insert the values into the DB to create the user automatically
-    seed_database(plan, postgres_database.name, chainlink_config_files)
+    seed_database(plan, chainlink_config_files)
 
     # Finally we can start the Chainlink node and wait for it to be up and running
     chainlink_image_name = CHAINLINK_IMAGE
@@ -50,7 +68,7 @@ def run(plan, args):
         config=ServiceConfig(
             image=chainlink_image_name,
             ports={
-                "http": PortSpec(number=CHAINLINK_PORT)
+                "http": PortSpec(number=CHAINLINK_PORT, wait=CHAINLINK_PORT_WAIT)
             },
             files=mounted_files,
             entrypoint=[
@@ -112,7 +130,7 @@ def init_chain_connection(plan, args):
     return True, chain_name, chain_id, wss_url, http_url, nginx_cert
 
 
-def render_chainlink_config(plan, postgres_hostname, chain_name, chain_id, wss_url, http_url):
+def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
     config_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/config.toml.tmpl")
     secret_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/secret.toml.tmpl")
     chainlink_config_files = plan.render_templates(
@@ -130,11 +148,11 @@ def render_chainlink_config(plan, postgres_hostname, chain_name, chain_id, wss_u
             "secret.toml": struct(
                 template=secret_file_template,
                 data={
-                    "PG_USER": postgres_helpers.PG_USER,
-                    "PG_PASSWORD": postgres_helpers.PG_PASSWORD,
+                    "PG_USER": POSTGRES_USER,
+                    "PG_PASSWORD": POSTGRES_PASSWORD,
                     "HOST": postgres_hostname,
-                    "PORT": postgres_helpers.PG_PORT,
-                    "DATABASE": postgres_helpers.PG_DATABASE,
+                    "PORT": postgres_port,
+                    "DATABASE": POSTGRES_DATABASE,
                 }
             ),
         }
@@ -142,7 +160,7 @@ def render_chainlink_config(plan, postgres_hostname, chain_name, chain_id, wss_u
     return chainlink_config_files
 
 
-def seed_database(plan, postgres_service_name, chainlink_config_files):
+def seed_database(plan, chainlink_config_files):
     # This command fails, but at least it seeds the database with the right schema,
     # which is just what we need here
     plan.add_service(
@@ -166,13 +184,19 @@ def seed_database(plan, postgres_service_name, chainlink_config_files):
     )
 
     seed_user_sql = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/seed_users.sql")
-    psql_command = "psql --username {} -c \"{}\" {}".format(postgres_helpers.PG_USER, str(seed_user_sql), postgres_helpers.PG_DATABASE)
+    psql_command = "psql --username {} -c \"{}\" {}".format(POSTGRES_USER, str(seed_user_sql), POSTGRES_DATABASE)
     create_user_recipe = ExecRecipe(command = ["sh", "-c", psql_command])
     plan.wait(
-        service_name=postgres_service_name,
+        service_name=POSTGRES_SERVICE_NAME,
         recipe=create_user_recipe,
         field="code",
         assertion="==",
         target_value=0,
         timeout="20s",
     )
+
+def get_postgres_hostname_from_service(postgres_service):
+    postgres_db_url_parts = postgres_service.url.split(POSTGRES_URL_MAIN_SEPARATOR)
+    postgres_db_hostname_dbname = postgres_db_url_parts[1].split(POSTGRES_URL_HOSTNAME_DBNAME_SEPARATOR)
+    postgres_db_hostname = postgres_db_hostname_dbname[0]
+    return postgres_db_hostname
