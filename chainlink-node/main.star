@@ -141,7 +141,8 @@ def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, 
                 data={
                     "NAME": chain_name,
                     "CHAIN_ID": chain_id,
-                    "ETH_URL": wss_url,
+                    "WS_URL": wss_url,
+                    "HTTP_URL": http_url,
                 }
             ),
             "secret.toml": struct(
