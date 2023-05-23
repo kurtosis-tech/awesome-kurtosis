@@ -126,7 +126,7 @@ def init_chain_connection(plan, args):
 
     # Those path comes from NGINX config
     wss_url = "ws://{}/ext/bc/C/ws".format(nginx.hostname)
-    http_url = "http://{}/".format(nginx.hostname)
+    http_url = "http://{}/ext/bc/C/rpc".format(nginx.hostname)
     return True, chain_name, chain_id, wss_url, http_url, nginx_cert
 
 
