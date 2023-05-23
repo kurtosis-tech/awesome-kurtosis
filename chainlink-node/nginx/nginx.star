@@ -44,7 +44,7 @@ def spin_up_nginx(plan, avax_node):
         ),
         field="code",
         assertion="==",
-        target_value=200,
+        target_value=404,
         timeout="1m",
     )
     return nginx, nginx_cert_artifact
