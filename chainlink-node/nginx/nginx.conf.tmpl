@@ -25,7 +25,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header X-NginX-Proxy true;
-        proxy_pass   http://{{ .ETH_NODE_IP }}:{{ .ETH_NODE_WS_PORT }}/;
+        proxy_pass   http://{{ .AVAX_NODE_IP }}:{{ .AVAX_NODE_PORT }}/;
     }
 
     location ^~ /rpc {
@@ -36,6 +36,6 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";        
         proxy_set_header X-NginX-Proxy true;
-        proxy_pass    http://{{ .ETH_NODE_IP }}:{{ .ETH_NODE_RPC_PORT }}/;
+        proxy_pass    http://{{ .AVAX_NODE_IP }}:{{ .AVAX_NODE_PORT }}/;
     }
 }

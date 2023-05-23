@@ -1,4 +1,4 @@
-eth_network_module = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
+avalanche_module = import_module("github.com/kurtosis-tech/avalanche-package/main.star")
 
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 nginx_helpers = import_module("github.com/kurtosis-tech/chainlink-starlark/nginx/nginx.star")
@@ -114,18 +114,18 @@ def init_chain_connection(plan, args):
         plan.print("Connecting to remote chain with ID: {}".format(chain_id))
         return False, chain_name, chain_id, args["wss_url"], args["http_url"], None
     
-    plan.print("Spinning up a local ETH chain and connecting to it")
-    eth_network_participants, _ = eth_network_module.run(plan, args)
-    # Chainlink needs to connect to a single EL client member of the chain.
+    plan.print("Spinning up a local Avalanche chain and connecting to it")
+    avalanche_nodes = avalanche_module.run(plan, args)
+    # Chainlink needs to connect to a single Avax client
     # Here we pick the first one randomly, we could have picked any
-    random_eth_node = eth_network_participants[0]
+    random_avax_node = avalanche_nodes[0]
 
     # We need to spin up NGINX in front of the ETH node to enable HTTPS, otherwise
     # the Chainlink node will refuse to connect to it
-    nginx, nginx_cert = nginx_helpers.spin_up_nginx(plan, random_eth_node)
+    nginx, nginx_cert = nginx_helpers.spin_up_nginx(plan, random_avax_node)
 
     # Those path comes from NGINX config
-    wss_url = "wss://{}/ws".format(nginx.hostname)
+    wss_url = "wss://{}/ext/bc/C/ws".format(nginx.hostname)
     http_url = "http://{}/rpc".format(nginx.hostname)
     return True, chain_name, chain_id, wss_url, http_url, nginx_cert
 
@@ -141,8 +141,7 @@ def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, 
                 data={
                     "NAME": chain_name,
                     "CHAIN_ID": chain_id,
-                    "WSS_URL": wss_url,
-                    "HTTP_URL": http_url,
+                    "ETH_URL": wss_url,
                 }
             ),
             "secret.toml": struct(

@@ -1,6 +1,6 @@
 {
     "chain_name": "Local chain",
-    "chain_id": "3151908",
+    "chain_id": "local",
     "wss_url": "",
     "http_url": ""
 }

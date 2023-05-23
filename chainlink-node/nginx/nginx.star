@@ -4,14 +4,13 @@ HTTP_PORT=80
 HTTPS_PORT=443
 
 
-def spin_up_nginx(plan, eth_node):
+def spin_up_nginx(plan, avax_node):
     nginx_cert_artifact, nginx_key_artifact = generate_certificates(plan)
     nginx_conf_template = read_file("github.com/kurtosis-tech/chainlink-starlark/nginx/nginx.conf.tmpl")
 
     nginx_conf_data = {
-        "ETH_NODE_IP": eth_node.el_client_context.ip_addr,
-        "ETH_NODE_WS_PORT": eth_node.el_client_context.ws_port_num,
-        "ETH_NODE_RPC_PORT": eth_node.el_client_context.rpc_port_num,
+        "AVAX_NODE_IP": avax_node.ip_address,
+        "AVAX_NODE_PORT": avax_node.ports["rpc"].number
     }
     nginx_config_file_artifact = plan.render_templates(
         name = "nginx-configuration",
