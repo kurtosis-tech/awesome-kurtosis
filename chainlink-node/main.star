@@ -125,7 +125,7 @@ def init_chain_connection(plan, args):
     nginx, nginx_cert = nginx_helpers.spin_up_nginx(plan, random_avax_node)
 
     # Those path comes from NGINX config
-    wss_url = "wss://{}/ws/ext/bc/C/ws".format(nginx.hostname)
+    wss_url = "ws://{}/ws".format(nginx.hostname)
     http_url = "https://{}/rpc".format(nginx.hostname)
     return True, chain_name, chain_id, wss_url, http_url, nginx_cert
 
