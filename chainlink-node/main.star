@@ -47,7 +47,7 @@ def run(plan, args):
     mounted_files = {
         "/chainlink/": chainlink_config_files,
     }
-    
+
     chainlink_service = plan.add_service(
         name=CHAINLINK_SERVICE_NAME,
         config=ServiceConfig(
