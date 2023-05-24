@@ -19,7 +19,7 @@ POSTGRES_URL_HOSTNAME_DBNAME_SEPARATOR = "/"
 
 def run(plan, args):
     # Configure the chain to connect to based on the args
-    is_local_chain, chain_name, chain_id, wss_url, http_url, custom_certificate_maybe = init_chain_connection(plan, args)
+    is_local_chain, chain_name, chain_id, wss_url, http_url, eth_rpc_url, eth_ws_url = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
     postgres_args = {
@@ -111,7 +111,7 @@ def init_chain_connection(plan, args):
     eth_rpc_url = "http://{}/".format(eth_rpc)
     eth_ws_url = "ws://{}/".format(eth_ws)
 
-    return True, chain_name, chain_id, avax_wss_url, avax_http_url, eth_rpc, eth_ws_url
+    return True, chain_name, chain_id, avax_wss_url, avax_http_url, eth_rpc_url, eth_ws_url
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
