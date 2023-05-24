@@ -19,7 +19,7 @@ POSTGRES_URL_HOSTNAME_DBNAME_SEPARATOR = "/"
 
 def run(plan, args):
     # Configure the chain to connect to based on the args
-    is_local_chain, chain_name, chain_id, wss_url, http_url, eth_rpc_url, eth_ws_url = init_chain_connection(plan, args)
+    is_local_chain, chain_name, chain_id, wss_url, http_url = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
     postgres_args = {
@@ -90,28 +90,28 @@ def init_chain_connection(plan, args):
         plan.print("Connecting to remote chain with ID: {}".format(chain_id))
         return False, chain_name, chain_id, args["wss_url"], args["http_url"], None
     
-    plan.print("Spinning up a local Avalanche chain and connecting to it")
-    avalanche_nodes = avalanche_module.run(plan, args)
-    # Chainlink needs to connect to a single Avax client
-    # Here we pick the first one randomly, we could have picked any
-    random_avax_node = avalanche_nodes[0]
-    avax_ip_port = "{}:{}".format(random_avax_node.ip_address, random_avax_node.ports["rpc"].number)
+    ws_url = ""
+    http_url = ""
 
-    plan.print("Spinning up local etheruem node")
-    participants, _ = eth_network_package.run(plan, args)
-    random_eth_node  = participants[0]
-    
-    eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
-    eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
+    if args["chain_id"] == "43112":
+        plan.print("Spinning up a local Avalanche chain and connecting to it")
+        avalanche_nodes = avalanche_module.run(plan, args)
+        random_avax_node = avalanche_nodes[0]
+        avax_ip_port = "{}:{}".format(random_avax_node.ip_address, random_avax_node.ports["rpc"].number)
+        ws_url = "ws://{}/ext/bc/C/ws".format(avax_ip_port)
+        http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
+    elif args["chain_id"] == "3151908":
+        plan.print("Spinning up local etheruem node")
+        participants, _ = eth_network_package.run(plan, args)
+        random_eth_node  = participants[0]
+        eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
+        eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
+        http_url = "http://{}/".format(eth_rpc)
+        ws_url = "ws://{}/".format(eth_ws)
+    else:
+        fail("Got chain_id {} - but no wss_url and http_url provided. Use 43112 for local AVAX or 3151908 for local eth otherwise please specify wss_url and http_url")
 
-    # Those path comes from NGINX config
-    avax_wss_url = "ws://{}/ext/bc/C/ws".format(avax_ip_port)
-    avax_http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
-
-    eth_rpc_url = "http://{}/".format(eth_rpc)
-    eth_ws_url = "ws://{}/".format(eth_ws)
-
-    return True, chain_name, chain_id, avax_wss_url, avax_http_url, eth_rpc_url, eth_ws_url
+    return True, chain_name, chain_id, ws_url, http_url
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
