@@ -88,7 +88,7 @@ def init_chain_connection(plan, args):
     chain_id = args["chain_id"]
     if args["wss_url"] != "" and args["http_url"] != "":
         plan.print("Connecting to remote chain with ID: {}".format(chain_id))
-        return False, chain_name, chain_id, args["wss_url"], args["http_url"], None
+        return False, chain_name, chain_id, args["wss_url"], args["http_url"]
     
     ws_url = ""
     http_url = ""
