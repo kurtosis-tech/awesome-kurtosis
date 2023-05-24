@@ -95,7 +95,7 @@ def init_chain_connection(plan, args):
     # Chainlink needs to connect to a single Avax client
     # Here we pick the first one randomly, we could have picked any
     random_avax_node = avalanche_nodes[0]
-    avax_ip_port = "{}:{}".format(random_avax_node.ip_address, random_avax_node.port["rpc"].number)
+    avax_ip_port = "{}:{}".format(random_avax_node.ip_address, random_avax_node.ports["rpc"].number)
 
     plan.print("Spinning up local etheruem node")
     participants, _ = eth_network_package.run(plan, args)
