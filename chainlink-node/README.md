@@ -34,17 +34,6 @@ password: 16charlengthp4SsW0rD1!@#_
 ### Running a local Ethereum network
 To spin up the Chainlink node connected to a local Ethereum network, simply run the same commands as above but with empty values for the `wss_url` and `http_url` fields in the `args.json` file. Leave the `chain_id` field as it is to ensure the Chainlink node successfully connects to the CL client on your local Ethereum network. The local Ethereum network is a separate package defined as the "[eth-network-package](https://github.com/kurtosis-tech/eth-network-package)".
 
-WARNING: This currently does not work with the `smartcontract/chainlink:1.13.1` docker image as this image prevents us from using `update-ca-certificates` inside the container to trust the self-signed certificate we use in NGINX in front of the ETH network. We had to build our own image at `gbouv/chainlink:1.13.1` which is strictly identical, but uses the root user by default so `update-ca-certificates` can be run and the Chainlink node can connect to the local ETH network through NGINX.
-
-Note that Chainlink nodes can only connect to an Ethereum chain when the chain exposes encrypted endpoint. Because of this, the package also spins up an NGINX container with pre-loaded certificates and configured to proxy queries 
-to one of the ethereum node.
-
-Note: for now the certificates are self-signed certificates checked into  the repo under `./nginx/ssl/`. They have been generated with the following command on MacOS:
-```
-openssl req -x509 -nodes -addext "subjectAltName = DNS:nginx" -days 1461 -newkey rsa:2048 -keyout ./nginx/ssl/nginx.key -out ./nginx/ssl/nginx.crt
-```
-It's important to keep `nginx` as the DNS here as it's the hostname of the nginx container spun up inside the enclave. In the long term, the certificates should be generated with an openssl container and not be checked inside the repo.
-
 ### Connecting it to Avalanche's C-chain subnet on the Fuji testnet 
 Simply override the `args.json` file with the following data:
 ```json
@@ -52,8 +41,12 @@ Simply override the `args.json` file with the following data:
     "chain_name": "Avalanche C-Chain on Fuji Testnet",
     "chain_id": "43113",
     "wss_url": "wss://api.avax-test.network/ext/bc/C/ws", 
-    "http_url": "https://api.avax-test.network/"
+    "http_url": "https://api.avax-test.network/ext/bc/C/rpc"
 }
 ```
 
 The `chain_id` and URLs are from the [official Avalanche Public API Server docs](https://docs.avax.network/apis/avalanchego/public-api-server#using-the-public-api-nodes).
+
+### Running a local Avalanche Network
+
+This is very similar to running a local ethereum network but instead of the `chain_id` being `3151908` it needs to be `43112`. The Avalanche package is [here](https://github.com/kurtosis-tech/avalanche-package)

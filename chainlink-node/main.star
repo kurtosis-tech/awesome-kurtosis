@@ -1,19 +1,10 @@
-eth_network_module = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
+avalanche_module = import_module("github.com/kurtosis-tech/avalanche-package/main.star")
+eth_network_package = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
 
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
-nginx_helpers = import_module("github.com/kurtosis-tech/chainlink-starlark/nginx/nginx.star")
 
 CHAINLINK_SERVICE_NAME = "chainlink"
-# The reason we need a custom docker image is for when the package in run on a local ETH chain
-#      When running a local Ethereum network, Chainlink needs the GETH node to run HTTPS endpoint. 
-#      We do that by putting the node behind NGINX with self-signed certificates. But then the 
-#      Chainlink node needs to trust the self-signed certificate. This is done by adding the certificate
-#      to Linux truststore, and running `update-ca-certificates` command. BUT, on the regular Chainlink
-#      Docker image, the default `chainlink` user does not have root access, and therefore cannot update
-#      the truststore. This image fixes this as well.
-# See the README.md for more info
 CHAINLINK_IMAGE = "smartcontract/chainlink:1.13.1"
-CHAINLINK_CUSTOM_IMAGE = "gbouv/chainlink:1.13.1"
 CHAINLINK_PORT = 6688
 CHAINLINK_PORT_WAIT = "30s"
 
@@ -28,7 +19,7 @@ POSTGRES_URL_HOSTNAME_DBNAME_SEPARATOR = "/"
 
 def run(plan, args):
     # Configure the chain to connect to based on the args
-    is_local_chain, chain_name, chain_id, wss_url, http_url, custom_certificate_maybe = init_chain_connection(plan, args)
+    is_local_chain, chain_name, chain_id, wss_url, http_url = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
     postgres_args = {
@@ -56,13 +47,7 @@ def run(plan, args):
     mounted_files = {
         "/chainlink/": chainlink_config_files,
     }
-    if is_local_chain:
-        chainlink_image_name = CHAINLINK_CUSTOM_IMAGE
-        # Place the NGINX certificate in the folder of trusted certificates.
-        # `update-ca-certificates` will then be run (see below) to add this 
-        # cert into Linux truststore so that Chainlink can trust the NGINX
-        # certificate
-        mounted_files["/usr/local/share/ca-certificates/"] = custom_certificate_maybe
+
     chainlink_service = plan.add_service(
         name=CHAINLINK_SERVICE_NAME,
         config=ServiceConfig(
@@ -84,15 +69,6 @@ def run(plan, args):
             ],
         )
     )
-    # this currently fails in the official docker image because the `chainlink` user in the chainlink 
-    # container is not authorized to run this command - it gets a permission denied
-    if is_local_chain:
-        plan.exec(
-            service_name=chainlink_service.name,
-            recipe=ExecRecipe(
-                command=["sh", "-c", "update-ca-certificates"]
-            )
-        )
 
     plan.wait(
         service_name=chainlink_service.name,
@@ -112,22 +88,30 @@ def init_chain_connection(plan, args):
     chain_id = args["chain_id"]
     if args["wss_url"] != "" and args["http_url"] != "":
         plan.print("Connecting to remote chain with ID: {}".format(chain_id))
-        return False, chain_name, chain_id, args["wss_url"], args["http_url"], None
+        return False, chain_name, chain_id, args["wss_url"], args["http_url"]
     
-    plan.print("Spinning up a local ETH chain and connecting to it")
-    eth_network_participants, _ = eth_network_module.run(plan, args)
-    # Chainlink needs to connect to a single EL client member of the chain.
-    # Here we pick the first one randomly, we could have picked any
-    random_eth_node = eth_network_participants[0]
+    ws_url = ""
+    http_url = ""
 
-    # We need to spin up NGINX in front of the ETH node to enable HTTPS, otherwise
-    # the Chainlink node will refuse to connect to it
-    nginx, nginx_cert = nginx_helpers.spin_up_nginx(plan, random_eth_node)
+    if args["chain_id"] == "43112":
+        plan.print("Spinning up a local Avalanche chain and connecting to it")
+        avalanche_nodes = avalanche_module.run(plan, args)
+        random_avax_node = avalanche_nodes[0]
+        avax_ip_port = "{}:{}".format(random_avax_node.ip_address, random_avax_node.ports["rpc"].number)
+        ws_url = "ws://{}/ext/bc/C/ws".format(avax_ip_port)
+        http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
+    elif args["chain_id"] == "3151908":
+        plan.print("Spinning up local etheruem node")
+        participants, _ = eth_network_package.run(plan, args)
+        random_eth_node  = participants[0]
+        eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
+        eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
+        http_url = "http://{}/".format(eth_rpc)
+        ws_url = "ws://{}/".format(eth_ws)
+    else:
+        fail("Got chain_id {} - but no wss_url and http_url provided. Use 43112 for local AVAX or 3151908 for local eth otherwise please specify wss_url and http_url")
 
-    # Those path comes from NGINX config
-    wss_url = "wss://{}/ws".format(nginx.hostname)
-    http_url = "http://{}/rpc".format(nginx.hostname)
-    return True, chain_name, chain_id, wss_url, http_url, nginx_cert
+    return True, chain_name, chain_id, ws_url, http_url
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
@@ -141,7 +125,7 @@ def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, 
                 data={
                     "NAME": chain_name,
                     "CHAIN_ID": chain_id,
-                    "WSS_URL": wss_url,
+                    "WS_URL": wss_url,
                     "HTTP_URL": http_url,
                 }
             ),
