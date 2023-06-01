@@ -37,8 +37,8 @@ parameters:
 
 jobs:
   check_all:
-    # strictly speaking we don't "need" this(xlarge) but we are continuously adding new examples
-    resource_class: xlarge
+    # strictly speaking we don't "need" this(large) but we are continuously adding new examples
+    resource_class: large
     executor: ubuntu_vm
     steps:
       - checkout
@@ -61,8 +61,8 @@ jobs:
             done
 
   check_all_nightly:
-    # strictly speaking we don't "need" this(xlarge) but we are continuously adding new examples
-    resource_class: xlarge
+    # strictly speaking we don't "need" this(large) but we are continuously adding new examples
+    resource_class: large
     executor: ubuntu_vm
     steps:
       - checkout
