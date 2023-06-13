@@ -23,7 +23,7 @@ const HTTP_CREATED = 201
 const HTTP_OK = 200
 
 const MAIN_FILE_RELATIVE_PATH = ""
-const MAIN_FUNCTION_NAME = "run"
+const MAIN_FUNCTION_NAME = ""
 
 jest.setTimeout(180000)
 

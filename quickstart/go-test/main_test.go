@@ -38,8 +38,8 @@ const (
 
 	contentType = "application/json"
 
-	pathToMainFile = ""
-	mainFunctionName = "run"
+	pathToMainFile   = ""
+	mainFunctionName = ""
 )
 
 type Actor struct {
