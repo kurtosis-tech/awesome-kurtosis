@@ -37,6 +37,9 @@ const (
 	apiServiceName = "api"
 
 	contentType = "application/json"
+
+	pathToMainFile   = ""
+	mainFunctionName = ""
 )
 
 type Actor struct {
@@ -60,7 +63,7 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	defer kurtosisCtx.DestroyEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING PACKAGE ---------------")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, quickstartPackage, emptyPackageParams, noDryRun, defaultParallelism)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, quickstartPackage, pathToMainFile, mainFunctionName, emptyPackageParams, noDryRun, defaultParallelism)
 	require.NoError(t, err, "An error executing loading the Quickstart package")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
