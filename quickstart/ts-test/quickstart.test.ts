@@ -22,6 +22,9 @@ const HTTP_PORT_ID = "http"
 const HTTP_CREATED = 201
 const HTTP_OK = 200
 
+const MAIN_FILE_RELATIVE_PATH = ""
+const MAIN_FUNCTION_NAME = "run"
+
 jest.setTimeout(180000)
 
 class Actor {
@@ -58,7 +61,7 @@ test("Test quickstart post and get", async () => {
         // ------------------------------------- PACKAGE RUN ----------------------------------------------
         log.info("------------ EXECUTING PACKAGE ---------------")
 
-        const runResult: Result<StarlarkRunResult, Error> = await enclaveContext.runStarlarkRemotePackageBlocking(QUICKSTART_PACKAGE, EMPTY_PACKAGE_PARAMS, IS_NOT_DRY_RUN)
+        const runResult: Result<StarlarkRunResult, Error> = await enclaveContext.runStarlarkRemotePackageBlocking(QUICKSTART_PACKAGE, MAIN_FILE_RELATIVE_PATH, MAIN_FUNCTION_NAME, EMPTY_PACKAGE_PARAMS, IS_NOT_DRY_RUN)
 
         if (runResult.isErr()) {
             log.error(`An error occurred execute Starlark package '${QUICKSTART_PACKAGE}'`);
