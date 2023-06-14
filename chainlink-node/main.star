@@ -7,6 +7,7 @@ CHAINLINK_SERVICE_NAME = "chainlink"
 CHAINLINK_IMAGE = "smartcontract/chainlink:1.13.1"
 CHAINLINK_PORT = 6688
 CHAINLINK_PORT_WAIT = "30s"
+CHAINLINK_P2PV2_PORT=8000
 
 # Postgres info
 POSTGRES_USER = "postgres"
@@ -53,7 +54,8 @@ def run(plan, args):
         config=ServiceConfig(
             image=chainlink_image_name,
             ports={
-                "http": PortSpec(number=CHAINLINK_PORT, wait=CHAINLINK_PORT_WAIT)
+                "http": PortSpec(number=CHAINLINK_PORT, wait=CHAINLINK_PORT_WAIT),
+                # "tcp": PortSpec(number=CHAINLINK_P2PV2_PORT, wait=None)
             },
             files=mounted_files,
             entrypoint=[
@@ -115,7 +117,39 @@ def init_chain_connection(plan, args):
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
-    config_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/config.toml.tmpl")
+    config_file_template = """
+[Log]
+Level = 'warn'
+
+[WebServer]
+AllowOrigins = '*'
+SecureCookies = false
+
+[WebServer.TLS]
+HTTPSPort = 0
+
+[[EVM]]
+ChainID = '{{.CHAIN_ID}}'
+
+[[EVM.Nodes]]
+Name = '{{.NAME}}'
+WSURL = '{{.WS_URL}}'
+HTTPURL = '{{.HTTP_URL}}'
+
+[Feature]
+LogPoller = true
+
+[OCR2]
+Enabled = true
+
+[P2P]
+[P2P.V2]
+Enabled = true
+ListenAddresses = ["0.0.0.0:8000"]
+
+[Keeper]
+TurnLookBack = 0
+"""
     secret_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/secret.toml.tmpl")
     chainlink_config_files = plan.render_templates(
         name="chainlink-configuration",
