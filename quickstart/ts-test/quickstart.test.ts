@@ -9,7 +9,6 @@ import * as http from "http";
 
 const TEST_NAME = "quick-start-ts-example";
 const MILLISECONDS_IN_SECOND = 1000;
-const IS_PARTITIONING_ENABLED = false;
 const EMPTY_PACKAGE_PARAMS = "{}"
 const IS_NOT_DRY_RUN = false
 
@@ -49,7 +48,7 @@ test("Test quickstart post and get", async () => {
 
     // ------------------------------------- ENGINE SETUP ----------------------------------------------
     log.info("Creating the enclave")
-    const createEnclaveResult = await createEnclave(TEST_NAME, IS_PARTITIONING_ENABLED)
+    const createEnclaveResult = await createEnclave(TEST_NAME)
 
     if (createEnclaveResult.isErr()) {
         throw createEnclaveResult.error
@@ -149,7 +148,7 @@ test("Test quickstart post and get", async () => {
     }
 })
 
-async function createEnclave(testName: string, isPartitioningEnabled: boolean):
+async function createEnclave(testName: string):
     Promise<Result<{
         enclaveContext: EnclaveContext,
         destroyEnclaveFunction: () => Promise<Result<null, Error>>,
@@ -163,7 +162,7 @@ async function createEnclave(testName: string, isPartitioningEnabled: boolean):
     const kurtosisContext = newKurtosisContextResult.value;
 
     const enclaveName: EnclaveUUID = `${testName}.${Math.round(Date.now() / MILLISECONDS_IN_SECOND)}`
-    const createEnclaveResult = await kurtosisContext.createEnclave(enclaveName, isPartitioningEnabled);
+    const createEnclaveResult = await kurtosisContext.createEnclave(enclaveName);
 
     if (createEnclaveResult.isErr()) {
         log.error(`An error occurred creating enclave ${enclaveName}`)
