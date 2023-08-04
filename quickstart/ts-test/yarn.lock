@@ -2171,10 +2171,10 @@ kleur@^3.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
 
-kurtosis-sdk@0.80.0:
-  version "0.80.0"
-  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.80.0.tgz#591fe4a609098c3be164ff3c421963173894bc03"
-  integrity sha512-1xSpXpt06emsYjzzD6sb4bxZxI3shbofeZTSYuK6LdvO/HOkJqdVhcPrlaGMk0E+ver7NZu2wye/5m2O+OF/4A==
+kurtosis-sdk@0.81.3:
+  version "0.81.3"
+  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.81.3.tgz#e56f3da4f45753928a17e19f7cc229bcded9eff4"
+  integrity sha512-1TnzPNPUxTdYd+lejAcQEHMVLGk68yOaLF+uFgfwm7ugJ4mexLdu4c2b7CZG/rfzCaB0zm2p34HuPLrTLCquYg==
   dependencies:
     "@grpc/grpc-js" "^1.4.4"
     "@types/google-protobuf" "^3.15.5"
