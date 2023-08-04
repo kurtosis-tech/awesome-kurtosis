@@ -3,7 +3,7 @@ Readyset Example
 
 ## Overview
 
-This example demonstrates the [Kurtosis Readyset package](https://github.com/kurtosis-tech/readyset-package) in action. We have automated the Readyset's [quickstart](https://docs.readyset.io/guides/intro/quickstart/) and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
+This example demonstrates the [Kurtosis Readyset package](https://github.com/kurtosis-tech/readyset-package) in action. We have automated the Readyset's [quickstart](https://docs.readyset.io/quickstart) and showcase how Kurtosis can be useful, especially for integration and end-to-end testing use cases.
 
 In this example, we use Kurtosis to set up isolated and repeatable environment that contains three services: Postgres, Readyset, and Benchmark. The package does the following:
 
