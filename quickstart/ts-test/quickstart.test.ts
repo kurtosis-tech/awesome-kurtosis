@@ -161,7 +161,7 @@ async function createEnclave(testName: string):
     }
     const kurtosisContext = newKurtosisContextResult.value;
 
-    const enclaveName: EnclaveUUID = `${testName}.${Math.round(Date.now() / MILLISECONDS_IN_SECOND)}`
+    const enclaveName: EnclaveUUID = `${testName}-${Math.round(Date.now() / MILLISECONDS_IN_SECOND)}`
     const createEnclaveResult = await kurtosisContext.createEnclave(enclaveName);
 
     if (createEnclaveResult.isErr()) {
