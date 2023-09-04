@@ -27,7 +27,8 @@ def run(plan, args):
         service_name=POSTGRES_SERVICE_NAME,
         user=POSTGRES_USER,
         password=POSTGRES_PASSWORD,
-        database=POSTGRES_DATABASE)
+        database=POSTGRES_DATABASE,
+    )
 
     postgres_db_hostname = get_postgres_hostname_from_service(postgres_db)
 
