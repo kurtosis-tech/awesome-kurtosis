@@ -20,15 +20,14 @@ def run_local_postgres(plan):
         name="postgres_seed_file"
     )
 
-    postgres_args = { 
-        "postgres_config": ["wal_level=logical"],
-        "seed_file_artifact": "postgres_seed_file",
-        "password": PASSWORD,
-        "database": DATABASE,
-        "user": USERNAME,
-    }
-
-    postgres_data = postgres.run( plan, postgres_args)
+    postgres_data = postgres.run(
+        plan,
+        user = USERNAME,
+        password = PASSWORD,
+        database = DATABASE,
+        seed_file_artifact_name = "postgres_seed_file",
+        extra_configs = ["wal_level=logical"],
+    )
     return postgres_data
 
 def run_performance_service(plan, readyset_data, postgres_data):
