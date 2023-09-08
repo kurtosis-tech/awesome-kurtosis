@@ -36,15 +36,6 @@ parameters:
     default: true
 
 jobs:
-  check_smart_contract:
-    resource_class: large
-    executor: ubuntu_vm
-    steps:
-      - checkout
-      - <<: *install_and_start_kurtosis
-
-      - run:
-          command: "./smart-contract-example/scripts/run.sh"
   check_all:
     # strictly speaking we don't "need" this(large) but we are continuously adding new examples
     resource_class: large
@@ -129,7 +120,7 @@ workflows:
     jobs:
       - kurtosis-docs-checker/check-docs:
           should-check-changelog: false
-      - check_smart_contract:
+      - check_all:
           filters:
             branches:
               ignore:
