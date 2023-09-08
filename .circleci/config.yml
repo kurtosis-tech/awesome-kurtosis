@@ -129,7 +129,7 @@ workflows:
     jobs:
       - kurtosis-docs-checker/check-docs:
           should-check-changelog: false
-      - check_all:
+      - check_smart_contract:
           filters:
             branches:
               ignore:
