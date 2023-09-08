@@ -6,7 +6,7 @@ package_path="$(dirname "${script_dirpath}")"
 cd $package_path
 
 yarn
-kurtosis run github.com/kurtosis-tech/eth-network-package --enclave hardhat-enclave
+kurtosis run github.com/kurtosis-tech/eth-network-package  --enclave hardhat-enclave '{"network_params": {"capella_fork_epoch": 10}}'
 
 PORT=$(kurtosis enclave inspect hardhat-enclave | grep "rpc: 8545/tcp" | grep -oh "127.0.0.1\:[0-9]*" | cut -d':' -f2)
 
