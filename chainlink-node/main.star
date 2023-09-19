@@ -114,8 +114,8 @@ def init_chain_connection(plan, args):
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
-    config_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/config.toml.tmpl")
-    secret_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/secret.toml.tmpl")
+    config_file_template = read_file("github.com/kurtosis-tech/awesome-kurtosis/chainlink-node/chainlink_resources/config.toml.tmpl")
+    secret_file_template = read_file("github.com/kurtosis-tech/awesome-kurtosis/chainlink-node/chainlink_resources/secret.toml.tmpl")
     chainlink_config_files = plan.render_templates(
         name="chainlink-configuration",
         config={
@@ -166,7 +166,7 @@ def seed_database(plan, chainlink_config_files):
         )
     )
 
-    seed_user_sql = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/seed_users.sql")
+    seed_user_sql = read_file("github.com/kurtosis-tech/awesome-kurtosis/chainlink-node/chainlink_resources/seed_users.sql")
     psql_command = "psql --username {} -c \"{}\" {}".format(POSTGRES_USER, str(seed_user_sql), POSTGRES_DATABASE)
     create_user_recipe = ExecRecipe(command = ["sh", "-c", psql_command])
     plan.wait(
