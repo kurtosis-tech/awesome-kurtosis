@@ -5,9 +5,9 @@ VOTING_APP_IMAGE = "mcr.microsoft.com/azuredocs/azure-vote-front:v1"
 def run(plan, args):
 
     plan.print("Spinning up the Redis Package")
-    redis_run_output = main_redis_module.run(plan, args)
+    redis_run_output = main_redis_module.run(plan)
 
-    redis_hostname = redis_run_output["hostname"]
+    redis_hostname = redis_run_output.hostname
 
     plan.add_service(
         name = "voting-app",

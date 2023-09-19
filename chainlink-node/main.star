@@ -22,14 +22,13 @@ def run(plan, args):
     is_local_chain, chain_name, chain_id, wss_url, http_url = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
-    postgres_args = {
-        "password": POSTGRES_PASSWORD,
-        "database": POSTGRES_DATABASE,
-        "user": POSTGRES_USER,
-        "name": POSTGRES_SERVICE_NAME,
-    }
-
-    postgres_db = postgres.run(plan, postgres_args)
+    postgres_db = postgres.run(
+        plan,
+        service_name=POSTGRES_SERVICE_NAME,
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+        database=POSTGRES_DATABASE,
+    )
 
     postgres_db_hostname = get_postgres_hostname_from_service(postgres_db)
 
@@ -102,7 +101,7 @@ def init_chain_connection(plan, args):
         http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
     elif args["chain_id"] == "3151908":
         plan.print("Spinning up local etheruem node")
-        participants, _ = eth_network_package.run(plan, args)
+        participants, _, _ = eth_network_package.run(plan, args)
         random_eth_node  = participants[0]
         eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
         eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)

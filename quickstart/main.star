@@ -11,7 +11,7 @@ POSTGREST_PORT_ID = "http"
 
 def run(plan, args):
     # Make data available for use in Kurtosis
-    data_package_module_result = data_package_module.run(plan, struct())
+    data_package_module_result = data_package_module.run(plan, {})
 
     # Add a Postgres server
     postgres = plan.add_service(
@@ -32,18 +32,8 @@ def run(plan, args):
         ),
     )
 
-    # Wait for Postgres to become available
-    postgres_flags = ["-U", POSTGRES_USER,"-d", POSTGRES_DB]
-    plan.wait(
-        service_name = "postgres",
-        recipe = ExecRecipe(command = ["psql"] + postgres_flags + ["-c", "\\l"]),
-        field = "code",
-        assertion = "==",
-        target_value = 0,
-        timeout = "5s",
-    )
-
     # Load the data into Postgres
+    postgres_flags = ["-U", POSTGRES_USER,"-d", POSTGRES_DB]
     plan.exec(
         service_name = "postgres",
         recipe = ExecRecipe(command = ["pg_restore"] + postgres_flags + [
@@ -71,19 +61,6 @@ def run(plan, args):
             },
             ports = {POSTGREST_PORT_ID: PortSpec(3000, application_protocol = "http")},
         )
-    )
-
-    # Wait for PostgREST to become available
-    plan.wait(
-        service_name = "api",
-        recipe = GetHttpRequestRecipe(
-            port_id = POSTGREST_PORT_ID,
-            endpoint = "/actor?limit=5",
-        ),
-        field = "code",
-        assertion = "==",
-        target_value = 200,
-        timeout = "5s",
     )
 
     # Insert data

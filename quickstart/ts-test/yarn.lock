@@ -292,6 +292,23 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@bufbuild/connect-web@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@bufbuild/connect-web/-/connect-web-0.12.0.tgz#3d83a6128511d7b60a0c1e1883e7274ae6dd996e"
+  integrity sha512-bw5E6aIs0q3ab5oyIB263ShRg8DhUMsewMHsl/9lUxJFkmzxvHoPIlNFrSWOUUcyudJrahfhDveXF94bi9C5cA==
+  dependencies:
+    "@bufbuild/connect" "0.12.0"
+
+"@bufbuild/connect@0.12.0", "@bufbuild/connect@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@bufbuild/connect/-/connect-0.12.0.tgz#b339dc913135e0d29f143cae76581f7b090be34f"
+  integrity sha512-rYn3Akp7teOkvqxguLbf6QKizH37Yeo33lseV+JHDZC19CsAV9wrrZM17Sa+LNEBj/hrYtQF7EIcllgGxhv9aw==
+
+"@bufbuild/protobuf@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@bufbuild/protobuf/-/protobuf-1.3.0.tgz#69f675c76e6c1ab0b5bde141fa2df8b00927216a"
+  integrity sha512-G372ods0pLt46yxVRsnP/e2btVPuuzArcMPFpIDeIwiGPuuglEs9y75iG0HMvZgncsj5TvbYRWqbVyOe3PLCWQ==
+
 "@grpc/grpc-js@^1.4.4":
   version "1.8.13"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.8.13.tgz#e775685962909b76f8d4b813833c3d123867165b"
@@ -1451,6 +1468,11 @@ graceful-fs@^4.2.9:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
+grpc-web@^1.3.0:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/grpc-web/-/grpc-web-1.4.2.tgz#86995f76471ce6b2119106ec26f909b7b69e7d43"
+  integrity sha512-gUxWq42l5ldaRplcKb4Pw5O4XBONWZgz3vxIIXnfIeJj8Jc3wYiq2O4c9xzx/NGbbPEej4rhI62C9eTENwLGNw==
+
 has-flag@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-3.0.0.tgz#b5d454dc2199ae225699f3467e5a07f3b955bafd"
@@ -2166,11 +2188,14 @@ kleur@^3.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
 
-kurtosis-sdk@0.77.0:
-  version "0.77.0"
-  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.77.0.tgz#196e19722760d6b62cb60d6f1167fa33e0b40414"
-  integrity sha512-6+VrsaDAebLB8T/VpTC+2+hpgniTjQ8r2DQlo7HzR2NYw5Q+bQxsCFjfpaatClyf49tT1NqvJCue8WREET8TdQ==
+kurtosis-sdk@0.83.2:
+  version "0.83.2"
+  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.83.2.tgz#dcb5f52f61a82dbbc23a82cdeef6149ec16fdea7"
+  integrity sha512-3VG/3/5+pFRw/ttL0HUBJ/oDGAKp6zRtmfzUGK67bYdfJbVljoZR4lbcwUwMd2YwEjMaVOzab/SQ7PRHI79M+Q==
   dependencies:
+    "@bufbuild/connect" "^0.12.0"
+    "@bufbuild/connect-web" "^0.12.0"
+    "@bufbuild/protobuf" "^1.3.0"
     "@grpc/grpc-js" "^1.4.4"
     "@types/google-protobuf" "^3.15.5"
     "@types/js-yaml" "^4.0.5"
@@ -2178,6 +2203,7 @@ kurtosis-sdk@0.77.0:
     "@types/semver" "^7.3.9"
     browser-or-node "^2.0.0"
     google-protobuf "^3.17.3"
+    grpc-web "^1.3.0"
     js-yaml "^4.1.0"
     loglevel "^1.7.1"
     neverthrow "^4.2.2"
