@@ -1,4 +1,4 @@
-import {EnclaveContext, EnclaveUUID, KurtosisContext} from "kurtosis-sdk"
+import {EnclaveContext, EnclaveUUID, KurtosisContext, StarlarkRunConfig} from "kurtosis-sdk"
 import log from "loglevel"
 import {err, ok, Result} from "neverthrow"
 import {PortSpec} from "kurtosis-sdk/build/core/lib/services/port_spec";
@@ -60,7 +60,7 @@ test("Test quickstart post and get", async () => {
         // ------------------------------------- PACKAGE RUN ----------------------------------------------
         log.info("------------ EXECUTING PACKAGE ---------------")
 
-        const runResult: Result<StarlarkRunResult, Error> = await enclaveContext.runStarlarkRemotePackageBlocking(QUICKSTART_PACKAGE, MAIN_FILE_RELATIVE_PATH, MAIN_FUNCTION_NAME, EMPTY_PACKAGE_PARAMS, IS_NOT_DRY_RUN)
+        const runResult: Result<StarlarkRunResult, Error> = await enclaveContext.runStarlarkRemotePackageBlocking(QUICKSTART_PACKAGE, new StarlarkRunConfig())
 
         if (runResult.isErr()) {
             log.error(`An error occurred execute Starlark package '${QUICKSTART_PACKAGE}'`);
