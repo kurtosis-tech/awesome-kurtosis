@@ -21,9 +21,6 @@ const HTTP_PORT_ID = "http"
 const HTTP_CREATED = 201
 const HTTP_OK = 200
 
-const MAIN_FILE_RELATIVE_PATH = ""
-const MAIN_FUNCTION_NAME = ""
-
 jest.setTimeout(180000)
 
 class Actor {

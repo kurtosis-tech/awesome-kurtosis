@@ -30,17 +30,9 @@ const (
 
 	quickstartPackage = "github.com/kurtosis-tech/awesome-kurtosis/quickstart"
 
-	defaultParallelism = 4
-	noDryRun           = false
-
-	emptyPackageParams = "{}"
-
 	apiServiceName = "api"
 
 	contentType = "application/json"
-
-	pathToMainFile   = ""
-	mainFunctionName = ""
 )
 
 var noExperimentalFeatureFlags = []kurtosis_core_rpc_api_bindings.KurtosisFeatureFlag{}
@@ -101,12 +93,12 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.Nil(t, err)
 	response, err := http.Post(actorsEndPointAddress, contentType, bytes.NewReader(actorsAsBytes))
 	require.Nil(t, err)
-	require.Equal(t, response.StatusCode, http.StatusCreated)
+	require.Equal(t, http.StatusCreated, response.StatusCode)
 
 	// Run a GET request to confirm that data was recorded
 	response, err = http.Get(actorsEndPointAddress)
 	require.Nil(t, err)
-	require.Equal(t, response.StatusCode, http.StatusOK)
+	require.Equal(t, http.StatusOK, response.StatusCode)
 	var allActorsResponse []Actor
 	fetchAllActorsResponseBody, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
