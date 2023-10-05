@@ -1,5 +1,5 @@
 avalanche_module = import_module("github.com/kurtosis-tech/avalanche-package/main.star")
-eth_network_package = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
+ethereum_package = import_module("github.com/kurtosis-tech/ethereum-package/main.star")
 
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
@@ -101,7 +101,8 @@ def init_chain_connection(plan, args):
         http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
     elif args["chain_id"] == "3151908":
         plan.print("Spinning up local etheruem node")
-        participants, _, _ = eth_network_package.run(plan, args)
+        output = ethereum_package.run(plan, args)
+        participants = output.all_participants
         random_eth_node  = participants[0]
         eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
         eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
