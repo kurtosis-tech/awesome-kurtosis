@@ -29,7 +29,7 @@ parameters:
   # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/awesome-kurtosis/triggers
   should-enable-check-latest-version-workflow:
     type: boolean
-    default: true
+    default: false
   # To enable/disabled the check_code workflow execution which will be triggered by the PR's checkers
   should-enable-build-workflow:
     type: boolean
