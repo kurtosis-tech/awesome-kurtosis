@@ -33,6 +33,7 @@ This assumes you have the following services installed:
     ```
     This will clone the repository and install all the necessary dependencies.
 
+* NOTE: This example uses the [`eth-network-package`](https://github.com/kurtosis-tech/eth-network-package) which has now been archived. We use it for this example but we recommend using the updated [`ethereum-package`](https://github.com/kurtosis-tech/ethereum-package) for most development purposes.
 2. Now, Run 
     ```
     kurtosis run github.com/kurtosis-tech/eth-network-package
