@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/ethereum-network-partition-test"
+    directory: "/quickstart/go-test"
     schedule:
       interval: "daily"
     allow:
