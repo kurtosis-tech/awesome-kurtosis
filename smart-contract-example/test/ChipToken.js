@@ -7,6 +7,8 @@ const PLAYER_ONE = '0x878705ba3f8bc32fcf7f4caa1a35e72af65cf766'
 
 describe('ChipToken', function () {
     beforeEach(async function () {
+        // We wait 120 seconds for the genesis delay
+        await sleep(120000)
         this.ChipToken = await ethers.getContractFactory("ChipToken");
         this.chips = await this.ChipToken.deploy();
         await this.chips.deployed();
@@ -15,8 +17,6 @@ describe('ChipToken', function () {
     // Network needs to bootstrap before running this test successfully needs (~1 min)
     describe("mint", function () {
         it('should mint 1000 chips for PLAYER ONE', async function () {
-            // We wait 120 seconds for the genesis delay
-            await sleep(120000)
 
             await this.chips.mint(PLAYER_ONE, 1000);
 
