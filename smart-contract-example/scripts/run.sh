@@ -15,4 +15,4 @@ sed -i "s/<PORT>/$PORT/" hardhat.config.ts
 npx hardhat balances --network localnet
 
 npx hardhat compile
-npx hardhat run scripts/deploy.ts --network localnet
+npx hardhat run scripts/deploy.ts --network localnet || npx hardhat run scripts/deploy.ts --network localnet

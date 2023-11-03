@@ -7,8 +7,6 @@ const PLAYER_ONE = '0x878705ba3f8bc32fcf7f4caa1a35e72af65cf766'
 
 describe('ChipToken', function () {
     beforeEach(async function () {
-        // We wait 120 seconds for the genesis delay
-        await sleep(120000)
         this.ChipToken = await ethers.getContractFactory("ChipToken");
         this.chips = await this.ChipToken.deploy();
         await this.chips.deployed();
