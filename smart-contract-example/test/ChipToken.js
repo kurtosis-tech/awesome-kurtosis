@@ -15,13 +15,15 @@ describe('ChipToken', function () {
     // Network needs to bootstrap before running this test successfully needs (~1 min)
     describe("mint", function () {
         it('should mint 1000 chips for PLAYER ONE', async function () {
+            // We wait 120 seconds for the genesis delay
+            await sleep(120000)
+
             await this.chips.mint(PLAYER_ONE, 1000);
 
-            // We wait 100 seconds for the genesis delay
             // default slot time is 12 seconds, so we wait 13 in case
             // Need to wait a slot for this transaction to be posted in the next block
             // TODO: Implement a way to mine blocks in eth-network-package instantly to eliminate needing to wait (eg. hardhat 'evm_mine')
-            await sleep(13000+100000);
+            await sleep(13000);
 
             const playerOneBalance = await this.chips.balanceOf(PLAYER_ONE)
             expect(playerOneBalance).to.equal(1_000);
