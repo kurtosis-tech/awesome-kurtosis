@@ -33,14 +33,14 @@ export default {
     localnet: {
       url: 'http://127.0.0.1:<PORT>',//TODO: REPLACE <PORT> WITH THE PORT OF A NODE URI PRODUCED BY THE ETH NETWORK KURTOSIS PACKAGE
       // These are private keys associated with prefunded test accounts created by the eth-network-package
-      // https://github.com/kurtosis-tech/eth-network-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
+      //https://github.com/kurtosis-tech/ethereum-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
       accounts: [
-        "ef5177cd0b6b21c87db5a0bf35d4084a8a57a9d6a064f86d51ac85f2b873a4e2",
-        "48fcc39ae27a0e8bf0274021ae6ebd8fe4a0e12623d61464c498900b28feb567",
-        "7988b3a148716ff800414935b305436493e1f25237a2a03e5eebc343735e2f31",
-        "b3c409b6b0b3aa5e65ab2dc1930534608239a478106acf6f3d9178e9f9b00b35",
-        "df9bb6de5d3dc59595bcaa676397d837ff49441d211878c024eabda2cd067c9f",
-        "7da08f856b5956d40a72968f93396f6acff17193f013e8053f6fbb6c08c194d6",
+        "bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",
+        "53321db7c1e331d93a11a41d16f004d7ff63972ec8ec7c25db329728ceeb1710",
+        "ab63b23eb7941c1251757e24b3d2350d2bc05c3c388d06f8fe6feafefb1e8c70",
+        "5d2344259f42259f82d2c140aa66102ba89b57b4883ee441a8b312622bd42491",
+        "27515f805127bebad2fb9b183508bdacb8c763da16f54e0678b16e8f28ef3fff",
+        "7ff1a4c1d57e5e784d327c4c7651e952350bc271f156afb3d00d20f5ef924856",
       ],
     },
     // mainnet config...
