@@ -3,7 +3,7 @@ const { ethers } = require('hardhat');
 require("@nomicfoundation/hardhat-chai-matchers");
 
 
-const PLAYER_ONE = '0x878705ba3f8bc32fcf7f4caa1a35e72af65cf766'
+const PLAYER_ONE = '0x8943545177806ED17B9F23F0a21ee5948eCaa776'
 
 describe('ChipToken', function () {
     beforeEach(async function () {
