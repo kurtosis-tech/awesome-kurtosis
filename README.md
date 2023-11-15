@@ -3,7 +3,7 @@
 Awesome Kurtosis [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 ===============================================================================
 
-A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/concepts-reference/starlark).
+A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/starlark-reference/).
 
 These packages provide a starting point for understanding how to setup, test, and manage different types of environments using the [Kurtosis CLI](https://docs.kurtosis.com/install).
 
@@ -32,7 +32,7 @@ Contents
 - [Postgres](https://github.com/kurtosis-tech/postgres-package) - spins up a local Postgres database
 - [Keycloak](https://github.com/kurtosis-tech/keycloak-package) - spins up a local Keycloak server with a preconfigured application.
 - [Novu](https://github.com/kurtosis-tech/novu-package) - spins up a full Novu environment
- 
+
 ### Kurtosis Web3 Starlark Packages
 
 - [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
