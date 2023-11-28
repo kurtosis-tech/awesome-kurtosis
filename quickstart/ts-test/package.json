@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@types/node-fetch": "2.x",
-    "kurtosis-sdk": "0.85.2",
+    "kurtosis-sdk": "0.85.36",
     "node-fetch": "2.6.7"
   }
 }
