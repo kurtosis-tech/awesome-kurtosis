@@ -82,7 +82,7 @@ test("Test quickstart post and get", async () => {
         }
 
         if (!apiServicePublicPorts.has(HTTP_PORT_ID)){
-            throw new Error(`Expected to find API service port wih ID ${HTTP_PORT_ID} but it was not found`)
+            throw new Error(`Expected to find API service port with ID ${HTTP_PORT_ID} but it was not found`)
         }
 
         const apiServiceHttpPortSpec: PortSpec = apiServicePublicPorts.get(HTTP_PORT_ID)!
