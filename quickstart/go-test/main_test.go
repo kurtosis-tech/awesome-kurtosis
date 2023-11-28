@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/kurtosis_core_rpc_api_bindings"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -24,23 +26,16 @@ server apps.
 */
 
 const (
-	enclaveIdPrefix       = "quick-start-go-example"
-	isPartitioningEnabled = false
+	enclaveIdPrefix = "quick-start-go-example"
 
 	quickstartPackage = "github.com/kurtosis-tech/awesome-kurtosis/quickstart"
-
-	defaultParallelism = 4
-	noDryRun           = false
-
-	emptyPackageParams = "{}"
 
 	apiServiceName = "api"
 
 	contentType = "application/json"
-
-	pathToMainFile   = ""
-	mainFunctionName = ""
 )
+
+var noExperimentalFeatureFlags = []kurtosis_core_rpc_api_bindings.KurtosisFeatureFlag{}
 
 type Actor struct {
 	Name     string `json:"first_name"`
@@ -58,12 +53,12 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 
 	enclaveId := fmt.Sprintf("%s-%d", enclaveIdPrefix, time.Now().Unix())
 
-	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId, isPartitioningEnabled)
+	enclaveCtx, err := kurtosisCtx.CreateEnclave(ctx, enclaveId)
 	require.NoError(t, err, "An error occurred creating the enclave")
 	defer kurtosisCtx.DestroyEnclave(ctx, enclaveId)
 
 	logrus.Info("------------ EXECUTING PACKAGE ---------------")
-	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, quickstartPackage, pathToMainFile, mainFunctionName, emptyPackageParams, noDryRun, defaultParallelism)
+	starlarkRunResult, err := enclaveCtx.RunStarlarkRemotePackageBlocking(ctx, quickstartPackage, starlark_run_config.NewRunStarlarkConfig())
 	require.NoError(t, err, "An error executing loading the Quickstart package")
 	require.Nil(t, starlarkRunResult.InterpretationError)
 	require.Empty(t, starlarkRunResult.ValidationErrors)
@@ -98,12 +93,12 @@ func TestQuickStart_RespondsToAPIRequestsAsExpected(t *testing.T) {
 	require.Nil(t, err)
 	response, err := http.Post(actorsEndPointAddress, contentType, bytes.NewReader(actorsAsBytes))
 	require.Nil(t, err)
-	require.Equal(t, response.StatusCode, http.StatusCreated)
+	require.Equal(t, http.StatusCreated, response.StatusCode)
 
 	// Run a GET request to confirm that data was recorded
 	response, err = http.Get(actorsEndPointAddress)
 	require.Nil(t, err)
-	require.Equal(t, response.StatusCode, http.StatusOK)
+	require.Equal(t, http.StatusOK, response.StatusCode)
 	var allActorsResponse []Actor
 	fetchAllActorsResponseBody, err := io.ReadAll(response.Body)
 	require.Nil(t, err)
