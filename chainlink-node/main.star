@@ -1,5 +1,5 @@
 avalanche_module = import_module("github.com/kurtosis-tech/avalanche-package/main.star")
-eth_network_package = import_module("github.com/kurtosis-tech/eth-network-package/main.star")
+ethereum_package = import_module("github.com/kurtosis-tech/ethereum-package/main.star")
 
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
@@ -22,14 +22,13 @@ def run(plan, args):
     is_local_chain, chain_name, chain_id, wss_url, http_url = init_chain_connection(plan, args)
 
     # Spin up the postgres database and wait for it to be up and ready
-    postgres_args = {
-        "password": POSTGRES_PASSWORD,
-        "database": POSTGRES_DATABASE,
-        "user": POSTGRES_USER,
-        "name": POSTGRES_SERVICE_NAME,
-    }
-
-    postgres_db = postgres.run(plan, postgres_args)
+    postgres_db = postgres.run(
+        plan,
+        service_name=POSTGRES_SERVICE_NAME,
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+        database=POSTGRES_DATABASE,
+    )
 
     postgres_db_hostname = get_postgres_hostname_from_service(postgres_db)
 
@@ -102,7 +101,8 @@ def init_chain_connection(plan, args):
         http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
     elif args["chain_id"] == "3151908":
         plan.print("Spinning up local etheruem node")
-        participants, _ = eth_network_package.run(plan, args)
+        output = ethereum_package.run(plan, args)
+        participants = output.all_participants
         random_eth_node  = participants[0]
         eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
         eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
@@ -115,8 +115,8 @@ def init_chain_connection(plan, args):
 
 
 def render_chainlink_config(plan, postgres_hostname, postgres_port, chain_name, chain_id, wss_url, http_url):
-    config_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/config.toml.tmpl")
-    secret_file_template = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/secret.toml.tmpl")
+    config_file_template = read_file("./chainlink_resources/config.toml.tmpl")
+    secret_file_template = read_file("./chainlink_resources/secret.toml.tmpl")
     chainlink_config_files = plan.render_templates(
         name="chainlink-configuration",
         config={
@@ -167,7 +167,7 @@ def seed_database(plan, chainlink_config_files):
         )
     )
 
-    seed_user_sql = read_file("github.com/kurtosis-tech/chainlink-starlark/chainlink_resources/seed_users.sql")
+    seed_user_sql = read_file("./chainlink_resources/seed_users.sql")
     psql_command = "psql --username {} -c \"{}\" {}".format(POSTGRES_USER, str(seed_user_sql), POSTGRES_DATABASE)
     create_user_recipe = ExecRecipe(command = ["sh", "-c", psql_command])
     plan.wait(
