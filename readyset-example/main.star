@@ -10,8 +10,8 @@ PYTHON_SERVICE_NAME="benchmark"
 UPSTREAM_DB_URL_KEY = "upstream_db_url"
 
 MYSQL_DATABASE_TYPE = "mysql"
-BENCHMARK_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/benchmark.py"
-POSTGRES_SEED_FILE_LOCATION = "github.com/kurtosis-tech/awesome-kurtosis/readyset-example/seed/postgres_long.sql"
+BENCHMARK_FILE_LOCATION = "./benchmark.py"
+POSTGRES_SEED_FILE_LOCATION = "./seed/postgres_long.sql"
 QUERY_TO_CACHE = "CREATE CACHE FROM SELECT count(*) FROM title_ratings JOIN title_basics ON title_ratings.tconst = title_basics.tconst WHERE title_basics.startyear = 2000 AND title_ratings.averagerating > 5;"
 
 def run_local_postgres(plan):
@@ -20,15 +20,14 @@ def run_local_postgres(plan):
         name="postgres_seed_file"
     )
 
-    postgres_args = { 
-        "postgres_config": ["wal_level=logical"],
-        "seed_file_artifact": "postgres_seed_file",
-        "password": PASSWORD,
-        "database": DATABASE,
-        "user": USERNAME,
-    }
-
-    postgres_data = postgres.run( plan, postgres_args)
+    postgres_data = postgres.run(
+        plan,
+        user = USERNAME,
+        password = PASSWORD,
+        database = DATABASE,
+        seed_file_artifact_name = "postgres_seed_file",
+        extra_configs = ["wal_level=logical"],
+    )
     return postgres_data
 
 def run_performance_service(plan, readyset_data, postgres_data):
