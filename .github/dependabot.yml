@@ -1,8 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/ethereum-network-partition-test"
+    directory: "/quickstart/go-test"
     schedule:
       interval: "daily"
     allow:
       - dependency-name: "github.com/kurtosis-tech/kurtosis/api/golang"
+  - package-ecosystem: "npm"
+    directory: "/quickstart/ts-test"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "kurtosis-sdk"
