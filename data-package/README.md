@@ -1,8 +1,8 @@
 Data Package
 ===========
-This is a tiny [Kurtosis package](https://docs.kurtosis.com/concepts-reference/packages) that serves as an example for how data can be depended upon with the Kurtosis packaging system.
+This is a tiny [Kurtosis package](https://docs.kurtosis.com/advanced-concepts/packages) that serves as an example for how data can be depended upon with the Kurtosis packaging system.
 
-Using this package will give you a [future reference](https://docs.kurtosis.com/concepts-reference/future-references) to a [files artifact](https://docs.kurtosis.com/concepts-reference/files-artifacts) containing the `dvd-rental-data.tar` file that lives in this directory.
+Using this package will give you a [future reference](https://docs.kurtosis.com/advanced-concepts/future-references) to a [files artifact](https://docs.kurtosis.com/basic-concepts/#files-artifact) containing the `dvd-rental-data.tar` file that lives in this directory.
 
 For example, your Starlark might look like so:
 
