@@ -118,7 +118,7 @@ def run(plan, args):
         # })
         # return struct(readyset=readyset_data, mysql=mysql_data)
     
-    # This is default behaviour to show how kurtosis can simpilfy creating isolated and consistent enviornments with same initial state
+    # This is default behaviour to show how kurtosis can simpilfy creating isolated and consistent environments with same initial state
     # We can run same set of services under same condition multiple times either locally or on cloud. If you are interested in learning more
     # about cloud offering, please reach out to us. 
     postgres_data = run_local_postgres(plan)
