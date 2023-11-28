@@ -3,7 +3,7 @@
 Awesome Kurtosis [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 ===============================================================================
 
-A curated list of [Kurtosis Packages](https://docs.kurtosis.com/concepts-reference/packages) written in [Starlark](https://docs.kurtosis.com/concepts-reference/starlark).
+A curated list of [Kurtosis Packages](https://docs.kurtosis.com/advanced-concepts/packages) written in [Starlark](https://docs.kurtosis.com/starlark-reference).
 
 These packages provide a starting point for understanding how to setup, test, and manage different types of environments using the [Kurtosis CLI](https://docs.kurtosis.com/install).
 
