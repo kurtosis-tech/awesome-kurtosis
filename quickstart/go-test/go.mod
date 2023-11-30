@@ -3,7 +3,7 @@ module github.com/kurtosis-tech/awesome-kurtosis/quickstart/go-test
 go 1.19
 
 require (
-	github.com/kurtosis-tech/kurtosis/api/golang v0.85.36
+	github.com/kurtosis-tech/kurtosis/api/golang v0.85.38
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.4
 )
