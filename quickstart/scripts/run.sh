@@ -13,4 +13,4 @@ cd "${package_path}/ts-test"
 npm install -g yarn
 yarn install
 yarn build
-yarn test
+yarn test --detectOpenHandles
