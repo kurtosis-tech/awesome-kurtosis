@@ -78,6 +78,7 @@ jobs:
               if ! echo "$skip_dirs" | grep -q "$directory"; then
                 "./${directory}scripts/run.sh"
                 kurtosis clean -a
+                sleep 10
               fi
             done
 
