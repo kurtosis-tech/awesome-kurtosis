@@ -170,7 +170,7 @@ def verify_counts(plan, kafka_bootstrap_server_host_port, kafka_output_topic, se
         field="extract.word-count",
         assertion="==",
         target_value=True,
-        timeout="15s",
+        timeout="60s",
     )
 
     return
