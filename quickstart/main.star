@@ -54,7 +54,7 @@ def run(plan, args):
     api = plan.add_service(
         name = "api",
         config = ServiceConfig(
-            image = "postgrest/postgrest:v10.2.0.20230209",
+            image = "postgrest/postgrest:v10.2.0",
             env_vars = {
                 "PGRST_DB_URI": postgres_url,
                 "PGRST_DB_ANON_ROLE": POSTGRES_USER,
