@@ -11,7 +11,7 @@ kurtosis run github.com/kurtosis-tech/ethereum-package@1.4.0  --enclave hardhat-
 PORT=$(kurtosis enclave inspect hardhat-enclave | grep "rpc: 8545/tcp" | grep -oh "127.0.0.1\:[0-9]*" | cut -d':' -f2)
 
 # sed -i '' "s/<PORT>/$PORT/" hardhat.config.ts if you want to run it on Mac
-gsed -i "s/<PORT>/$PORT/" hardhat.config.ts
+sed -i "s/<PORT>/$PORT/" hardhat.config.ts
 
 npx hardhat balances --network localnet
 
