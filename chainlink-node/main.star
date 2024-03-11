@@ -104,8 +104,8 @@ def init_chain_connection(plan, args):
         output = ethereum_package.run(plan, args)
         participants = output.all_participants
         random_eth_node  = participants[0]
-        eth_rpc = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
-        eth_ws = "{}:{}".format(random_eth_node.el_client_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
+        eth_rpc = "{}:{}".format(random_eth_node.el_context.ip_addr, random_eth_node.el_client_context.rpc_port_num)
+        eth_ws = "{}:{}".format(random_eth_node.el_context.ip_addr, random_eth_node.el_client_context.ws_port_num)
         http_url = "http://{}/".format(eth_rpc)
         ws_url = "ws://{}/".format(eth_ws)
     else:
