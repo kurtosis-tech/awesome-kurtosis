@@ -1,1 +1,3 @@
 name: github.com/kurtosis-tech/awesome-kurtosis/chainlink-node
+replace:
+  github.com/kurtosis-tech/ethereum-package: github.com/kurtosis-tech/ethereum-package@1.4.0
