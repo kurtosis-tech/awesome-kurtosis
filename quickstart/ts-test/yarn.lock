@@ -2188,10 +2188,10 @@ kleur@^3.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
 
-kurtosis-sdk@0.88.3:
-  version "0.88.3"
-  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.88.3.tgz#be6711af8d102a27f5b84cdf18957c11767ae561"
-  integrity sha512-J8jbzRyrkWeufkKA880r0pAFCMabwg02vkRb+ai3+yGOYwaLz8Oc+2CuWV7S9dot+R3r3nT6a1sbD3NcoosG/g==
+kurtosis-sdk@0.88.7:
+  version "0.88.7"
+  resolved "https://registry.yarnpkg.com/kurtosis-sdk/-/kurtosis-sdk-0.88.7.tgz#793f435d75c3a7243b2fbcffaa34ff7c4abfd0e1"
+  integrity sha512-iCBweDnbmk0s8AnwWaKQQg0LCEUMwqXG8K6IuA/8Zuzd1FoW/iEVgjP7hTrWmq8lbQnjyXQBwXkibc4au0fQDQ==
   dependencies:
     "@bufbuild/connect" "^0.12.0"
     "@bufbuild/connect-web" "^0.12.0"
