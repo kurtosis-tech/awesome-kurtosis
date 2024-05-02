@@ -5,7 +5,7 @@ by using the [`eth-network-package`](https://github.com/kurtosis-tech/eth-networ
 The `eth-network package` can be used as a low overhead, configurable, and composable alternative to frameworks like
 `hardhat-network`, `ganache` and `anvil`. Kurtosis provides the developer more control and flexibility over the testnet they are using - a large reason why the [Ethereum Foundation used Kurtosis to test the Merge](https://www.kurtosis.com/blog/testing-the-ethereum-merge), and why they continue to use Kurtosis for various tests for upcoming upgrades to the network.
 
-While this example covers only the Ethereum blockchain, Kurtosis can be used to locally configure and instantiate other blockchains (e.g. [NEAR](https://docs.near.org/develop/testing/kurtosis-localnet), [Avalanche](https://medium.com/avalancheavax/introducing-kurtosis-a-complete-testing-platform-to-accelerate-development-on-avalanche-6ad7e1147791) and allows you to connect your local testnet with any containerized service you wish.
+While this example covers only the Ethereum blockchain, Kurtosis can be used to locally configure and instantiate other blockchains (e.g. [NEAR](https://github.com/kurtosis-tech/near-package), [Avalanche](https://medium.com/avalancheavax/introducing-kurtosis-a-complete-testing-platform-to-accelerate-development-on-avalanche-6ad7e1147791) and allows you to connect your local testnet with any containerized service you wish.
 
 ### Setup
 
