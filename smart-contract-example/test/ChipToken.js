@@ -9,7 +9,7 @@ describe('ChipToken', function () {
     beforeEach(async function () {
         this.ChipToken = await ethers.getContractFactory("ChipToken");
         this.chips = await this.ChipToken.deploy();
-        await this.chips.deployed();
+        await this.chips.waitForDeployment();
     });
 
     // Network needs to bootstrap before running this test successfully needs (~1 min)
