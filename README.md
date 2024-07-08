@@ -35,7 +35,7 @@ Contents
  
 ### Kurtosis Web3 Starlark Packages
 
-- [Ethereum Package](https://github.com/kurtosis-tech/eth2-package) - spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
+- [Ethereum Package](https://github.com/ethpandaops/ethereum-package) - spins up a local Proof-of-Stake (PoS) Ethereum testnet, supporting supporting 9 different EL and CL clients including geth, lighthouse, lodestar, nimbus and erigon.
 - [Avalanche Node Package](https://github.com/kurtosis-tech/avalanche-package) - spins up a local, non-staking [Avalanche Go](https://github.com/ava-labs/avalanchego) node for local development and testing. This package can also be used to connect to other containerized services that make up your distributed system, like an instance of a wallet, indexer, explorer, or your dApp.
 - [Aptos Validator Node with Faucet](https://github.com/kurtosis-tech/aptos-package/tree/main/testnet-validator-example) - sets up a local Aptos validator node and a testnet faucet for use in local development and testing workflows on the Aptos protocol.
 - [Aptos Configurable Topology](https://github.com/kurtosis-tech/aptos-package/tree/main/testnet-topology) - sets up a local Aptos testnet with `n` validator, validator full nodes and public full nodes.
