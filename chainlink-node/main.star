@@ -1,5 +1,5 @@
 avalanche_module = import_module("github.com/kurtosis-tech/avalanche-package/main.star")
-ethereum_package = import_module("github.com/kurtosis-tech/ethereum-package/main.star")
+ethereum_package = import_module("github.com/ethpandaops/ethereum-package/main.star")
 
 postgres = import_module("github.com/kurtosis-tech/postgres-package/main.star")
 
