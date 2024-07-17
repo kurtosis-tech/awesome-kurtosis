@@ -33,7 +33,7 @@ export default {
     localnet: {
       url: 'http://127.0.0.1:<PORT>',//TODO: REPLACE <PORT> WITH THE PORT OF A NODE URI PRODUCED BY THE ETH NETWORK KURTOSIS PACKAGE
       // These are private keys associated with prefunded test accounts created by the eth-network-package
-      //https://github.com/kurtosis-tech/ethereum-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
+      //https://github.com/ethpandaops/ethereum-package/blob/main/src/prelaunch_data_generator/genesis_constants/genesis_constants.star
       accounts: [
         "bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",
         "53321db7c1e331d93a11a41d16f004d7ff63972ec8ec7c25db329728ceeb1710",
