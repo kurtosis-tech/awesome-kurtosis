@@ -45,7 +45,7 @@ Simply override the `args.json` file with the following data:
 }
 ```
 
-The `chain_id` and URLs are from the [official Avalanche Public API Server docs](https://docs.avax.network/apis/avalanchego/public-api-server#using-the-public-api-nodes).
+The `chain_id` and URLs are from the [official Avalanche Public API Server docs](https://docs.avax.network/api-reference/rpc-providers#mainnet-rpc---public-api-server).
 
 ### Running a local Avalanche Network
 
