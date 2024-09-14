@@ -49,16 +49,11 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
-            for directory in */ ; do
-              if git --no-pager diff --exit-code origin/main...HEAD -- ':.circleci' ":${directory%/}"; then
-                continue
-              fi            
-              if ! echo "$skip_dirs" | grep -q "$directory"; then
-                "./${directory}scripts/run.sh"
+            shopt -s globstar
+            for run in **/run.sh; do
+                "$run"
                 kurtosis clean -a
                 sleep 2
-              fi
             done
 
   check_all_nightly:
