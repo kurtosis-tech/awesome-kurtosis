@@ -18,7 +18,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@4.10.1
-  kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.7
+  kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.9
 
 executors:
   ubuntu_vm:
@@ -78,6 +78,7 @@ jobs:
             for run in **/run.sh; do
                 "$run"
                 kurtosis clean -a
+                sleep 2
             done
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
