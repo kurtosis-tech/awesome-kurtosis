@@ -74,12 +74,10 @@ jobs:
           no_output_timeout: 30m
           command: |
             set -euo pipefail
-            skip_dirs=(".circleci/ .github/ data-package/")
-            for directory in */ ; do
-              if ! echo "$skip_dirs" | grep -q "$directory"; then
-                "./${directory}scripts/run.sh"
+            shopt -s globstar
+            for run in **/run.sh; do
+                "$run"
                 kurtosis clean -a
-              fi
             done
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
