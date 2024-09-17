@@ -101,7 +101,8 @@ def init_chain_connection(plan, args):
         http_url = "http://{}/ext/bc/C/rpc".format(avax_ip_port)
     elif args["chain_id"] == "3151908":
         plan.print("Spinning up local etheruem node")
-        output = ethereum_package.run(plan, args)
+        ethereum_package_args = {}
+        output = ethereum_package.run(plan, ethereum_package_args)
         participants = output.all_participants
         random_eth_node  = participants[0]
         eth_rpc = "{}:{}".format(random_eth_node.el_context.ip_addr, random_eth_node.el_context.rpc_port_num)

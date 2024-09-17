@@ -84,8 +84,8 @@ def create_service_kafka(plan, kafka_service_name, zookeeper_service_name, kafka
     kafka_config = ServiceConfig(
         image=KAFKA_IMAGE,
         ports={
-            "bootstrap-server-internal": PortSpec(number=kafka_service_port_internal_number),
-            "bootstrap-server-external": PortSpec(number=kafka_service_port_external_number),
+            "bootstrap-int": PortSpec(number=kafka_service_port_internal_number),
+            "bootstrap-ext": PortSpec(number=kafka_service_port_external_number),
         },
         env_vars={
             "KAFKA_ENABLE_KRAFT": "no",

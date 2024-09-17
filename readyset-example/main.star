@@ -34,7 +34,7 @@ def run_performance_service(plan, readyset_data, postgres_data):
     # this checks whether readyset is ready to cache queries
     # the timeout used is dependent upon the size of the data being snapshotted 
     # through trial and error 1min seems to be reasonable timeout for the seed data thats being used
-    readyset_conn_url = "PGPASSWORD={0} psql --host={1} --port={2} --username={3} --dbname={4}".format(PASSWORD, readyset_data.service.hostname, readyset_data.service.ports["ready_set_port"].number, USERNAME, DATABASE)
+    readyset_conn_url = "PGPASSWORD={0} psql --host={1} --port={2} --username={3} --dbname={4}".format(PASSWORD, readyset_data.service.hostname, readyset_data.service.ports["ready-set-port"].number, USERNAME, DATABASE)
     plan.print(readyset_conn_url)
 
     snapshot_check_recipe = ExecRecipe(
