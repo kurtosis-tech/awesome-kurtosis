@@ -1,6 +1,6 @@
 main_redis_module = import_module("github.com/kurtosis-tech/redis-package/main.star")
 
-VOTING_APP_IMAGE = "mcr.microsoft.com/azuredocs/azure-vote-front:v1"
+VOTING_APP_IMAGE = "lgmorand/azure-vote-front:v1"
 
 def run(plan, should_party = False):
     """
